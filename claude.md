@@ -48,3 +48,20 @@
 - ENV variables must be defined in `.env.local` and Vercel dashboard.
 - No hardcoded secrets in code.
 - Robots.txt must block indexing in Preview/Dev environments.
+
+
+## Coding Standards
+- Always use descriptive variable names
+- No `window` globals – only ES6 imports/exports
+- All DB queries must be scoped by tenant_id
+- Use Node runtime for Prisma (never Edge)
+- Lös aldrig problem genom att ta bort funktionalitet.
+- Föreslå aldrig quickfix utan att förklara varför det bryter mot våra regler.
+- Alltid Tenant-isolation via RLS, aldrig “temporär bypass”.
+
+## 🚫 No Shortcuts
+- Do not disable TypeScript checks
+- Do not remove RLS to make queries work
+- Do not bypass role checks
+- Do not hardcode tenant_id or user_id
+
