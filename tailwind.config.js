@@ -10,6 +10,8 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/modules/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  mode: 'jit',
+  purge: false,
   safelist: [
     'grid',
     'grid-cols-2',
