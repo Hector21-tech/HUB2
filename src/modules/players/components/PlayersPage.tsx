@@ -266,7 +266,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
   // }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1e3a8a] via-[#3b82f6] to-[#1e40af]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] via-[#1e40af] to-[#0c1030]">
       {/* Debug Info - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
         <div className="bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#3E2723] p-3 text-sm">

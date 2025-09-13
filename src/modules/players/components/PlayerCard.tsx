@@ -33,30 +33,38 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
   return (
     <div
       className={`
-        relative bg-gradient-to-br from-[#f1f5f9] via-[#e2e8f0] to-[#cbd5e1]
-        rounded-xl shadow-2xl cursor-pointer transition-all duration-300 ease-out
-        border-2 border-[#FFD700]/40 overflow-hidden backdrop-blur-sm
-        ${isHovered ? 'shadow-2xl shadow-[#FFD700]/30 scale-[1.03] border-[#FFD700]/60' : 'shadow-xl'}
+        relative bg-gradient-to-br from-[#f8fafc] via-[#e2e8f0] via-[#d1d5db] to-[#9ca3af]
+        rounded-xl shadow-2xl cursor-pointer transition-all duration-500 ease-out
+        border-2 border-[#FFD700]/50 overflow-hidden backdrop-blur-lg
+        before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-black/10 before:pointer-events-none
+        ${isHovered ? 'shadow-[0_25px_60px_-12px_rgba(255,215,0,0.4)] scale-[1.05] border-[#FFD700]/80 before:opacity-100' : 'shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] before:opacity-70'}
       `}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onCardClick(player)}
     >
-      {/* Metallic glow effect on hover */}
+      {/* Enhanced metallic glow effect on hover */}
       <div className={`
-        absolute inset-0 bg-gradient-to-r from-[#FFD700]/10 via-[#FFA500]/5 to-transparent
-        transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}
+        absolute inset-0 bg-gradient-to-r from-[#FFD700]/15 via-[#FFA500]/8 via-transparent to-[#FFD700]/5
+        transition-all duration-500 ${isHovered ? 'opacity-100 animate-pulse' : 'opacity-0'}
       `} />
 
-      {/* Metallic reflection effect */}
-      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+      {/* Premium metallic reflection effect */}
+      <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/30 via-white/10 to-transparent pointer-events-none" />
+
+      {/* Subtle shine animation */}
+      <div className={`
+        absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
+        transform -skew-x-12 transition-all duration-1000 pointer-events-none
+        ${isHovered ? 'translate-x-full opacity-60' : '-translate-x-full opacity-0'}
+      `} />
 
       <div className="relative p-6">
         {/* Player Avatar */}
         <div className="flex justify-center mb-4">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#e2e8f0] via-[#f1f5f9] to-[#cbd5e1] border-3 border-[#FFD700] flex items-center justify-center shadow-inner">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1e3a8a]/20 to-[#3b82f6]/10 flex items-center justify-center shadow-lg">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f1f5f9] via-[#e5e7eb] to-[#d1d5db] border-3 border-[#FFD700] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#0f172a]/30 via-[#1e3a8a]/20 to-[#1e40af]/15 flex items-center justify-center shadow-lg backdrop-blur-sm">
                 <span className="text-2xl font-bold text-[#FFD700] drop-shadow-md">
                   {player.firstName?.[0]}{player.lastName?.[0]}
                 </span>
@@ -120,19 +128,19 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
         {/* Key Stats */}
         <div className="border-t border-[#FFD700]/20 pt-4">
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-gradient-to-br from-[#1e3a8a]/10 to-[#3b82f6]/5 rounded-lg py-2 border border-[#3b82f6]/20">
+            <div className="bg-gradient-to-br from-[#0f172a]/15 via-[#1e3a8a]/10 to-[#1e40af]/8 rounded-lg py-2 border border-[#FFD700]/20 backdrop-blur-sm shadow-inner">
               <div className="text-lg font-bold text-[#FFD700] drop-shadow-sm">
                 {player.goalsThisSeason || 0}
               </div>
               <div className="text-xs text-[#64748b] font-medium">Goals</div>
             </div>
-            <div className="bg-gradient-to-br from-[#1e3a8a]/10 to-[#3b82f6]/5 rounded-lg py-2 border border-[#3b82f6]/20">
+            <div className="bg-gradient-to-br from-[#0f172a]/15 via-[#1e3a8a]/10 to-[#1e40af]/8 rounded-lg py-2 border border-[#FFD700]/20 backdrop-blur-sm shadow-inner">
               <div className="text-lg font-bold text-[#FFD700] drop-shadow-sm">
                 {player.assistsThisSeason || 0}
               </div>
               <div className="text-xs text-[#64748b] font-medium">Assists</div>
             </div>
-            <div className="bg-gradient-to-br from-[#1e3a8a]/10 to-[#3b82f6]/5 rounded-lg py-2 border border-[#3b82f6]/20">
+            <div className="bg-gradient-to-br from-[#0f172a]/15 via-[#1e3a8a]/10 to-[#1e40af]/8 rounded-lg py-2 border border-[#FFD700]/20 backdrop-blur-sm shadow-inner">
               <div className="text-lg font-bold text-[#FFD700] drop-shadow-sm">
                 {player.appearances || 0}
               </div>

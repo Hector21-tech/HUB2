@@ -35,7 +35,7 @@ export function PlayersHeader({
   ).length
 
   return (
-    <div className="bg-gradient-to-r from-[#1e3a8a]/20 to-[#3b82f6]/20 border-b border-[#FFD700]/20 backdrop-blur-sm">
+    <div className="bg-gradient-to-r from-[#0f172a]/40 via-[#1e3a8a]/30 to-[#1e40af]/40 border-b border-[#FFD700]/30 backdrop-blur-md">
       <div className="p-6">
         {/* Title and Stats */}
         <div className="flex items-center justify-between mb-6">
