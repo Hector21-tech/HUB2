@@ -41,12 +41,12 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
   }
 
   const getSkillLevel = (rating?: number) => {
-    if (!rating) return { label: 'N/A', color: 'bg-[#D7CCC8]' }
-    if (rating >= 9) return { label: 'Elite', color: 'bg-gradient-to-r from-[#D4AF37] to-[#F4D03F]' }
-    if (rating >= 8) return { label: 'Excellent', color: 'bg-gradient-to-r from-[#D4AF37]/80 to-[#F4D03F]/80' }
-    if (rating >= 7) return { label: 'Good', color: 'bg-gradient-to-r from-[#D4AF37]/60 to-[#F4D03F]/60' }
-    if (rating >= 6) return { label: 'Average', color: 'bg-[#D7CCC8]' }
-    return { label: 'Below Avg', color: 'bg-[#D7CCC8]/60' }
+    if (!rating) return { label: 'N/A', color: 'bg-white/20' }
+    if (rating >= 9) return { label: 'Elite', color: 'bg-gradient-to-r from-blue-400 to-blue-600' }
+    if (rating >= 8) return { label: 'Excellent', color: 'bg-gradient-to-r from-blue-400/80 to-blue-600/80' }
+    if (rating >= 7) return { label: 'Good', color: 'bg-gradient-to-r from-blue-400/60 to-blue-600/60' }
+    if (rating >= 6) return { label: 'Average', color: 'bg-white/20' }
+    return { label: 'Below Avg', color: 'bg-white/20' }
   }
 
   const technicalSkills = [
@@ -141,7 +141,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           {/* Basic Information */}
           <section>
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 text-[#D4AF37]" />
+              <Star className="w-5 h-5 text-blue-400" />
               Basic Information
             </h3>
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
@@ -205,7 +205,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="bg-white/50 rounded-xl p-4 border border-[#D7CCC8]/20 text-center"
+                  className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center"
                 >
                   <div className="text-2xl font-bold text-blue-400 drop-shadow-sm mb-1">{stat.value}</div>
                   <div className="text-sm text-white/60">{stat.label}</div>
@@ -246,7 +246,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
               <div className="grid grid-cols-2 gap-4">
                 {physicalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#3E2723]">{attr.name}</span>
+                    <span className="text-sm font-medium text-white">{attr.name}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-[#1e3a8a]/30 rounded-full overflow-hidden shadow-inner">
                         <div
@@ -271,7 +271,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
               <div className="grid grid-cols-2 gap-4">
                 {mentalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#3E2723]">{attr.name}</span>
+                    <span className="text-sm font-medium text-white">{attr.name}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-[#1e3a8a]/30 rounded-full overflow-hidden shadow-inner">
                         <div
@@ -293,7 +293,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           {(player.notes || player.tags?.length > 0) && (
             <section>
               <h3 className="text-lg font-semibold text-white mb-4">Notes & Tags</h3>
-              <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20 space-y-4">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 space-y-4">
                 {player.notes && (
                   <div>
                     <label className="text-sm font-medium text-white/60 block mb-2">Notes</label>
