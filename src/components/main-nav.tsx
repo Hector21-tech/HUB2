@@ -19,9 +19,8 @@ export function MainNav({ tenant }: MainNavProps) {
     },
     {
       href: `/${tenant}/players`,
-      label: 'Players (Soon)',
-      active: false,
-      disabled: true
+      label: 'Players',
+      active: pathname === `/${tenant}/players`
     },
     {
       href: `/${tenant}/requests`,
