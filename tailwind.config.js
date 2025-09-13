@@ -56,15 +56,17 @@ module.exports = {
     'p-4','p-6','p-8','px-4','py-2','pt-2','pb-2',
     'mb-2','mb-4','mt-2','mt-4','gap-4','gap-6','space-x-4','space-y-0','space-y-2','space-y-4',
 
-    // Mönster (fångar dynamik)
-    { pattern: /grid-cols-(1|2|3|4|5|6|12)/ },
-    { pattern: /(sm|md|lg|xl):grid-cols-(1|2|3|4|6|12)/ },
-    { pattern: /col-span-(1|2|3|4|5|6|7|8|9|10|11|12)/ },
-    { pattern: /^(p|px|py|pt|pb|pl|pr)-(0|1|2|3|4|5|6|8)$/ },
-    { pattern: /^(m|mx|my|mt|mb|ml|mr)-(0|1|2|3|4|5|6|8|auto)$/ },
-    // Färgskalor om AI genererar Tailwind-färger
-    { pattern: /(text|bg|border)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /hover:(bg|text|border)-(blue|gray|green|red|yellow)-(500|600|700)/ },
+    // Specifika grid klasser för att undvika mönsterproblem
+    'grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4', 'grid-cols-6', 'grid-cols-12',
+    'md:grid-cols-1', 'md:grid-cols-2', 'md:grid-cols-3', 'md:grid-cols-4',
+    'lg:grid-cols-1', 'lg:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4', 'lg:grid-cols-6',
+    'col-span-1', 'col-span-2', 'col-span-3', 'col-span-4', 'col-span-6',
+    
+    // Vanliga spacing värden
+    'p-0', 'p-1', 'p-2', 'p-3', 'p-4', 'p-5', 'p-6', 'p-8',
+    'px-0', 'px-1', 'px-2', 'px-3', 'px-4', 'px-5', 'px-6', 'px-8',
+    'py-0', 'py-1', 'py-2', 'py-3', 'py-4', 'py-5', 'py-6', 'py-8',
+    'm-0', 'm-1', 'm-2', 'm-3', 'm-4', 'm-5', 'm-6', 'm-8', 'm-auto',
   ],
 
   prefix: '',
@@ -103,7 +105,6 @@ module.exports = {
     require('tailwindcss-animate'),
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
-    require('@tailwindcss/line-clamp'),
   ],
 
   future: { hoverOnlyWhenSupported: true },
