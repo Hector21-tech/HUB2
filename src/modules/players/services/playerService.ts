@@ -67,19 +67,8 @@ export class PlayerService {
       }
     }
 
-    if (filters?.marketValueMin) {
-      where.marketValue = {
-        ...where.marketValue,
-        gte: filters.marketValueMin
-      }
-    }
-
-    if (filters?.marketValueMax) {
-      where.marketValue = {
-        ...where.marketValue,
-        lte: filters.marketValueMax
-      }
-    }
+    // Market value filters - not available in current schema
+    // TODO: Add marketValue column to Player schema when implementing extended attributes
 
     try {
       const players = await prisma.player.findMany({
@@ -292,10 +281,7 @@ export class PlayerService {
         where: { tenantId },
         _count: { id: true },
         _avg: {
-          rating: true,
-          marketValue: true,
-          goalsThisSeason: true,
-          assistsThisSeason: true
+          rating: true
         }
       })
 
@@ -316,9 +302,6 @@ export class PlayerService {
       return {
         totalPlayers: stats._count.id,
         averageRating: stats._avg.rating || 0,
-        averageMarketValue: stats._avg.marketValue || 0,
-        averageGoals: stats._avg.goalsThisSeason || 0,
-        averageAssists: stats._avg.assistsThisSeason || 0,
         positionBreakdown: positionCounts,
         topNationalities: nationalityCounts
       }
