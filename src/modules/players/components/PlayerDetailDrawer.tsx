@@ -95,32 +95,43 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         overflow-y-auto backdrop-blur-sm
       `}>
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-[#020617]/95 via-[#0c1532]/90 via-[#1e3a8a]/85 to-[#0f1b3e]/95 backdrop-blur-xl border-b border-[#3B82F6]/50 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f8fafc] via-[#e5e7eb] to-[#d1d5db] border-3 border-[#3B82F6] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.3)]">
-                <span className="text-xl font-bold text-[#3B82F6] drop-shadow-md">
-                  {player.firstName?.[0]}{player.lastName?.[0]}
-                </span>
-              </div>
+        {/* Hero Header */}
+        <div className="relative h-48 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors duration-200 backdrop-blur-sm z-10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Player Info Overlay */}
+          <div className="absolute bottom-6 left-6 right-6">
+            <div className="flex items-end justify-between">
               <div>
-                <h2 className="text-2xl font-serif font-bold text-[#3B82F6] drop-shadow-lg">
+                <h2 className="text-3xl font-semibold text-white mb-2 leading-tight">
                   {player.firstName} {player.lastName}
                 </h2>
-                <p className="text-[#f1f5f9]/80 font-medium">{player.position} • {player.club}</p>
+                <div className="flex items-center gap-4 text-white/90">
+                  <span className="font-medium">{player.club || 'Free Agent'}</span>
+                  <span>•</span>
+                  <span className="font-medium">{player.position || 'Player'}</span>
+                  {player.rating && (
+                    <>
+                      <span>•</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-sm font-semibold">
+                        {player.rating.toFixed(1)}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <button className="p-2 bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] hover:from-[#3B82F6]/90 hover:to-[#8B5CF6]/90 text-[#1e3a8a] font-semibold rounded-lg transition-all duration-200 shadow-lg">
+              <button className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg">
                 <Edit className="w-5 h-5" />
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 bg-[#f1f5f9]/20 hover:bg-[#f1f5f9]/30 text-[#f1f5f9] rounded-lg transition-colors duration-200 backdrop-blur-sm border border-[#f1f5f9]/30"
-              >
-                <X className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -129,48 +140,48 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
         <div className="p-6 space-y-8">
           {/* Basic Information */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3B82F6] mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-[#D4AF37]" />
               Basic Information
             </h3>
-            <div className="bg-gradient-to-br from-[#f8fafc]/25 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-md rounded-xl p-6 border border-[#3B82F6]/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.2)]">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70">Age</label>
-                    <p className="text-lg font-semibold text-[#f1f5f9]">
+                    <label className="text-sm font-medium text-white/60">Age</label>
+                    <p className="text-lg font-semibold text-white">
                       {calculateAge(player.dateOfBirth) || 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70">Nationality</label>
-                    <p className="text-lg font-semibold text-[#f1f5f9]">
+                    <label className="text-sm font-medium text-white/60">Nationality</label>
+                    <p className="text-lg font-semibold text-white">
                       {player.nationality || 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70">Preferred Foot</label>
-                    <p className="text-lg font-semibold text-[#f1f5f9]">
+                    <label className="text-sm font-medium text-white/60">Preferred Foot</label>
+                    <p className="text-lg font-semibold text-white">
                       {player.preferredFoot || 'N/A'}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70">Height / Weight</label>
-                    <p className="text-lg font-semibold text-[#f1f5f9]">
+                    <label className="text-sm font-medium text-white/60">Height / Weight</label>
+                    <p className="text-lg font-semibold text-white">
                       {player.height ? `${player.height}cm` : 'N/A'} / {player.weight ? `${player.weight}kg` : 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70">Market Value</label>
-                    <p className="text-lg font-semibold text-[#3B82F6] drop-shadow-sm">
+                    <label className="text-sm font-medium text-white/60">Market Value</label>
+                    <p className="text-lg font-semibold text-blue-400 drop-shadow-sm">
                       {formatCurrency(player.marketValue)}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70">Contract Expiry</label>
-                    <p className="text-lg font-semibold text-[#f1f5f9]">
+                    <label className="text-sm font-medium text-white/60">Contract Expiry</label>
+                    <p className="text-lg font-semibold text-white">
                       {formatDate(player.contractExpiry)}
                     </p>
                   </div>
@@ -181,8 +192,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Performance Stats */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3B82F6] mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#3B82F6]" />
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
               Season Performance
             </h3>
             <div className="grid grid-cols-4 gap-4">
@@ -196,8 +207,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                   key={stat.label}
                   className="bg-white/50 rounded-xl p-4 border border-[#D7CCC8]/20 text-center"
                 >
-                  <div className="text-2xl font-bold text-[#3B82F6] drop-shadow-sm mb-1">{stat.value}</div>
-                  <div className="text-sm text-[#f1f5f9]/70">{stat.label}</div>
+                  <div className="text-2xl font-bold text-blue-400 drop-shadow-sm mb-1">{stat.value}</div>
+                  <div className="text-sm text-white/60">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -205,12 +216,12 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Technical Skills */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3B82F6] mb-4">Technical Skills</h3>
-            <div className="bg-gradient-to-br from-[#f8fafc]/25 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-md rounded-xl p-6 border border-[#3B82F6]/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.2)]">
+            <h3 className="text-lg font-semibold text-white mb-4">Technical Skills</h3>
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
               <div className="grid grid-cols-2 gap-4">
                 {technicalSkills.map((skill) => (
                   <div key={skill.name} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#f1f5f9]">{skill.name}</span>
+                    <span className="text-sm font-medium text-white">{skill.name}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-[#1e3a8a]/30 rounded-full overflow-hidden shadow-inner">
                         <div
@@ -218,7 +229,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                           style={{ width: `${((skill.value || 0) / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[#3B82F6] w-8">
+                      <span className="text-sm font-bold text-blue-400 w-8">
                         {skill.value?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -230,8 +241,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Physical Attributes */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3B82F6] mb-4">Physical Attributes</h3>
-            <div className="bg-gradient-to-br from-[#f8fafc]/25 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-md rounded-xl p-6 border border-[#3B82F6]/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.2)]">
+            <h3 className="text-lg font-semibold text-white mb-4">Physical Attributes</h3>
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
               <div className="grid grid-cols-2 gap-4">
                 {physicalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
@@ -243,7 +254,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                           style={{ width: `${((attr.value || 0) / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[#3B82F6] w-8">
+                      <span className="text-sm font-bold text-blue-400 w-8">
                         {attr.value?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -255,8 +266,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Mental Attributes */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3B82F6] mb-4">Mental Attributes</h3>
-            <div className="bg-gradient-to-br from-[#f8fafc]/25 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-md rounded-xl p-6 border border-[#3B82F6]/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.2)]">
+            <h3 className="text-lg font-semibold text-white mb-4">Mental Attributes</h3>
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
               <div className="grid grid-cols-2 gap-4">
                 {mentalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
@@ -268,7 +279,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                           style={{ width: `${((attr.value || 0) / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[#3B82F6] w-8">
+                      <span className="text-sm font-bold text-blue-400 w-8">
                         {attr.value?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -281,22 +292,22 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           {/* Notes & Tags */}
           {(player.notes || player.tags?.length > 0) && (
             <section>
-              <h3 className="text-lg font-semibold text-[#3B82F6] mb-4">Notes & Tags</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Notes & Tags</h3>
               <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20 space-y-4">
                 {player.notes && (
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70 block mb-2">Notes</label>
-                    <p className="text-[#f1f5f9] leading-relaxed">{player.notes}</p>
+                    <label className="text-sm font-medium text-white/60 block mb-2">Notes</label>
+                    <p className="text-white leading-relaxed">{player.notes}</p>
                   </div>
                 )}
                 {player.tags?.length > 0 && (
                   <div>
-                    <label className="text-sm font-medium text-[#f1f5f9]/70 block mb-2">Tags</label>
+                    <label className="text-sm font-medium text-white/60 block mb-2">Tags</label>
                     <div className="flex flex-wrap gap-2">
                       {player.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1 bg-gradient-to-r from-[#3B82F6]/20 to-[#8B5CF6]/10 text-[#3B82F6] text-sm font-medium rounded-full border border-[#3B82F6]/30 backdrop-blur-sm"
+                          className="px-3 py-1 bg-blue-500/20 text-blue-400 text-sm font-medium rounded-full border border-blue-500/30"
                         >
                           {tag}
                         </span>
@@ -309,11 +320,11 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-[#3B82F6]/30">
-            <button className="flex-1 bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] hover:from-[#3B82F6]/90 hover:to-[#8B5CF6]/90 text-[#1e3a8a] font-bold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+          <div className="flex gap-4 pt-6 border-t border-white/20">
+            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
               Schedule Trial
             </button>
-            <button className="flex-1 bg-transparent border-2 border-[#3B82F6] text-[#3B82F6] hover:bg-gradient-to-r hover:from-[#3B82F6]/20 hover:to-[#8B5CF6]/10 font-bold py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm">
+            <button className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm">
               Add to Shortlist
             </button>
           </div>
