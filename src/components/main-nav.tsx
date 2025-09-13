@@ -11,7 +11,7 @@ interface MainNavProps {
 export function MainNav({ tenant }: MainNavProps) {
   const pathname = usePathname()
 
-  const routes: Array<{ href: string; label: string; active: boolean }> = [
+  const routes: Array<{ href: string; label: string; active: boolean; disabled?: boolean }> = [
     {
       href: `/${tenant}/dashboard`,
       label: 'Dashboard',
@@ -19,23 +19,27 @@ export function MainNav({ tenant }: MainNavProps) {
     },
     {
       href: `/${tenant}/players`,
-      label: 'Players',
-      active: pathname?.startsWith(`/${tenant}/players`)
+      label: 'Players (Soon)',
+      active: false,
+      disabled: true
     },
     {
       href: `/${tenant}/requests`,
-      label: 'Requests',
-      active: pathname?.startsWith(`/${tenant}/requests`)
+      label: 'Requests (Soon)',
+      active: false,
+      disabled: true
     },
     {
       href: `/${tenant}/trials`,
-      label: 'Trials',
-      active: pathname?.startsWith(`/${tenant}/trials`)
+      label: 'Trials (Soon)',
+      active: false,
+      disabled: true
     },
     {
       href: `/${tenant}/calendar`,
-      label: 'Calendar',
-      active: pathname?.startsWith(`/${tenant}/calendar`)
+      label: 'Calendar (Soon)',
+      active: false,
+      disabled: true
     },
   ]
 
@@ -48,18 +52,27 @@ export function MainNav({ tenant }: MainNavProps) {
         Scout Hub
       </Link>
       {routes.map((route) => (
-        <Link
-          key={route.href}
-          href={route.href}
-          className={cn(
-            'text-sm font-medium transition-colors hover:text-primary',
-            route.active
-              ? 'text-black dark:text-white'
-              : 'text-muted-foreground'
-          )}
-        >
-          {route.label}
-        </Link>
+        route.disabled ? (
+          <span
+            key={route.href}
+            className="text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
+          >
+            {route.label}
+          </span>
+        ) : (
+          <Link
+            key={route.href}
+            href={route.href}
+            className={cn(
+              'text-sm font-medium transition-colors hover:text-primary',
+              route.active
+                ? 'text-black dark:text-white'
+                : 'text-muted-foreground'
+            )}
+          >
+            {route.label}
+          </Link>
+        )
       ))}
     </nav>
   )

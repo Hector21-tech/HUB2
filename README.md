@@ -38,3 +38,5 @@ Detaljerade arkitektur- och kodregler finns i `CLAUDE.md`.
 ---
 
 🔧 **Status:** Repository initierat, färdigställ Vercel + Supabase konfiguration innan kodstart.
+# Trigger Vercel deployment
+# Force new Vercel deployment Sat, Sep 13, 2025  1:58:15 AM
