@@ -89,35 +89,36 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
       {/* Drawer */}
       <div className={`
-        absolute top-0 right-0 h-full w-full max-w-2xl bg-[#FAF8F3]
+        absolute top-0 right-0 h-full w-full max-w-2xl
+        bg-gradient-to-br from-[#1e3a8a] via-[#3b82f6] to-[#1e40af]
         transform transition-transform duration-300 ease-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        overflow-y-auto
+        overflow-y-auto backdrop-blur-sm
       `}>
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-[#FAF8F3] to-[#F8F6F0] border-b border-[#D7CCC8]/30 p-6">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-[#1e3a8a]/90 via-[#3b82f6]/90 to-[#1e40af]/90 backdrop-blur-sm border-b border-[#FFD700]/30 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5 border-2 border-[#D4AF37]/30 flex items-center justify-center">
-                <span className="text-xl font-bold text-[#D4AF37]">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f1f5f9] via-[#e2e8f0] to-[#cbd5e1] border-3 border-[#FFD700] flex items-center justify-center shadow-lg">
+                <span className="text-xl font-bold text-[#FFD700] drop-shadow-md">
                   {player.firstName?.[0]}{player.lastName?.[0]}
                 </span>
               </div>
               <div>
-                <h2 className="text-2xl font-serif font-bold text-[#D4AF37]">
+                <h2 className="text-2xl font-serif font-bold text-[#FFD700] drop-shadow-lg">
                   {player.firstName} {player.lastName}
                 </h2>
-                <p className="text-[#3E2723]/70">{player.position} • {player.club}</p>
+                <p className="text-[#f1f5f9]/80 font-medium">{player.position} • {player.club}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="p-2 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-white rounded-lg transition-colors duration-200">
+              <button className="p-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFD700]/90 hover:to-[#FFA500]/90 text-[#1e3a8a] font-semibold rounded-lg transition-all duration-200 shadow-lg">
                 <Edit className="w-5 h-5" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 bg-[#3E2723]/10 hover:bg-[#3E2723]/20 text-[#3E2723] rounded-lg transition-colors duration-200"
+                className="p-2 bg-[#f1f5f9]/20 hover:bg-[#f1f5f9]/30 text-[#f1f5f9] rounded-lg transition-colors duration-200 backdrop-blur-sm border border-[#f1f5f9]/30"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -128,48 +129,48 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
         <div className="p-6 space-y-8">
           {/* Basic Information */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3E2723] mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-[#FFD700] mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-[#D4AF37]" />
               Basic Information
             </h3>
-            <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20">
+            <div className="bg-gradient-to-br from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm rounded-xl p-6 border border-[#FFD700]/30 shadow-lg">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60">Age</label>
-                    <p className="text-lg font-semibold text-[#3E2723]">
+                    <label className="text-sm font-medium text-[#f1f5f9]/70">Age</label>
+                    <p className="text-lg font-semibold text-[#f1f5f9]">
                       {calculateAge(player.dateOfBirth) || 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60">Nationality</label>
-                    <p className="text-lg font-semibold text-[#3E2723]">
+                    <label className="text-sm font-medium text-[#f1f5f9]/70">Nationality</label>
+                    <p className="text-lg font-semibold text-[#f1f5f9]">
                       {player.nationality || 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60">Preferred Foot</label>
-                    <p className="text-lg font-semibold text-[#3E2723]">
+                    <label className="text-sm font-medium text-[#f1f5f9]/70">Preferred Foot</label>
+                    <p className="text-lg font-semibold text-[#f1f5f9]">
                       {player.preferredFoot || 'N/A'}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60">Height / Weight</label>
-                    <p className="text-lg font-semibold text-[#3E2723]">
+                    <label className="text-sm font-medium text-[#f1f5f9]/70">Height / Weight</label>
+                    <p className="text-lg font-semibold text-[#f1f5f9]">
                       {player.height ? `${player.height}cm` : 'N/A'} / {player.weight ? `${player.weight}kg` : 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60">Market Value</label>
-                    <p className="text-lg font-semibold text-[#D4AF37]">
+                    <label className="text-sm font-medium text-[#f1f5f9]/70">Market Value</label>
+                    <p className="text-lg font-semibold text-[#FFD700] drop-shadow-sm">
                       {formatCurrency(player.marketValue)}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60">Contract Expiry</label>
-                    <p className="text-lg font-semibold text-[#3E2723]">
+                    <label className="text-sm font-medium text-[#f1f5f9]/70">Contract Expiry</label>
+                    <p className="text-lg font-semibold text-[#f1f5f9]">
                       {formatDate(player.contractExpiry)}
                     </p>
                   </div>
@@ -180,8 +181,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Performance Stats */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3E2723] mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
+            <h3 className="text-lg font-semibold text-[#FFD700] mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#FFD700]" />
               Season Performance
             </h3>
             <div className="grid grid-cols-4 gap-4">
@@ -195,8 +196,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                   key={stat.label}
                   className="bg-white/50 rounded-xl p-4 border border-[#D7CCC8]/20 text-center"
                 >
-                  <div className="text-2xl font-bold text-[#D4AF37] mb-1">{stat.value}</div>
-                  <div className="text-sm text-[#3E2723]/60">{stat.label}</div>
+                  <div className="text-2xl font-bold text-[#FFD700] drop-shadow-sm mb-1">{stat.value}</div>
+                  <div className="text-sm text-[#f1f5f9]/70">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -204,20 +205,20 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Technical Skills */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3E2723] mb-4">Technical Skills</h3>
-            <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20">
+            <h3 className="text-lg font-semibold text-[#FFD700] mb-4">Technical Skills</h3>
+            <div className="bg-gradient-to-br from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm rounded-xl p-6 border border-[#FFD700]/30 shadow-lg">
               <div className="grid grid-cols-2 gap-4">
                 {technicalSkills.map((skill) => (
                   <div key={skill.name} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#3E2723]">{skill.name}</span>
+                    <span className="text-sm font-medium text-[#f1f5f9]">{skill.name}</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-[#D7CCC8]/30 rounded-full overflow-hidden">
+                      <div className="w-20 h-2 bg-[#1e3a8a]/30 rounded-full overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F4D03F] transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] transition-all duration-300 shadow-sm"
                           style={{ width: `${((skill.value || 0) / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[#D4AF37] w-8">
+                      <span className="text-sm font-bold text-[#FFD700] w-8">
                         {skill.value?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -229,20 +230,20 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Physical Attributes */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3E2723] mb-4">Physical Attributes</h3>
-            <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20">
+            <h3 className="text-lg font-semibold text-[#FFD700] mb-4">Physical Attributes</h3>
+            <div className="bg-gradient-to-br from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm rounded-xl p-6 border border-[#FFD700]/30 shadow-lg">
               <div className="grid grid-cols-2 gap-4">
                 {physicalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[#3E2723]">{attr.name}</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-[#D7CCC8]/30 rounded-full overflow-hidden">
+                      <div className="w-20 h-2 bg-[#1e3a8a]/30 rounded-full overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F4D03F] transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] transition-all duration-300 shadow-sm"
                           style={{ width: `${((attr.value || 0) / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[#D4AF37] w-8">
+                      <span className="text-sm font-bold text-[#FFD700] w-8">
                         {attr.value?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -254,20 +255,20 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
 
           {/* Mental Attributes */}
           <section>
-            <h3 className="text-lg font-semibold text-[#3E2723] mb-4">Mental Attributes</h3>
-            <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20">
+            <h3 className="text-lg font-semibold text-[#FFD700] mb-4">Mental Attributes</h3>
+            <div className="bg-gradient-to-br from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm rounded-xl p-6 border border-[#FFD700]/30 shadow-lg">
               <div className="grid grid-cols-2 gap-4">
                 {mentalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[#3E2723]">{attr.name}</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-[#D7CCC8]/30 rounded-full overflow-hidden">
+                      <div className="w-20 h-2 bg-[#1e3a8a]/30 rounded-full overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F4D03F] transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] transition-all duration-300 shadow-sm"
                           style={{ width: `${((attr.value || 0) / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-bold text-[#D4AF37] w-8">
+                      <span className="text-sm font-bold text-[#FFD700] w-8">
                         {attr.value?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
@@ -280,22 +281,22 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           {/* Notes & Tags */}
           {(player.notes || player.tags?.length > 0) && (
             <section>
-              <h3 className="text-lg font-semibold text-[#3E2723] mb-4">Notes & Tags</h3>
+              <h3 className="text-lg font-semibold text-[#FFD700] mb-4">Notes & Tags</h3>
               <div className="bg-white/50 rounded-xl p-6 border border-[#D7CCC8]/20 space-y-4">
                 {player.notes && (
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60 block mb-2">Notes</label>
-                    <p className="text-[#3E2723] leading-relaxed">{player.notes}</p>
+                    <label className="text-sm font-medium text-[#f1f5f9]/70 block mb-2">Notes</label>
+                    <p className="text-[#f1f5f9] leading-relaxed">{player.notes}</p>
                   </div>
                 )}
                 {player.tags?.length > 0 && (
                   <div>
-                    <label className="text-sm font-medium text-[#3E2723]/60 block mb-2">Tags</label>
+                    <label className="text-sm font-medium text-[#f1f5f9]/70 block mb-2">Tags</label>
                     <div className="flex flex-wrap gap-2">
                       {player.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] text-sm font-medium rounded-full border border-[#D4AF37]/20"
+                          className="px-3 py-1 bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10 text-[#FFD700] text-sm font-medium rounded-full border border-[#FFD700]/30 backdrop-blur-sm"
                         >
                           {tag}
                         </span>
@@ -308,11 +309,11 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-[#D7CCC8]/30">
-            <button className="flex-1 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200">
+          <div className="flex gap-4 pt-6 border-t border-[#FFD700]/30">
+            <button className="flex-1 bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFD700]/90 hover:to-[#FFA500]/90 text-[#1e3a8a] font-bold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
               Schedule Trial
             </button>
-            <button className="flex-1 bg-transparent border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 font-medium py-3 px-6 rounded-xl transition-colors duration-200">
+            <button className="flex-1 bg-transparent border-2 border-[#FFD700] text-[#FFD700] hover:bg-gradient-to-r hover:from-[#FFD700]/20 hover:to-[#FFA500]/10 font-bold py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm">
               Add to Shortlist
             </button>
           </div>
