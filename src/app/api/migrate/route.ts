@@ -1,20 +1,36 @@
 import { PrismaClient } from '@prisma/client'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 
 const prisma = new PrismaClient()
+const execAsync = promisify(exec)
 
 export async function POST() {
   try {
-    // Test database connection
+    // Test database connection first
     await prisma.$connect()
+    console.log('Database connection established')
 
-    // Run database migration by pushing schema
-    await prisma.$executeRaw`SELECT 1`
+    // Run Prisma db push to create tables
+    console.log('Running Prisma db push...')
+    const { stdout, stderr } = await execAsync('npx prisma db push --force-reset')
 
-    console.log('Database connection successful')
+    console.log('Prisma stdout:', stdout)
+    if (stderr) console.error('Prisma stderr:', stderr)
+
+    // Verify tables were created
+    const tables = await prisma.$queryRaw`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      AND table_type = 'BASE TABLE'
+    `
 
     return Response.json({
       success: true,
-      message: 'Database migration completed successfully'
+      message: 'Database migration completed successfully',
+      tables: tables,
+      output: stdout
     })
   } catch (error) {
     console.error('Migration error:', error)
