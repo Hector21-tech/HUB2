@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { TenantProvider } from '@/lib/tenant-context'
 import { ThemeProvider } from '@/lib/theme-provider'
+import '../globals.css'
 
 interface TenantLayoutProps {
   children: ReactNode
