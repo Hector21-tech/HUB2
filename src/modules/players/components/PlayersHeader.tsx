@@ -35,21 +35,21 @@ export function PlayersHeader({
   ).length
 
   return (
-    <div className="bg-gradient-to-r from-[#0f172a]/40 via-[#1e3a8a]/30 to-[#1e40af]/40 border-b border-[#FFD700]/30 backdrop-blur-md">
+    <div className="bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#FFD700]/40 backdrop-blur-xl">
       <div className="p-6">
         {/* Title and Stats */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#FFD700] mb-2 drop-shadow-lg">
+            <h1 className="text-3xl font-serif font-bold text-[#FFD700] mb-2 drop-shadow-[0_4px_8px_rgba(255,215,0,0.3)]">
               Players
             </h1>
-            <div className="flex items-center gap-4 text-sm text-[#f1f5f9]/80">
+            <div className="flex items-center gap-4 text-sm text-[#f8fafc]/90 font-medium">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <span>{totalPlayers} players</span>
               </div>
               {activeFiltersCount > 0 && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-[#FFD700]/90">
                   <Filter className="w-4 h-4" />
                   <span>{activeFiltersCount} filters active</span>
                 </div>
@@ -58,23 +58,23 @@ export function PlayersHeader({
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-2 bg-gradient-to-r from-[#f1f5f9]/10 to-[#e2e8f0]/10 backdrop-blur-sm rounded-lg p-1 border border-[#FFD700]/20">
+          <div className="flex items-center gap-2 bg-gradient-to-r from-[#f8fafc]/15 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-lg rounded-xl p-2 border border-[#FFD700]/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_16px_rgba(255,215,0,0.1)]">
             <button
               onClick={() => onViewModeChange('grid')}
-              className={`p-2 rounded-md transition-all duration-200 ${
+              className={`p-3 rounded-xl transition-all duration-300 ease-out ${
                 viewMode === 'grid'
-                  ? 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#1e3a8a] shadow-lg font-semibold'
-                  : 'text-[#f1f5f9]/60 hover:text-[#f1f5f9] hover:bg-[#f1f5f9]/10'
+                  ? 'bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FFD700] text-[#0c1532] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_4px_16px_rgba(255,215,0,0.4)] border border-[#FFD700]/80'
+                  : 'bg-gradient-to-r from-[#f8fafc]/10 via-[#e5e7eb]/15 to-[#d1d5db]/10 text-[#f8fafc]/80 hover:text-[#f8fafc] hover:bg-gradient-to-r hover:from-[#f8fafc]/20 hover:via-[#e5e7eb]/25 hover:to-[#d1d5db]/20 border border-[#FFD700]/30 hover:border-[#FFD700]/50 backdrop-blur-md'
               }`}
             >
               <Grid className="w-4 h-4" />
             </button>
             <button
               onClick={() => onViewModeChange('list')}
-              className={`p-2 rounded-md transition-all duration-200 ${
+              className={`p-3 rounded-xl transition-all duration-300 ease-out ${
                 viewMode === 'list'
-                  ? 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#1e3a8a] shadow-lg font-semibold'
-                  : 'text-[#f1f5f9]/60 hover:text-[#f1f5f9] hover:bg-[#f1f5f9]/10'
+                  ? 'bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FFD700] text-[#0c1532] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_4px_16px_rgba(255,215,0,0.4)] border border-[#FFD700]/80'
+                  : 'bg-gradient-to-r from-[#f8fafc]/10 via-[#e5e7eb]/15 to-[#d1d5db]/10 text-[#f8fafc]/80 hover:text-[#f8fafc] hover:bg-gradient-to-r hover:from-[#f8fafc]/20 hover:via-[#e5e7eb]/25 hover:to-[#d1d5db]/20 border border-[#FFD700]/30 hover:border-[#FFD700]/50 backdrop-blur-md'
               }`}
             >
               <List className="w-4 h-4" />
@@ -86,18 +86,23 @@ export function PlayersHeader({
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search Field */}
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#FFD700]/70 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#FFD700]/80 w-5 h-5 drop-shadow-sm" />
             <input
               type="text"
               placeholder="Search players by name, club, or position..."
               value={filters.search || ''}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="
-                w-full pl-12 pr-4 py-3 bg-gradient-to-r from-[#f1f5f9]/10 to-[#e2e8f0]/10 backdrop-blur-sm
-                border border-[#FFD700]/30 rounded-xl
-                text-[#f1f5f9] placeholder-[#f1f5f9]/60
-                focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50 focus:border-[#FFD700]/70
-                focus:bg-[#f1f5f9]/20 transition-all duration-200
+                w-full pl-12 pr-4 py-3
+                bg-gradient-to-r from-[#f8fafc]/15 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-lg
+                border border-[#FFD700]/40 rounded-xl
+                text-[#f8fafc] placeholder-[#f8fafc]/70 font-medium
+                shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.1)]
+                focus:outline-none focus:ring-4 focus:ring-[#FFD700]/30 focus:border-[#FFD700]/80
+                focus:bg-gradient-to-r focus:from-[#f8fafc]/25 focus:via-[#e5e7eb]/30 focus:to-[#d1d5db]/25
+                focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_8px_32px_rgba(255,215,0,0.4)]
+                transition-all duration-300 ease-out
+                hover:border-[#FFD700]/60 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_6px_24px_rgba(255,215,0,0.2)]
               "
             />
           </div>
@@ -109,20 +114,24 @@ export function PlayersHeader({
               value={filters.position || ''}
               onChange={(e) => handleFilterChange('position', e.target.value || undefined)}
               className="
-                px-4 py-3 bg-gradient-to-r from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm
-                border border-[#FFD700]/30 rounded-xl
-                text-[#f1f5f9] text-sm font-medium
-                focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50 focus:border-[#FFD700]/70
-                focus:bg-gradient-to-r focus:from-[#f1f5f9]/30 focus:to-[#e2e8f0]/30
-                transition-all duration-200
+                px-4 py-3
+                bg-gradient-to-r from-[#f8fafc]/15 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-lg
+                border border-[#FFD700]/40 rounded-xl
+                text-[#f8fafc] text-sm font-bold
+                shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.1)]
+                focus:outline-none focus:ring-4 focus:ring-[#FFD700]/30 focus:border-[#FFD700]/80
+                focus:bg-gradient-to-r focus:from-[#f8fafc]/25 focus:via-[#e5e7eb]/30 focus:to-[#d1d5db]/25
+                focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_8px_32px_rgba(255,215,0,0.4)]
+                hover:border-[#FFD700]/60 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_6px_24px_rgba(255,215,0,0.2)]
+                transition-all duration-300 ease-out cursor-pointer
               "
             >
-              <option value="" className="bg-[#1e3a8a] text-[#f1f5f9]">All Positions</option>
-              <option value="Goalkeeper" className="bg-[#1e3a8a] text-[#f1f5f9]">Goalkeeper</option>
-              <option value="Defender" className="bg-[#1e3a8a] text-[#f1f5f9]">Defender</option>
-              <option value="Midfielder" className="bg-[#1e3a8a] text-[#f1f5f9]">Midfielder</option>
-              <option value="Forward" className="bg-[#1e3a8a] text-[#f1f5f9]">Forward</option>
-              <option value="Striker" className="bg-[#1e3a8a] text-[#f1f5f9]">Striker</option>
+              <option value="" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">All Positions</option>
+              <option value="Goalkeeper" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Goalkeeper</option>
+              <option value="Defender" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Defender</option>
+              <option value="Midfielder" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Midfielder</option>
+              <option value="Forward" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Forward</option>
+              <option value="Striker" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Striker</option>
             </select>
 
             {/* Age Filter */}
@@ -133,12 +142,16 @@ export function PlayersHeader({
                 value={filters.ageMin || ''}
                 onChange={(e) => handleFilterChange('ageMin', e.target.value ? Number(e.target.value) : undefined)}
                 className="
-                  w-24 px-3 py-3 bg-gradient-to-r from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm
-                  border border-[#FFD700]/30 rounded-xl
-                  text-[#f1f5f9] text-sm placeholder-[#f1f5f9]/60
-                  focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50 focus:border-[#FFD700]/70
-                  focus:bg-gradient-to-r focus:from-[#f1f5f9]/30 focus:to-[#e2e8f0]/30
-                  transition-all duration-200
+                  w-24 px-3 py-3
+                  bg-gradient-to-r from-[#f8fafc]/15 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-lg
+                  border border-[#FFD700]/40 rounded-xl
+                  text-[#f8fafc] text-sm font-bold placeholder-[#f8fafc]/70
+                  shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.1)]
+                  focus:outline-none focus:ring-4 focus:ring-[#FFD700]/30 focus:border-[#FFD700]/80
+                  focus:bg-gradient-to-r focus:from-[#f8fafc]/25 focus:via-[#e5e7eb]/30 focus:to-[#d1d5db]/25
+                  focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_8px_32px_rgba(255,215,0,0.4)]
+                  hover:border-[#FFD700]/60 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_6px_24px_rgba(255,215,0,0.2)]
+                  transition-all duration-300 ease-out
                 "
               />
               <input
@@ -147,12 +160,16 @@ export function PlayersHeader({
                 value={filters.ageMax || ''}
                 onChange={(e) => handleFilterChange('ageMax', e.target.value ? Number(e.target.value) : undefined)}
                 className="
-                  w-24 px-3 py-3 bg-gradient-to-r from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm
-                  border border-[#FFD700]/30 rounded-xl
-                  text-[#f1f5f9] text-sm placeholder-[#f1f5f9]/60
-                  focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50 focus:border-[#FFD700]/70
-                  focus:bg-gradient-to-r focus:from-[#f1f5f9]/30 focus:to-[#e2e8f0]/30
-                  transition-all duration-200
+                  w-24 px-3 py-3
+                  bg-gradient-to-r from-[#f8fafc]/15 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-lg
+                  border border-[#FFD700]/40 rounded-xl
+                  text-[#f8fafc] text-sm font-bold placeholder-[#f8fafc]/70
+                  shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.1)]
+                  focus:outline-none focus:ring-4 focus:ring-[#FFD700]/30 focus:border-[#FFD700]/80
+                  focus:bg-gradient-to-r focus:from-[#f8fafc]/25 focus:via-[#e5e7eb]/30 focus:to-[#d1d5db]/25
+                  focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_8px_32px_rgba(255,215,0,0.4)]
+                  hover:border-[#FFD700]/60 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_6px_24px_rgba(255,215,0,0.2)]
+                  transition-all duration-300 ease-out
                 "
               />
             </div>
@@ -162,23 +179,27 @@ export function PlayersHeader({
               value={filters.nationality || ''}
               onChange={(e) => handleFilterChange('nationality', e.target.value || undefined)}
               className="
-                px-4 py-3 bg-gradient-to-r from-[#f1f5f9]/20 to-[#e2e8f0]/20 backdrop-blur-sm
-                border border-[#FFD700]/30 rounded-xl
-                text-[#f1f5f9] text-sm font-medium
-                focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50 focus:border-[#FFD700]/70
-                focus:bg-gradient-to-r focus:from-[#f1f5f9]/30 focus:to-[#e2e8f0]/30
-                transition-all duration-200
+                px-4 py-3
+                bg-gradient-to-r from-[#f8fafc]/15 via-[#e5e7eb]/20 to-[#d1d5db]/15 backdrop-blur-lg
+                border border-[#FFD700]/40 rounded-xl
+                text-[#f8fafc] text-sm font-bold
+                shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.1)]
+                focus:outline-none focus:ring-4 focus:ring-[#FFD700]/30 focus:border-[#FFD700]/80
+                focus:bg-gradient-to-r focus:from-[#f8fafc]/25 focus:via-[#e5e7eb]/30 focus:to-[#d1d5db]/25
+                focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_8px_32px_rgba(255,215,0,0.4)]
+                hover:border-[#FFD700]/60 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_6px_24px_rgba(255,215,0,0.2)]
+                transition-all duration-300 ease-out cursor-pointer
               "
             >
-              <option value="" className="bg-[#1e3a8a] text-[#f1f5f9]">All Nationalities</option>
-              <option value="England" className="bg-[#1e3a8a] text-[#f1f5f9]">England</option>
-              <option value="Spain" className="bg-[#1e3a8a] text-[#f1f5f9]">Spain</option>
-              <option value="Germany" className="bg-[#1e3a8a] text-[#f1f5f9]">Germany</option>
-              <option value="France" className="bg-[#1e3a8a] text-[#f1f5f9]">France</option>
-              <option value="Brazil" className="bg-[#1e3a8a] text-[#f1f5f9]">Brazil</option>
-              <option value="Argentina" className="bg-[#1e3a8a] text-[#f1f5f9]">Argentina</option>
-              <option value="Portugal" className="bg-[#1e3a8a] text-[#f1f5f9]">Portugal</option>
-              <option value="Netherlands" className="bg-[#1e3a8a] text-[#f1f5f9]">Netherlands</option>
+              <option value="" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">All Nationalities</option>
+              <option value="England" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">England</option>
+              <option value="Spain" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Spain</option>
+              <option value="Germany" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Germany</option>
+              <option value="France" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">France</option>
+              <option value="Brazil" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Brazil</option>
+              <option value="Argentina" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Argentina</option>
+              <option value="Portugal" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Portugal</option>
+              <option value="Netherlands" className="bg-gradient-to-r from-[#0c1532] to-[#1e3a8a] text-[#f8fafc] font-medium">Netherlands</option>
             </select>
 
             {/* Clear Filters */}
@@ -186,9 +207,15 @@ export function PlayersHeader({
               <button
                 onClick={clearFilters}
                 className="
-                  px-4 py-3 bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10 hover:bg-gradient-to-r hover:from-[#FFD700]/30 hover:to-[#FFA500]/20
-                  border border-[#FFD700]/40 text-[#FFD700] text-sm font-medium rounded-xl
-                  transition-all duration-200 hover:shadow-lg hover:shadow-[#FFD700]/20 backdrop-blur-sm
+                  px-6 py-3
+                  bg-gradient-to-r from-[#FFD700]/25 via-[#FFA500]/20 to-[#FFD700]/15 backdrop-blur-lg
+                  border border-[#FFD700]/50 text-[#FFD700] text-sm font-bold rounded-xl
+                  shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_4px_16px_rgba(255,215,0,0.2)]
+                  hover:bg-gradient-to-r hover:from-[#FFD700] hover:via-[#FFA500] hover:to-[#FFD700]
+                  hover:text-[#0c1532] hover:border-[#FFD700]/80
+                  hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_8px_32px_rgba(255,215,0,0.5)]
+                  active:scale-[0.98] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]
+                  transition-all duration-300 ease-out cursor-pointer
                 "
               >
                 Clear Filters

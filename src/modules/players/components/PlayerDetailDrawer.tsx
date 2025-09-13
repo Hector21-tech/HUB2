@@ -90,13 +90,13 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
       {/* Drawer */}
       <div className={`
         absolute top-0 right-0 h-full w-full max-w-2xl
-        bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] via-[#1e40af] to-[#0c1030]
+        bg-gradient-to-br from-[#020617] via-[#0c1532] via-[#1e3a8a] via-[#0f1b3e] to-[#020510]
         transform transition-transform duration-300 ease-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         overflow-y-auto backdrop-blur-sm
       `}>
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-[#0f172a]/95 via-[#1e3a8a]/90 to-[#1e40af]/95 backdrop-blur-md border-b border-[#FFD700]/40 p-6">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-[#020617]/95 via-[#0c1532]/90 via-[#1e3a8a]/85 to-[#0f1b3e]/95 backdrop-blur-xl border-b border-[#FFD700]/50 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f8fafc] via-[#e5e7eb] to-[#d1d5db] border-3 border-[#FFD700] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_4px_16px_rgba(255,215,0,0.3)]">

@@ -266,25 +266,30 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
   // }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] via-[#1e40af] to-[#0c1030]">
+    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0c1532] via-[#1e3a8a] via-[#0f1b3e] to-[#020510] relative">
+      {/* Ultra-deep ocean effect with radial gradients */}
+      <div className="absolute inset-0 bg-radial-gradient from-[#1e40af]/10 via-transparent to-[#0c1532]/20 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/50 to-transparent pointer-events-none"></div>
       {/* Debug Info - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#3E2723] p-3 text-sm">
+        <div className="relative z-10 bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#3E2723] p-3 text-sm">
           <strong>Debug:</strong> Tenant: {tenantId} | Players: {players.length} | Loading: {loading.toString()} | Error: {error || 'None'}
         </div>
       )}
 
       {/* Header */}
-      <PlayersHeader
+      <div className="relative z-10">
+        <PlayersHeader
         filters={filters}
         onFiltersChange={handleFiltersChange}
         totalPlayers={filteredPlayers.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-      />
+        />
+      </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="relative z-10 p-6">
         {loading ? (
           <PlayerGridSkeleton />
         ) : (
