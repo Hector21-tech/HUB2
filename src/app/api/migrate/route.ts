@@ -83,6 +83,103 @@ export async function POST() {
     await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "tenant_memberships_tenantId_idx" ON "tenant_memberships"("tenantId");`
     await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "tenant_memberships_userId_idx" ON "tenant_memberships"("userId");`
 
+    // Create players table
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "players" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "firstName" TEXT NOT NULL,
+        "lastName" TEXT NOT NULL,
+        "dateOfBirth" TIMESTAMP(3),
+        "position" TEXT,
+        "club" TEXT,
+        "nationality" TEXT,
+        "height" INTEGER,
+        "weight" INTEGER,
+        "notes" TEXT,
+        "tags" TEXT[],
+        "rating" DOUBLE PRECISION,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "players_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "players_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `
+
+    // Create requests table
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "requests" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT NOT NULL,
+        "club" TEXT NOT NULL,
+        "position" TEXT,
+        "ageRange" TEXT,
+        "priority" "Priority" NOT NULL DEFAULT 'MEDIUM',
+        "status" "RequestStatus" NOT NULL DEFAULT 'OPEN',
+        "budget" DOUBLE PRECISION,
+        "deadline" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "requests_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "requests_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `
+
+    // Create trials table
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "trials" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "playerId" TEXT NOT NULL,
+        "requestId" TEXT,
+        "scheduledAt" TIMESTAMP(3) NOT NULL,
+        "location" TEXT,
+        "status" "TrialStatus" NOT NULL DEFAULT 'SCHEDULED',
+        "notes" TEXT,
+        "rating" DOUBLE PRECISION,
+        "feedback" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "trials_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "trials_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "trials_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "players"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "trials_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "requests"("id") ON DELETE SET NULL ON UPDATE CASCADE
+      );
+    `
+
+    // Create calendar_events table
+    await prisma.$executeRaw`
+      CREATE TABLE IF NOT EXISTS "calendar_events" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "startTime" TIMESTAMP(3) NOT NULL,
+        "endTime" TIMESTAMP(3) NOT NULL,
+        "location" TEXT,
+        "type" "EventType" NOT NULL DEFAULT 'OTHER',
+        "isAllDay" BOOLEAN NOT NULL DEFAULT false,
+        "recurrence" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "calendar_events_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "calendar_events_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `
+
+    // Create additional indexes
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "players_tenantId_idx" ON "players"("tenantId");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "players_tenantId_lastName_idx" ON "players"("tenantId", "lastName");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "requests_tenantId_idx" ON "requests"("tenantId");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "requests_tenantId_status_idx" ON "requests"("tenantId", "status");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "trials_tenantId_idx" ON "trials"("tenantId");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "trials_tenantId_scheduledAt_idx" ON "trials"("tenantId", "scheduledAt");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "trials_playerId_idx" ON "trials"("playerId");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "calendar_events_tenantId_idx" ON "calendar_events"("tenantId");`
+    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "calendar_events_tenantId_startTime_idx" ON "calendar_events"("tenantId", "startTime");`
+
     // Verify tables were created
     const tables = await prisma.$queryRaw`
       SELECT table_name
