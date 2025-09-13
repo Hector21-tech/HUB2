@@ -10,56 +10,67 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+  // Check if required environment variables are available
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Missing Supabase environment variables')
+    return response
+  }
+
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            request.cookies.set({ name, value })
+            response.cookies.set({ name, value, ...options })
+          },
+          remove(name: string, options: any) {
+            request.cookies.set({ name, value: '', ...options, maxAge: 0 })
+            response.cookies.set({ name, value: '', ...options, maxAge: 0 })
+          },
         },
-        set(name: string, value: string, options: any) {
-          request.cookies.set({ name, value })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          request.cookies.set({ name, value: '', ...options, maxAge: 0 })
-          response.cookies.set({ name, value: '', ...options, maxAge: 0 })
-        },
-      },
+      }
+    )
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    // Extract tenant from pathname
+    const url = request.nextUrl.clone()
+    const pathSegments = url.pathname.split('/').filter(Boolean)
+    const tenant = pathSegments[0]
+
+    // Public routes that don't require auth
+    const publicRoutes = ['/', '/auth', '/api/auth']
+    const isPublicRoute = publicRoutes.some(route => 
+      url.pathname === route || url.pathname.startsWith(route + '/')
+    )
+
+    // If accessing tenant routes without auth, redirect to login
+    if (!user && !isPublicRoute && tenant) {
+      const redirectUrl = new URL(`/auth/login?tenant=${tenant}`, request.url)
+      redirectUrl.searchParams.set('redirectTo', url.pathname)
+      return NextResponse.redirect(redirectUrl)
     }
-  )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    // If authenticated but accessing root, redirect to their first tenant
+    if (user && url.pathname === '/') {
+      // TODO: Get user's first tenant from database
+      // For now, redirect to demo tenant
+      return NextResponse.redirect(new URL('/demo/dashboard', request.url))
+    }
 
-  // Extract tenant from pathname
-  const url = request.nextUrl.clone()
-  const pathSegments = url.pathname.split('/').filter(Boolean)
-  const tenant = pathSegments[0]
-
-  // Public routes that don't require auth
-  const publicRoutes = ['/', '/auth', '/api/auth']
-  const isPublicRoute = publicRoutes.some(route => 
-    url.pathname === route || url.pathname.startsWith(route + '/')
-  )
-
-  // If accessing tenant routes without auth, redirect to login
-  if (!user && !isPublicRoute && tenant) {
-    const redirectUrl = new URL(`/auth/login?tenant=${tenant}`, request.url)
-    redirectUrl.searchParams.set('redirectTo', url.pathname)
-    return NextResponse.redirect(redirectUrl)
+    return response
+  } catch (error) {
+    console.error('Middleware error:', error)
+    return response
   }
-
-  // If authenticated but accessing root, redirect to their first tenant
-  if (user && url.pathname === '/') {
-    // TODO: Get user's first tenant from database
-    // For now, redirect to demo tenant
-    return NextResponse.redirect(new URL('/demo/dashboard', request.url))
-  }
-
-  return response
 }
 
 export const config = {
