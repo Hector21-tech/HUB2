@@ -19,6 +19,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isAddPlayerModalOpen, setIsAddPlayerModalOpen] = useState(false)
+  const [actualTenantId, setActualTenantId] = useState<string>(tenantId) // Track which tenant ID actually works
 
   // Fetch players data
   useEffect(() => {
@@ -41,12 +42,21 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
           response = await fetch('/api/test-crud?action=players&tenantId=tenant-test-1')
           result = await response.json()
           console.log('📊 Test tenant response:', result)
+
+          // If test tenant worked, update the actual tenant ID
+          if (result.success && result.data && result.data.length > 0) {
+            setActualTenantId('tenant-test-1')
+          }
+        } else {
+          // Original tenant worked, keep it
+          setActualTenantId(tenantId)
         }
 
         // Still no data? Use mock data to show the UI
         if (!result.success || !result.data || result.data.length === 0) {
           console.log('📝 No data from API, using mock players')
           setPlayers(getMockPlayers())
+          setActualTenantId(tenantId) // Use original tenant for mock data
         } else {
           console.log('✅ Setting players:', result.data.length, 'players found')
           setPlayers(result.data)
@@ -254,6 +264,9 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
 
   const handleSavePlayer = async (playerData: any) => {
     try {
+      console.log('💾 Saving player with tenant ID:', actualTenantId)
+      console.log('📋 Player data:', playerData)
+
       const response = await fetch('/api/players', {
         method: 'POST',
         headers: {
@@ -351,7 +364,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         isOpen={isAddPlayerModalOpen}
         onClose={handleAddPlayerClose}
         onSave={handleSavePlayer}
-        tenantId={tenantId}
+        tenantId={actualTenantId}
       />
     </div>
   )
