@@ -99,11 +99,27 @@ export async function POST() {
         "notes" TEXT,
         "tags" TEXT[],
         "rating" DOUBLE PRECISION,
+        "avatarUrl" TEXT,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "players_pkey" PRIMARY KEY ("id"),
         CONSTRAINT "players_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
+    `
+
+    // Add avatarUrl column if it doesn't exist (for existing tables)
+    await prisma.$executeRaw`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_name = 'players'
+          AND column_name = 'avatarUrl'
+        ) THEN
+          ALTER TABLE "players" ADD COLUMN "avatarUrl" TEXT;
+        END IF;
+      END $$;
     `
 
     // Create requests table

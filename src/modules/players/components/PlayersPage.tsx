@@ -30,16 +30,16 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
 
         console.log('🚀 Fetching players for tenant:', tenantId)
 
-        // First try to get players with the provided tenant ID
-        let response = await fetch('/api/test-crud?action=players&tenantId=' + tenantId)
+        // Try to get players using the new SQL-based API
+        let response = await fetch('/api/players-sql?tenantId=' + tenantId)
         let result = await response.json()
 
-        console.log('📊 API Response:', result)
+        console.log('📊 SQL API Response:', result)
 
         // If no players found, try with our test tenant
         if (!result.success || !result.data || result.data.length === 0) {
           console.log('🔄 No players found, trying test tenant...')
-          response = await fetch('/api/test-crud?action=players&tenantId=tenant-test-1')
+          response = await fetch('/api/players-sql?tenantId=tenant-test-1')
           result = await response.json()
           console.log('📊 Test tenant response:', result)
 
@@ -267,7 +267,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       console.log('💾 Saving player with tenant ID:', actualTenantId)
       console.log('📋 Player data:', playerData)
 
-      const response = await fetch('/api/players', {
+      const response = await fetch('/api/players-sql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
