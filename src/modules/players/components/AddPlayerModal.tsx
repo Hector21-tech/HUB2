@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { X, User, MapPin, Calendar, Users } from 'lucide-react'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
-import { searchCountries } from '@/lib/countries'
+import { searchCountries, getAllCountryNames } from '@/lib/countries'
 
 interface AddPlayerModalProps {
   isOpen: boolean
@@ -285,7 +285,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                     Nationality
                   </label>
                   <SearchableSelect
-                    options={[]}
+                    options={getAllCountryNames().map(name => ({
+                      value: name,
+                      label: name
+                    }))}
                     value={formData.nationality}
                     onChange={(value) => handleInputChange('nationality', value || '')}
                     placeholder="Search for a country..."
@@ -301,21 +304,23 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
 
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-1" />
-                    Nationality
+                    <Users className="w-4 h-4 inline mr-1" />
+                    Club
                   </label>
-                  <SearchableSelect
-                    options={[]}
-                    value={formData.nationality}
-                    onChange={(value) => handleInputChange('nationality', value || '')}
-                    placeholder="Search for a country..."
-                    searchPlaceholder="Type to search countries..."
-                    onSearch={(query) =>
-                      searchCountries(query).map(country => ({
-                        value: country.name,
-                        label: country.name
-                      }))
-                    }
+                  <input
+                    type="text"
+                    value={formData.club}
+                    onChange={(e) => handleInputChange('club', e.target.value)}
+                    className="
+                      w-full px-4 py-3
+                      bg-white/5 backdrop-blur-sm
+                      border border-white/20 rounded-lg
+                      text-white placeholder-white/50
+                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                      hover:border-white/30
+                      transition-all duration-200
+                    "
+                    placeholder="e.g. Manchester United"
                   />
                 </div>
 

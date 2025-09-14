@@ -3,7 +3,7 @@
 import { Search, Filter, Users, Grid, List } from 'lucide-react'
 import { PlayerFilters } from '../types/player'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
-import { searchCountries } from '@/lib/countries'
+import { searchCountries, getAllCountryNames } from '@/lib/countries'
 
 interface PlayersHeaderProps {
   filters: PlayerFilters
@@ -188,7 +188,10 @@ export function PlayersHeader({
 
             {/* Nationality Filter */}
             <SearchableSelect
-              options={[]}
+              options={getAllCountryNames().map(name => ({
+                value: name,
+                label: name
+              }))}
               value={filters.nationality}
               onChange={(value) => handleFilterChange('nationality', value)}
               placeholder="All Nationalities"
