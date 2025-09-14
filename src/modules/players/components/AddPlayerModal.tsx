@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, User, MapPin, Calendar, Users } from 'lucide-react'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { searchCountries, getAllCountryNames } from '@/lib/countries'
@@ -11,9 +11,10 @@ interface AddPlayerModalProps {
   onClose: () => void
   onSave: (playerData: any) => void
   tenantId: string
+  editingPlayer?: any // Player data when editing
 }
 
-export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerModalProps) {
+export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlayer }: AddPlayerModalProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -44,6 +45,42 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
     { value: 'RW', label: 'RW (Right Winger)' },
     { value: 'ST', label: 'ST (Striker)' }
   ]
+
+  // Populate form when editing a player
+  useEffect(() => {
+    if (editingPlayer) {
+      setFormData({
+        firstName: editingPlayer.firstName || '',
+        lastName: editingPlayer.lastName || '',
+        dateOfBirth: editingPlayer.dateOfBirth ?
+          new Date(editingPlayer.dateOfBirth).toISOString().split('T')[0] : '',
+        nationality: editingPlayer.nationality || '',
+        positions: editingPlayer.positions || [],
+        club: editingPlayer.club || '',
+        height: editingPlayer.height ? String(editingPlayer.height) : '',
+        weight: editingPlayer.weight ? String(editingPlayer.weight) : '',
+        notes: editingPlayer.notes || '',
+        rating: editingPlayer.rating ? String(editingPlayer.rating) : '',
+        avatarUrl: editingPlayer.avatarUrl || ''
+      })
+    } else {
+      // Reset form for new player
+      setFormData({
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        nationality: '',
+        positions: [],
+        club: '',
+        height: '',
+        weight: '',
+        notes: '',
+        rating: '',
+        avatarUrl: ''
+      })
+    }
+    setErrors({})
+  }, [editingPlayer, isOpen])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -174,7 +211,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
             <div className="absolute bottom-4 left-6">
               <h2 className="text-2xl font-semibold text-white flex items-center gap-3">
                 <User className="w-6 h-6" />
-                Add New Player
+                {editingPlayer ? 'Redigera spelare' : 'Add New Player'}
               </h2>
             </div>
           </div>
@@ -460,7 +497,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                 disabled={isSubmitting}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Adding Player...' : 'Add Player'}
+                {isSubmitting
+                  ? (editingPlayer ? 'Uppdaterar...' : 'Adding Player...')
+                  : (editingPlayer ? 'Uppdatera spelare' : 'Add Player')
+                }
               </button>
             </div>
           </form>

@@ -1,15 +1,21 @@
 'use client'
 
-import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe } from 'lucide-react'
+import { useState } from 'react'
+import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2 } from 'lucide-react'
 import { Player } from '../types/player'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
   isOpen: boolean
   onClose: () => void
+  onEdit: (player: Player) => void
+  onDelete: (player: Player) => void
 }
 
-export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDrawerProps) {
+export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }: PlayerDetailDrawerProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   if (!player || !isOpen) return null
 
   const calculateAge = (dateOfBirth?: Date) => {
@@ -156,9 +162,20 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                 </div>
               </div>
 
-              <button className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg">
-                <Edit className="w-5 h-5" />
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onEdit(player)}
+                  className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg"
+                >
+                  <Edit className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 shadow-lg"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -356,6 +373,46 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-white mb-4">Ta bort spelare</h3>
+            <p className="text-white/80 mb-6">
+              Är du säker på att du vill ta bort <strong>{player.firstName} {player.lastName}</strong>?
+              Detta går inte att ångra.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/15 transition-colors duration-200 disabled:opacity-50"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={async () => {
+                  setIsDeleting(true)
+                  try {
+                    await onDelete(player)
+                    setShowDeleteConfirm(false)
+                    onClose() // Close drawer after successful delete
+                  } catch (error) {
+                    console.error('Delete failed:', error)
+                  } finally {
+                    setIsDeleting(false)
+                  }
+                }}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+              >
+                {isDeleting ? 'Tar bort...' : 'Ta bort'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -19,6 +19,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isAddPlayerModalOpen, setIsAddPlayerModalOpen] = useState(false)
+  const [isEditPlayerModalOpen, setIsEditPlayerModalOpen] = useState(false)
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
   const [actualTenantId, setActualTenantId] = useState<string>(tenantId) // Track which tenant ID actually works
 
   // Fetch players data
@@ -291,6 +293,73 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     }
   }
 
+  const handleEditPlayer = (player: Player) => {
+    setEditingPlayer(player)
+    setIsEditPlayerModalOpen(true)
+    setSelectedPlayer(null) // Close detail drawer
+  }
+
+  const handleUpdatePlayer = async (playerData: any) => {
+    try {
+      console.log('✏️ Updating player:', editingPlayer?.id)
+      console.log('📋 Updated data:', playerData)
+
+      const response = await fetch('/api/players-sql', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...playerData,
+          id: editingPlayer?.id
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Update player in local state
+        setPlayers(prev => prev.map(p =>
+          p.id === editingPlayer?.id ? result.data : p
+        ))
+        console.log('✅ Player updated successfully:', result.data)
+        setIsEditPlayerModalOpen(false)
+        setEditingPlayer(null)
+      } else {
+        console.error('❌ Error updating player:', result.error)
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error('❌ Error updating player:', error)
+      throw error
+    }
+  }
+
+  const handleDeletePlayer = async (player: Player) => {
+    try {
+      console.log('🗑️ Deleting player:', player.id)
+
+      const response = await fetch(`/api/players-sql?id=${player.id}&tenantId=${actualTenantId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Remove player from local state
+        setPlayers(prev => prev.filter(p => p.id !== player.id))
+        console.log('✅ Player deleted successfully')
+        setSelectedPlayer(null) // Close detail drawer
+      } else {
+        console.error('❌ Error deleting player:', result.error)
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error('❌ Error deleting player:', error)
+      throw error
+    }
+  }
+
   // Don't show error state since we have fallback data
   // if (error) {
   //   return (
@@ -357,6 +426,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         player={selectedPlayer}
         isOpen={!!selectedPlayer}
         onClose={handleDrawerClose}
+        onEdit={handleEditPlayer}
+        onDelete={handleDeletePlayer}
       />
 
       {/* Add Player Modal */}
@@ -365,6 +436,18 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         onClose={handleAddPlayerClose}
         onSave={handleSavePlayer}
         tenantId={actualTenantId}
+      />
+
+      {/* Edit Player Modal */}
+      <AddPlayerModal
+        isOpen={isEditPlayerModalOpen}
+        onClose={() => {
+          setIsEditPlayerModalOpen(false)
+          setEditingPlayer(null)
+        }}
+        onSave={handleUpdatePlayer}
+        tenantId={actualTenantId}
+        editingPlayer={editingPlayer}
       />
     </div>
   )
