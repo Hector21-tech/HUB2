@@ -222,42 +222,55 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
 // Loading Skeleton Component
 export function PlayerGridSkeleton({ count = 9 }: { count?: number }) {
   return (
-    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
+    <div className={`
+      grid gap-6
+      grid-cols-1
+      md:grid-cols-3
+      lg:grid-cols-4
+      xl:grid-cols-5
+      2xl:grid-cols-5
+    `}>
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}
-          className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-6"
+          className="relative bg-white/10 backdrop-blur-md rounded-lg shadow-lg border border-white/20 overflow-hidden"
         >
-          {/* Avatar Skeleton */}
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 rounded-full bg-white/20 animate-pulse"></div>
+          {/* Hero Header Skeleton */}
+          <div className="relative h-32 bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800">
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+
+            {/* Name Skeleton */}
+            <div className="absolute bottom-4 left-4">
+              <div className="h-5 bg-white/30 rounded animate-pulse mb-2 w-32"></div>
+              <div className="h-3 bg-white/20 rounded animate-pulse w-24"></div>
+            </div>
+
+            {/* Rating Badge Skeleton */}
+            <div className="absolute top-4 right-4">
+              <div className="h-6 w-10 bg-white/20 rounded-full animate-pulse"></div>
+            </div>
           </div>
 
-          {/* Name Skeleton */}
-          <div className="text-center mb-3">
-            <div className="h-6 bg-white/20 rounded animate-pulse mb-2"></div>
-            <div className="h-4 bg-white/20 rounded animate-pulse w-24 mx-auto"></div>
-          </div>
-
-          {/* Details Skeleton */}
-          <div className="space-y-2 mb-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex justify-between">
-                <div className="h-4 bg-white/20 rounded animate-pulse w-16"></div>
-                <div className="h-4 bg-white/20 rounded animate-pulse w-12"></div>
-              </div>
-            ))}
-          </div>
-
-          {/* Stats Skeleton */}
-          <div className="border-t border-white/30 pt-4">
-            <div className="grid grid-cols-3 gap-2 text-center">
+          {/* Content Skeleton */}
+          <div className="relative p-4">
+            {/* Stats Grid Skeleton */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i}>
-                  <div className="h-6 bg-white/20 rounded animate-pulse mb-1"></div>
-                  <div className="h-3 bg-white/20 rounded animate-pulse"></div>
+                <div key={i} className="text-center">
+                  <div className="h-5 bg-white/20 rounded animate-pulse mb-1"></div>
+                  <div className="h-3 bg-white/15 rounded animate-pulse"></div>
                 </div>
               ))}
+            </div>
+
+            {/* Footer Skeleton */}
+            <div className="flex justify-between items-center text-sm border-t border-white/10 pt-3">
+              <div className="flex items-center gap-4">
+                <div className="h-3 bg-white/15 rounded animate-pulse w-12"></div>
+                <div className="h-3 bg-white/15 rounded animate-pulse w-16"></div>
+              </div>
+              <div className="h-3 bg-blue-400/30 rounded animate-pulse w-12"></div>
             </div>
           </div>
         </div>
