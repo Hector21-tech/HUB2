@@ -75,22 +75,23 @@ enum TenantRole {
 
 // Player management
 model Player {
-  id          String    @id @default(cuid())
-  tenantId    String
-  firstName   String
-  lastName    String
-  dateOfBirth DateTime?
-  position    String?
-  club        String?
-  nationality String?
-  height      Int? // cm
-  weight      Int? // kg
-  notes       String?
-  tags        String[] // Array of tags
-  rating      Float? // Overall rating 1-10
-  avatarUrl   String? // Player avatar/photo URL
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  tenantId       String
+  firstName      String
+  lastName       String
+  dateOfBirth    DateTime?
+  position       String?
+  club           String?
+  contractExpiry DateTime? // Contract expiry date
+  nationality    String?
+  height         Int? // cm
+  weight         Int? // kg
+  notes          String?
+  tags           String[] // Array of tags
+  rating         Float? // Overall rating 1-10
+  avatarUrl      String? // Player avatar/photo URL
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relations
   tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)

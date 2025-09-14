@@ -122,6 +122,21 @@ export async function POST() {
       END $$;
     `
 
+    // Add contractExpiry column if it doesn't exist (for existing tables)
+    await prisma.$executeRaw`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_name = 'players'
+          AND column_name = 'contractExpiry'
+        ) THEN
+          ALTER TABLE "players" ADD COLUMN "contractExpiry" TIMESTAMP(3);
+        END IF;
+      END $$;
+    `
+
     // Create requests table
     await prisma.$executeRaw`
       CREATE TABLE IF NOT EXISTS "requests" (
