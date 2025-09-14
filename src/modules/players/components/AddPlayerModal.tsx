@@ -389,7 +389,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                         type="button"
                         onClick={() => canSelect && handlePositionToggle(option.value)}
                         className={`
-                          p-3 rounded-lg border text-sm font-medium transition-all duration-200
+                          p-3 rounded-lg border text-sm font-medium transition-all duration-200 h-12
+                          flex items-center justify-center text-center leading-tight
                           ${isSelected
                             ? 'bg-blue-600 border-blue-400 text-white'
                             : canSelect
