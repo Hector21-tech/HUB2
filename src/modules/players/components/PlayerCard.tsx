@@ -50,7 +50,7 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
           <img
             src={player.avatarUrl}
             alt={`${player.firstName} ${player.lastName}`}
-            className="absolute inset-0 w-full h-full object-cover filter sepia-[10%] contrast-110 brightness-95"
+            className="absolute inset-0 w-full h-full object-cover filter sepia-[5%] contrast-105 brightness-98"
             onError={(e) => {
               // Fallback to gradient if image fails to load
               const target = e.target as HTMLImageElement
@@ -60,8 +60,7 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
         ) : null}
 
         {/* Enhanced Gradient Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
         {/* Player Name Overlay */}
         <div className="absolute bottom-4 left-4">
