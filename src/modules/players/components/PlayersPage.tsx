@@ -71,7 +71,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       firstName: 'Marcus',
       lastName: 'Rashford',
       dateOfBirth: new Date('1997-10-31'),
-      position: 'Forward',
+      positions: ['Forward'],
       club: 'Manchester United',
       nationality: 'England',
       height: 186,
@@ -99,7 +99,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       firstName: 'Erling',
       lastName: 'Haaland',
       dateOfBirth: new Date('2000-07-21'),
-      position: 'Striker',
+      positions: ['Striker'],
       club: 'Manchester City',
       nationality: 'Norway',
       height: 194,
@@ -127,7 +127,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       firstName: 'Bukayo',
       lastName: 'Saka',
       dateOfBirth: new Date('2001-09-05'),
-      position: 'Winger',
+      positions: ['Winger'],
       club: 'Arsenal',
       nationality: 'England',
       height: 178,
@@ -162,14 +162,14 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         player.firstName?.toLowerCase().includes(searchLower) ||
         player.lastName?.toLowerCase().includes(searchLower) ||
         player.club?.toLowerCase().includes(searchLower) ||
-        player.position?.toLowerCase().includes(searchLower) ||
+        player.positions?.some(pos => pos.toLowerCase().includes(searchLower)) ||
         player.nationality?.toLowerCase().includes(searchLower)
       )
     }
 
     // Position filter
     if (filters.position) {
-      filtered = filtered.filter(player => player.position === filters.position)
+      filtered = filtered.filter(player => player.positions?.includes(filters.position!))
     }
 
     // Nationality filter
