@@ -14,6 +14,7 @@ export interface PlayerData {
   notes?: string | null
   tags: string[]
   rating?: number | null
+  avatarUrl?: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -28,11 +29,16 @@ export interface EnhancedPlayer extends Omit<PlayerData, 'position' | 'tags'> {
  * Transform database player data to enhanced player with positions array and avatar URL
  */
 export function transformDatabasePlayer(dbPlayer: PlayerData): EnhancedPlayer {
-  // Extract avatar URL from tags
-  const avatarTag = dbPlayer.tags.find(tag => tag.startsWith('avatar:'))
-  const avatarUrl = avatarTag ? avatarTag.replace('avatar:', '') : undefined
+  // For backward compatibility, check both avatarUrl field and tags
+  let avatarUrl = dbPlayer.avatarUrl
 
-  // Remove avatar tag from regular tags
+  // If no avatarUrl field, extract from tags (for existing data)
+  if (!avatarUrl) {
+    const avatarTag = dbPlayer.tags.find(tag => tag.startsWith('avatar:'))
+    avatarUrl = avatarTag ? avatarTag.replace('avatar:', '') : undefined
+  }
+
+  // Remove avatar tags from regular tags (cleanup)
   const regularTags = dbPlayer.tags.filter(tag => !tag.startsWith('avatar:'))
 
   // Convert position string to positions array
@@ -57,7 +63,8 @@ export function transformToDatabase(player: Partial<EnhancedPlayer>): Partial<Pl
   return {
     ...rest,
     position: positions && positions.length > 0 ? positions.join(', ') : null,
-    tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])]
+    avatarUrl: avatarUrl || null, // Store avatar URL in proper field
+    tags: tags // Store tags without avatar URLs
   }
 }
 

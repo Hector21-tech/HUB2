@@ -88,6 +88,7 @@ model Player {
   notes       String?
   tags        String[] // Array of tags
   rating      Float? // Overall rating 1-10
+  avatarUrl   String? // Player avatar/photo URL
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

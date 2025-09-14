@@ -95,7 +95,8 @@ export async function POST(request: NextRequest) {
       weight: weight ? parseInt(weight) : null,
       rating: rating ? parseFloat(rating) : null,
       notes: notes?.trim() || null,
-      tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])] // Store avatar URL in tags temporarily
+      tags: tags, // Store tags normally
+      avatarUrl: avatarUrl?.trim() || null // Store avatar URL in proper field
     }
 
     console.log('🗄️ Creating player with data:', JSON.stringify(playerData, null, 2))
@@ -194,7 +195,8 @@ export async function PUT(request: NextRequest) {
         weight: weight ? parseInt(weight) : null,
         rating: rating ? parseFloat(rating) : null,
         notes: notes?.trim() || null,
-        tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])]
+        tags: tags, // Store tags normally
+        avatarUrl: avatarUrl?.trim() || null // Store avatar URL in proper field
       }
     })
 
