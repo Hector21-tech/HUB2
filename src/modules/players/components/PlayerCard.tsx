@@ -48,13 +48,27 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
         {/* Gradient Overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
+        {/* Player Avatar/Background */}
+        {player.avatarUrl ? (
+          <img
+            src={player.avatarUrl}
+            alt={`${player.firstName} ${player.lastName}`}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to gradient if image fails to load
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+            }}
+          />
+        ) : null}
+
         {/* Player Name Overlay */}
         <div className="absolute bottom-4 left-4">
           <h3 className="text-xl font-semibold text-white leading-tight">
             {player.firstName} {player.lastName}
           </h3>
           <p className="text-sm text-white/80">
-            {player.club || 'Free Agent'} • {player.position || 'Player'}
+            {player.club || 'Free Agent'} • {player.positions?.join(', ') || 'Player'}
           </p>
         </div>
 

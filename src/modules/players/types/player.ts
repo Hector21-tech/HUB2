@@ -13,10 +13,12 @@ export interface Player {
   height?: number // cm
   weight?: number // kg
 
+  // Avatar
+  avatarUrl?: string
+
   // Club Information
   club?: string
-  position?: string
-  altPositions?: string[]
+  positions?: string[] // Array of positions (max 2)
   jerseyNumber?: number
 
   // Contract & Market

@@ -16,22 +16,66 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
     lastName: '',
     dateOfBirth: '',
     nationality: '',
-    position: '',
+    positions: [] as string[],
     club: '',
     height: '',
     weight: '',
     notes: '',
-    rating: ''
+    rating: '',
+    avatarUrl: ''
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const POSITION_OPTIONS = [
+    { value: 'GK', label: 'GK (Goalkeeper)' },
+    { value: 'LB', label: 'LB (Left Back)' },
+    { value: 'LCB', label: 'LCB (Left Centre Back)' },
+    { value: 'RCB', label: 'RCB (Right Centre Back)' },
+    { value: 'RB', label: 'RB (Right Back)' },
+    { value: 'DMF', label: 'DMF (Defensive Midfielder)' },
+    { value: 'MF', label: 'MF (Midfielder)' },
+    { value: 'LW', label: 'LW (Left Winger)' },
+    { value: 'RW', label: 'RW (Right Winger)' },
+    { value: 'ST', label: 'ST (Striker)' }
+  ]
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const handlePositionToggle = (position: string) => {
+    setFormData(prev => {
+      const currentPositions = prev.positions
+      const isSelected = currentPositions.includes(position)
+
+      if (isSelected) {
+        // Remove position
+        return {
+          ...prev,
+          positions: currentPositions.filter(p => p !== position)
+        }
+      } else {
+        // Add position (if less than 2)
+        if (currentPositions.length < 2) {
+          return {
+            ...prev,
+            positions: [...currentPositions, position]
+          }
+        }
+      }
+
+      return prev
+    })
+
+    // Clear position error when user makes changes
+    if (errors.positions) {
+      setErrors(prev => ({ ...prev, positions: '' }))
     }
   }
 
@@ -83,12 +127,13 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
         lastName: '',
         dateOfBirth: '',
         nationality: '',
-        position: '',
+        positions: [],
         club: '',
         height: '',
         weight: '',
         notes: '',
-        rating: ''
+        rating: '',
+        avatarUrl: ''
       })
 
       onClose()
@@ -186,11 +231,11 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <Calendar className="w-4 h-4 inline mr-1" />
-                    Date of Birth
+                    Date of Birth (YYYY-MM-DD)
                   </label>
                   <input
                     type="date"
@@ -205,6 +250,52 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                       hover:border-white/30
                       transition-all duration-200
                     "
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-2">
+                    <User className="w-4 h-4 inline mr-1" />
+                    Avatar URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.avatarUrl}
+                    onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
+                    className="
+                      w-full px-4 py-3
+                      bg-white/5 backdrop-blur-sm
+                      border border-white/20 rounded-lg
+                      text-white placeholder-white/50
+                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                      hover:border-white/30
+                      transition-all duration-200
+                    "
+                    placeholder="https://example.com/player-image.jpg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-2">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    Nationality
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nationality}
+                    onChange={(e) => handleInputChange('nationality', e.target.value)}
+                    className="
+                      w-full px-4 py-3
+                      bg-white/5 backdrop-blur-sm
+                      border border-white/20 rounded-lg
+                      text-white placeholder-white/50
+                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                      hover:border-white/30
+                      transition-all duration-200
+                    "
+                    placeholder="e.g. England"
                   />
                 </div>
 
@@ -230,34 +321,74 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2">
-                    <Users className="w-4 h-4 inline mr-1" />
-                    Position
-                  </label>
-                  <select
-                    value={formData.position}
-                    onChange={(e) => handleInputChange('position', e.target.value)}
-                    className="
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border border-white/20 rounded-lg
-                      text-white
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      hover:border-white/30
-                      transition-all duration-200
-                      appearance-none
-                    "
-                  >
-                    <option value="" className="bg-slate-800 text-white">Select position</option>
-                    <option value="Goalkeeper" className="bg-slate-800 text-white">Goalkeeper</option>
-                    <option value="Defender" className="bg-slate-800 text-white">Defender</option>
-                    <option value="Midfielder" className="bg-slate-800 text-white">Midfielder</option>
-                    <option value="Forward" className="bg-slate-800 text-white">Forward</option>
-                    <option value="Striker" className="bg-slate-800 text-white">Striker</option>
-                    <option value="Winger" className="bg-slate-800 text-white">Winger</option>
-                  </select>
+              </div>
+
+              {/* Multi-Position Selection */}
+              <div>
+                <label className="block text-sm font-medium text-white/60 mb-3">
+                  <Users className="w-4 h-4 inline mr-1" />
+                  Positions * (Select max 2 positions)
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {POSITION_OPTIONS.map((option) => {
+                    const isSelected = formData.positions.includes(option.value)
+                    const canSelect = formData.positions.length < 2 || isSelected
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => canSelect && handlePositionToggle(option.value)}
+                        className={`
+                          p-3 rounded-lg border text-sm font-medium transition-all duration-200
+                          ${isSelected
+                            ? 'bg-blue-600 border-blue-400 text-white'
+                            : canSelect
+                              ? 'bg-white/5 border-white/20 text-white/90 hover:bg-white/10 hover:border-white/30'
+                              : 'bg-white/5 border-white/10 text-white/40 cursor-not-allowed'
+                          }
+                        `}
+                        disabled={!canSelect}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
                 </div>
+                {formData.positions.length === 2 && (
+                  <p className="text-blue-400 text-sm mt-2">Maximum positions selected</p>
+                )}
+                {errors.positions && (
+                  <p className="text-red-400 text-sm mt-2">{errors.positions}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Club & Physical */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-4">Club & Physical</h3>
+
+              <div>
+                <label className="block text-sm font-medium text-white/60 mb-2">Current Club</label>
+                <input
+                  type="text"
+                  value={formData.club}
+                  onChange={(e) => handleInputChange('club', e.target.value)}
+                  className="
+                    w-full px-4 py-3
+                    bg-white/5 backdrop-blur-sm
+                    border border-white/20 rounded-lg
+                    text-white placeholder-white/50
+                    focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                    hover:border-white/30
+                    transition-all duration-200
+                  "
+                  placeholder="e.g. Manchester United"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div></div>
               </div>
             </div>
 

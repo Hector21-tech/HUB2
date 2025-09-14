@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { transformDatabasePlayer } from '@/lib/player-utils'
 
 const prisma = new PrismaClient()
 
@@ -21,9 +22,12 @@ export async function GET(request: NextRequest) {
       orderBy: { lastName: 'asc' }
     })
 
+    // Transform players to include positions array and avatar URL
+    const transformedPlayers = players.map(transformDatabasePlayer)
+
     return NextResponse.json({
       success: true,
-      data: players
+      data: transformedPlayers
     })
 
   } catch (error) {
@@ -46,13 +50,14 @@ export async function POST(request: NextRequest) {
       lastName,
       dateOfBirth,
       nationality,
-      position,
+      positions = [],
       club,
       height,
       weight,
       rating,
       notes,
-      tags = []
+      tags = [],
+      avatarUrl
     } = body
 
     // Validation
@@ -71,19 +76,19 @@ export async function POST(request: NextRequest) {
         lastName: lastName.trim(),
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         nationality: nationality?.trim() || null,
-        position: position?.trim() || null,
+        position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
         club: club?.trim() || null,
         height: height ? parseInt(height) : null,
         weight: weight ? parseInt(weight) : null,
         rating: rating ? parseFloat(rating) : null,
         notes: notes?.trim() || null,
-        tags
+        tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])] // Store avatar URL in tags temporarily
       }
     })
 
     return NextResponse.json({
       success: true,
-      data: player,
+      data: transformDatabasePlayer(player),
       message: 'Player created successfully'
     })
 
@@ -108,13 +113,14 @@ export async function PUT(request: NextRequest) {
       lastName,
       dateOfBirth,
       nationality,
-      position,
+      positions = [],
       club,
       height,
       weight,
       rating,
       notes,
-      tags
+      tags = [],
+      avatarUrl
     } = body
 
     // Validation
@@ -145,19 +151,19 @@ export async function PUT(request: NextRequest) {
         lastName: lastName.trim(),
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         nationality: nationality?.trim() || null,
-        position: position?.trim() || null,
+        position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
         club: club?.trim() || null,
         height: height ? parseInt(height) : null,
         weight: weight ? parseInt(weight) : null,
         rating: rating ? parseFloat(rating) : null,
         notes: notes?.trim() || null,
-        tags: tags || []
+        tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])]
       }
     })
 
     return NextResponse.json({
       success: true,
-      data: player,
+      data: transformDatabasePlayer(player),
       message: 'Player updated successfully'
     })
 

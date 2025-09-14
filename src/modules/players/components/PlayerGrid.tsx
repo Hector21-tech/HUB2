@@ -59,10 +59,23 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
               className="grid grid-cols-12 gap-4 p-3 hover:bg-white/5 cursor-pointer transition-colors duration-200"
             >
               <div className="col-span-3 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
-                  <span className="text-lg font-semibold text-white">
-                    {player.firstName?.[0]}{player.lastName?.[0]}
-                  </span>
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center overflow-hidden">
+                  {player.avatarUrl ? (
+                    <img
+                      src={player.avatarUrl}
+                      alt={`${player.firstName} ${player.lastName}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to initials if image fails
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                      }}
+                    />
+                  ) : (
+                    <span className="text-lg font-semibold text-white">
+                      {player.firstName?.[0]}{player.lastName?.[0]}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <p className="font-medium text-white/90">
@@ -72,7 +85,7 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
                 </div>
               </div>
               <div className="col-span-2 flex items-center">
-                <span className="text-sm text-white/90">{player.position || 'N/A'}</span>
+                <span className="text-sm text-white/90">{player.positions?.join(', ') || 'N/A'}</span>
               </div>
               <div className="col-span-2 flex items-center">
                 <span className="text-sm text-white/90 truncate">{player.club || 'Free Agent'}</span>
