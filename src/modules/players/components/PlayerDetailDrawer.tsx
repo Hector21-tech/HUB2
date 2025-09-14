@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2 } from 'lucide-react'
 import { Player } from '../types/player'
+import { formatPositionsDisplay } from '@/lib/positions'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -150,7 +151,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
                 <div className="flex items-center gap-4 text-white/90">
                   <span className="font-medium">{player.club || 'Free Agent'}</span>
                   <span>•</span>
-                  <span className="font-medium">{player.positions?.join(', ') || 'Player'}</span>
+                  <span className="font-medium">{formatPositionsDisplay(player.positions || []) || 'Player'}</span>
                   {player.rating && (
                     <>
                       <span>•</span>

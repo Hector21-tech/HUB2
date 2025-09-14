@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Player } from '../types/player'
+import { formatPositionsDisplay } from '@/lib/positions'
 
 interface PlayerCardProps {
   player: Player
@@ -80,7 +81,7 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
             {player.firstName} {player.lastName}
           </h3>
           <p className="text-sm text-white/80">
-            {player.club || 'Free Agent'} • {player.positions?.join(', ') || 'Player'}
+            {player.club || 'Free Agent'} • {formatPositionsDisplay(player.positions || []) || 'Player'}
           </p>
         </div>
 
