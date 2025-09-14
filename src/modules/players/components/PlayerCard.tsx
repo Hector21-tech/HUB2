@@ -76,7 +76,7 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
 
         {/* Player Name Overlay */}
         <div className="absolute bottom-4 left-4">
-          <h3 className="text-xl font-semibold text-white leading-tight">
+          <h3 className="text-xl font-semibold text-white leading-tight" translate="no" lang="en">
             {player.firstName} {player.lastName}
           </h3>
           <p className="text-sm text-white/80">

@@ -144,7 +144,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           <div className="absolute bottom-6 left-6 right-6">
             <div className="flex items-end justify-between">
               <div>
-                <h2 className="text-3xl font-semibold text-white mb-2 leading-tight">
+                <h2 className="text-3xl font-semibold text-white mb-2 leading-tight" translate="no" lang="en">
                   {player.firstName} {player.lastName}
                 </h2>
                 <div className="flex items-center gap-4 text-white/90">
@@ -380,7 +380,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-white mb-4">Ta bort spelare</h3>
             <p className="text-white/80 mb-6">
-              Är du säker på att du vill ta bort <strong>{player.firstName} {player.lastName}</strong>?
+              Är du säker på att du vill ta bort <strong translate="no" lang="en">{player.firstName} {player.lastName}</strong>?
               Detta går inte att ångra.
             </p>
             <div className="flex gap-3">
