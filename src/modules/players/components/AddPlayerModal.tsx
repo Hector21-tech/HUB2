@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, User, MapPin, Calendar, Users } from 'lucide-react'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { searchCountries, getAllCountryNames } from '@/lib/countries'
+import { searchClubs, getAllClubNames } from '@/lib/football-clubs'
 
 interface AddPlayerModalProps {
   isOpen: boolean
@@ -26,6 +27,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
     rating: '',
     avatarUrl: ''
   })
+  const [showCustomClubInput, setShowCustomClubInput] = useState(false)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -137,6 +139,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
         rating: '',
         avatarUrl: ''
       })
+      setShowCustomClubInput(false)
 
       onClose()
     } catch (error) {
@@ -309,21 +312,62 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                     <Users className="w-4 h-4 inline mr-1" />
                     Club
                   </label>
-                  <input
-                    type="text"
-                    value={formData.club}
-                    onChange={(e) => handleInputChange('club', e.target.value)}
-                    className="
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border border-white/20 rounded-lg
-                      text-white placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      hover:border-white/30
-                      transition-all duration-200
-                    "
-                    placeholder="e.g. Manchester United"
-                  />
+
+                  {showCustomClubInput ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={formData.club}
+                        onChange={(e) => handleInputChange('club', e.target.value)}
+                        className="
+                          w-full px-4 py-3
+                          bg-white/5 backdrop-blur-sm
+                          border border-white/20 rounded-lg
+                          text-white placeholder-white/50
+                          focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                          hover:border-white/30
+                          transition-all duration-200
+                        "
+                        placeholder="Enter club name manually..."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCustomClubInput(false)
+                          handleInputChange('club', '')
+                        }}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        ← Back to club search
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <SearchableSelect
+                        options={getAllClubNames().map(name => ({
+                          value: name,
+                          label: name
+                        }))}
+                        value={formData.club}
+                        onChange={(value) => handleInputChange('club', value || '')}
+                        placeholder="Search for a club..."
+                        searchPlaceholder="Type to search clubs..."
+                        onSearch={(query) =>
+                          searchClubs(query).map(club => ({
+                            value: club.name,
+                            label: `${club.name} (${club.city})`
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomClubInput(true)}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        Club not found? Enter manually →
+                      </button>
+                    </div>
+                  )}
                 </div>
 
               </div>
