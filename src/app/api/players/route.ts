@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { transformDatabasePlayer } from '@/lib/player-utils'
 
 // Use global Prisma instance in production to avoid connection issues
+// Updated to support avatarUrl field - regenerating Prisma client
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
