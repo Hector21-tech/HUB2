@@ -243,6 +243,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                    min="1950-01-01"
+                    max="2010-12-31"
                     className="
                       w-full px-4 py-3
                       bg-white/5 backdrop-blur-sm
@@ -395,110 +397,6 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
               </div>
             </div>
 
-            {/* Club & Physical */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Club & Physical</h3>
-
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-2">Current Club</label>
-                <input
-                  type="text"
-                  value={formData.club}
-                  onChange={(e) => handleInputChange('club', e.target.value)}
-                  className="
-                    w-full px-4 py-3
-                    bg-white/5 backdrop-blur-sm
-                    border border-white/20 rounded-lg
-                    text-white placeholder-white/50
-                    focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                    hover:border-white/30
-                    transition-all duration-200
-                  "
-                  placeholder="e.g. Manchester United"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2">
-                    Height (cm)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.height}
-                    onChange={(e) => handleInputChange('height', e.target.value)}
-                    className={`
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border rounded-lg
-                      text-white placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      transition-all duration-200
-                      ${errors.height ? 'border-red-400' : 'border-white/20 hover:border-white/30'}
-                    `}
-                    placeholder="180"
-                    min="50"
-                    max="250"
-                  />
-                  {errors.height && (
-                    <p className="text-red-400 text-sm mt-1">{errors.height}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2">
-                    Weight (kg)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.weight}
-                    onChange={(e) => handleInputChange('weight', e.target.value)}
-                    className={`
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border rounded-lg
-                      text-white placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      transition-all duration-200
-                      ${errors.weight ? 'border-red-400' : 'border-white/20 hover:border-white/30'}
-                    `}
-                    placeholder="75"
-                    min="30"
-                    max="150"
-                  />
-                  {errors.weight && (
-                    <p className="text-red-400 text-sm mt-1">{errors.weight}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2">
-                    Overall Rating (1-10)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.rating}
-                    onChange={(e) => handleInputChange('rating', e.target.value)}
-                    className={`
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border rounded-lg
-                      text-white placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      transition-all duration-200
-                      ${errors.rating ? 'border-red-400' : 'border-white/20 hover:border-white/30'}
-                    `}
-                    placeholder="8.0"
-                    min="1"
-                    max="10"
-                    step="0.1"
-                  />
-                  {errors.rating && (
-                    <p className="text-red-400 text-sm mt-1">{errors.rating}</p>
-                  )}
-                </div>
-              </div>
-            </div>
 
             {/* Notes */}
             <div>
