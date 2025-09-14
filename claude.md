@@ -30,6 +30,49 @@
 - Always scope queries with `tenant_id`.
 - Add indexes on `tenant_id` + frequently queried columns.
 
+## 📊 Database Schema & Models
+
+### Core Tables (7 total):
+- **`tenants`** - Multi-tenant organization management
+  - Fields: id, slug (unique), name, description, logoUrl, settings (JSON), timestamps
+  - Relations: memberships, players, requests, trials, events
+
+- **`users`** - User management across tenants
+  - Fields: id, email (unique), firstName, lastName, avatarUrl, timestamps
+  - Relations: memberships (many-to-many with tenants)
+
+- **`tenant_memberships`** - User roles within tenants
+  - Fields: id, tenantId, userId, role (enum), joinedAt
+  - Roles: OWNER, ADMIN, MANAGER, SCOUT, VIEWER
+
+- **`players`** - Player database with full scout info
+  - Fields: id, tenantId, firstName, lastName, dateOfBirth, position, club, nationality
+  - Physical: height (cm), weight (kg)
+  - Scout data: notes, tags (array), rating (1-10 float)
+  - Relations: tenant, trials
+
+- **`requests`** - Scout requests from clubs
+  - Fields: id, tenantId, title, description, club, position, ageRange
+  - Management: priority (enum), status (enum), budget, deadline
+  - Relations: tenant, trials
+
+- **`trials`** - Trial sessions and evaluations
+  - Fields: id, tenantId, playerId, requestId, scheduledAt, location
+  - Evaluation: status (enum), notes, rating, feedback
+  - Relations: tenant, player, request
+
+- **`calendar_events`** - Event scheduling
+  - Fields: id, tenantId, title, description, startTime, endTime, location
+  - Settings: type (enum), isAllDay, recurrence (RRULE)
+  - Relations: tenant
+
+### Enums:
+- **TenantRole**: OWNER, ADMIN, MANAGER, SCOUT, VIEWER
+- **Priority**: LOW, MEDIUM, HIGH, URGENT
+- **RequestStatus**: OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+- **TrialStatus**: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
+- **EventType**: TRIAL, MEETING, MATCH, TRAINING, SCOUTING, OTHER
+
 ## 👥 Roles & Permissions
 - Allowed roles: `owner`, `admin`, `manager`, `scout`, `viewer`.
 - RLS = tenant isolation.  
@@ -92,37 +135,47 @@
 - **CRUD Testing:** ✅ Full Prisma integration verified with test API endpoints
 - **Seed Data:** ✅ Complete test data created (Test Scout Hub, sample players, trials)
 
-### 🎯 Next Steps - Frontend Development
-1. **Authentication Setup** med Supabase Auth integration
-2. **Dashboard Components** för tenant management
-3. **Player Management** interface med CRUD operations
-4. **Scout Request** workflow implementation
-5. **Calendar Integration** för trials och events
+### ✅ Completed - Steg 4: Players Module Implementation
+- **Player Management UI:** ✅ Complete player listing with grid/list view modes
+- **Add Player Functionality:** ✅ Comprehensive player creation modal with validation
+- **Multi-Position System:** ✅ Max 2 positions selection with 10 football positions (GK, LB, LCB, etc.)
+- **Player Details:** ✅ Full player detail drawer with scout information
+- **Search & Filtering:** ✅ Real-time search and filters (position, nationality, age, rating)
+- **Avatar System:** ✅ Player avatar URLs with fallback to initials
+- **Data Transformation:** ✅ Utilities for database/UI format conversion
 
-### 🔧 Project Credentials
-- **Supabase Project:** wjwgwzxdgjtwwrnvsltp (corrected)
+### ✅ Completed - Steg 5: Enhanced User Experience
+- **Searchable Country Dropdown:** ✅ 195+ world countries with real-time search
+- **Glassmorphism Design:** ✅ Consistent SAAS theme throughout application
+- **Form Validation:** ✅ Comprehensive validation for all player data
+- **Error Handling:** ✅ Detailed error logging and user feedback
+- **Responsive Design:** ✅ Mobile and desktop optimized layouts
+- **Keyboard Navigation:** ✅ Full accessibility support for dropdowns
+
+### 🎯 Next Steps - Remaining Modules
+1. **Scout Requests Module** - Request management and workflow
+2. **Trials Management** - Scheduling and evaluation system
+3. **Calendar Integration** - Event scheduling and management
+4. **Authentication Setup** - Supabase Auth integration
+5. **Dashboard Analytics** - Overview and statistics
+
+### 🔧 Project Credentials & APIs
+- **Supabase Project:** latgzpdzxsrkiihfxfvn (correct project ID)
 - **GitHub Repo:** Hector21-tech/HUB2
-- **Database:** PostgreSQL via Supabase med RLS support
-- **Framework:** Next.js 14 med App Router och TypeScript
-- **Production URL:** https://hub2-seven.vercel.app
-- **Test APIs:** /api/migrate, /api/setup-rls, /api/test-crud
+- **Database:** PostgreSQL via Supabase with RLS policies
+- **Framework:** Next.js 14 with App Router and TypeScript
+- **Production URL:** https://hub2-fqi83azof-hector-bataks-projects.vercel.app
 
-## Databastabeller
+### 📡 Available API Endpoints:
+- **`/api/players`** - Full CRUD for players (GET, POST, PUT, DELETE) with tenant isolation
+- **`/api/test-crud`** - Testing endpoint for database operations
+- **`/api/migrate`** - Database migration utility
+- **`/api/setup-rls`** - Row Level Security setup
 
-- **tenants** – Tenant-hantering (multi-tenant)  
-- **users** – Användarkonton  
-- **tenant_memberships** – Koppling user ↔ tenant med roller  
-- **players** – Spelarinformation  
-- **requests** – Scout-requests från klubbar  
-- **trials** – Trial sessions & utvärderingar  
-- **calendar_events** – Kalenderhändelser  
+### 🔧 Shared Utilities:
+- **`src/lib/countries.ts`** - Complete world countries database with search functions
+- **`src/lib/player-utils.ts`** - Data transformation between database and UI formats
+- **`src/components/ui/SearchableSelect.tsx`** - Reusable search dropdown component
 
-## Viktiga Enums
-
-- **TenantRole** – OWNER, ADMIN, MANAGER, SCOUT, VIEWER  
-- **Priority** – LOW, MEDIUM, HIGH, URGENT  
-- **RequestStatus** – OPEN, IN_PROGRESS, COMPLETED, CANCELLED  
-- **TrialStatus** – SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW  
-- **EventType** – TRIAL, MEETING, MATCH, TRAINING, SCOUTING, OTHER  
 
 
