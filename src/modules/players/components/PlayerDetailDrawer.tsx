@@ -97,8 +97,22 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
       `}>
         {/* Hero Header */}
         <div className="relative h-48 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          {/* Player Avatar Background */}
+          {player.avatarUrl ? (
+            <img
+              src={player.avatarUrl}
+              alt={`${player.firstName} ${player.lastName}`}
+              className="absolute inset-0 w-full h-full object-cover filter sepia-[10%] contrast-110 brightness-95"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+              }}
+            />
+          ) : null}
+
+          {/* Enhanced Gradient Overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
 
           {/* Close Button */}
           <button
