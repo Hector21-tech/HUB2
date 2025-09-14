@@ -2,7 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { transformDatabasePlayer } from '@/lib/player-utils'
 
-const prisma = new PrismaClient()
+// Use global Prisma instance in production to avoid connection issues
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: ['query', 'error'],
+})
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 // GET - Fetch players for a tenant
 export async function GET(request: NextRequest) {
