@@ -174,9 +174,9 @@
 
 ### 🔧 Shared Utilities:
 - **`src/lib/countries.ts`** - Complete world countries database (195+ countries) with search functions
-- **`src/lib/football-clubs.ts`** - Global football clubs database with 1500+ clubs from major leagues
-  - Coverage: Europe (Tier 1 & 2), Africa (Tier 1), Middle East (Tier 1)
-  - Includes Premier League, La Liga, Bundesliga, Serie A, Saudi Pro League, etc.
+- **`src/lib/football-clubs.ts`** - Global football clubs database with 1600+ clubs from major leagues
+  - Coverage: Europe (Tier 1 & 2), Scandinavia (Tier 1 & 2), Africa (Tier 1), Middle East (Tier 1)
+  - Includes Premier League, La Liga, Bundesliga, Serie A, Saudi Pro League, Allsvenskan, Superligaen, Eliteserien, Veikkausliiga, etc.
 - **`src/lib/player-utils.ts`** - Data transformation between database and UI formats
 - **`src/components/ui/SearchableSelect.tsx`** - Reusable search dropdown component with keyboard navigation
 

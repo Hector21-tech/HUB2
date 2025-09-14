@@ -417,24 +417,6 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white mb-4">Club & Physical</h3>
 
-              <div>
-                <label className="block text-sm font-medium text-white/60 mb-2">Current Club</label>
-                <input
-                  type="text"
-                  value={formData.club}
-                  onChange={(e) => handleInputChange('club', e.target.value)}
-                  className="
-                    w-full px-4 py-3
-                    bg-white/5 backdrop-blur-sm
-                    border border-white/20 rounded-lg
-                    text-white placeholder-white/50
-                    focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                    hover:border-white/30
-                    transition-all duration-200
-                  "
-                  placeholder="e.g. Manchester United"
-                />
-              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div></div>

@@ -461,6 +461,202 @@ export const FOOTBALL_LEAGUES: League[] = [
       { id: 'khorfakkan', name: 'Khorfakkan Club', city: 'Khorfakkan', founded: 1981, stadium: 'Khorfakkan Club Stadium' },
       { id: 'al-dhafra', name: 'Al Dhafra FC', city: 'Madinat Zayed', founded: 1974, stadium: 'Hamdan bin Zayed Stadium' }
     ]
+  },
+
+  // ===================
+  // SCANDINAVIA - TIER 1
+  // ===================
+
+  {
+    id: 'allsvenskan',
+    name: 'Allsvenskan',
+    country: 'Sweden',
+    continent: 'Europe',
+    tier: 1,
+    clubs: [
+      { id: 'malmo-ff', name: 'Malmö FF', city: 'Malmö', founded: 1910, stadium: 'Eleda Stadion', notable: true },
+      { id: 'aik', name: 'AIK', city: 'Stockholm', founded: 1891, stadium: 'Friends Arena', notable: true },
+      { id: 'hammarby', name: 'Hammarby IF', city: 'Stockholm', founded: 1889, stadium: 'Tele2 Arena', notable: true },
+      { id: 'ifk-goteborg', name: 'IFK Göteborg', city: 'Göteborg', founded: 1904, stadium: 'Ullevi', notable: true },
+      { id: 'djurgarden', name: 'Djurgårdens IF', city: 'Stockholm', founded: 1891, stadium: 'Tele2 Arena', notable: true },
+      { id: 'bk-hacken', name: 'BK Häcken', city: 'Göteborg', founded: 1940, stadium: 'Bravida Arena' },
+      { id: 'if-elfsborg', name: 'IF Elfsborg', city: 'Borås', founded: 1904, stadium: 'Borås Arena' },
+      { id: 'kalmar-ff', name: 'Kalmar FF', city: 'Kalmar', founded: 1910, stadium: 'Guldfågeln Arena' },
+      { id: 'ifk-norrkoping', name: 'IFK Norrköping', city: 'Norrköping', founded: 1897, stadium: 'Platinumcars Arena' },
+      { id: 'mjallby-aif', name: 'Mjällby AIF', city: 'Hällevik', founded: 1939, stadium: 'Strandvallen' },
+      { id: 'degerfors-if', name: 'Degerfors IF', city: 'Degerfors', founded: 1907, stadium: 'Stora Valla' },
+      { id: 'varbergs-bois', name: 'Varbergs BoIS', city: 'Varberg', founded: 1905, stadium: 'Påskbergsvallen' },
+      { id: 'ifk-varnamo', name: 'IFK Värnamo', city: 'Värnamo', founded: 1912, stadium: 'Finnvedsvallen' },
+      { id: 'goteborg-city', name: 'Göteborg City', city: 'Göteborg', founded: 2001, stadium: 'Valhalla IP' },
+      { id: 'sirius', name: 'IK Sirius', city: 'Uppsala', founded: 1907, stadium: 'Studenternas IP' },
+      { id: 'halmstads-bk', name: 'Halmstads BK', city: 'Halmstad', founded: 1914, stadium: 'Örjans Vall' }
+    ]
+  },
+
+  {
+    id: 'superettan',
+    name: 'Superettan',
+    country: 'Sweden',
+    continent: 'Europe',
+    tier: 2,
+    clubs: [
+      { id: 'orebro-sk', name: 'Örebro SK', city: 'Örebro', founded: 1908, stadium: 'Behrn Arena' },
+      { id: 'helsingborgs-if', name: 'Helsingborgs IF', city: 'Helsingborg', founded: 1907, stadium: 'Olympia', notable: true },
+      { id: 'gais', name: 'GAIS', city: 'Göteborg', founded: 1894, stadium: 'Gamla Ullevi' },
+      { id: 'landskrona-bois', name: 'Landskrona BoIS', city: 'Landskrona', founded: 1915, stadium: 'Landskrona IP' },
+      { id: 'ostersunds-fk', name: 'Östersunds FK', city: 'Östersund', founded: 1996, stadium: 'Jämtkraft Arena' },
+      { id: 'trelleborgs-ff', name: 'Trelleborgs FF', city: 'Trelleborg', founded: 1926, stadium: 'Vångavallen' },
+      { id: 'utsiktens-bk', name: 'Utsiktens BK', city: 'Göteborg', founded: 1907, stadium: 'Bravida Arena' },
+      { id: 'sandvikens-if', name: 'Sandvikens IF', city: 'Sandviken', founded: 1918, stadium: 'Jernvallen' },
+      { id: 'gefle-if', name: 'Gefle IF', city: 'Gävle', founded: 1882, stadium: 'Strömvallen' },
+      { id: 'osters-if', name: 'Östers IF', city: 'Växjö', founded: 1930, stadium: 'Myresjöhus Arena' },
+      { id: 'jonkopings-sodra', name: 'Jönköpings Södra IF', city: 'Jönköping', founded: 1922, stadium: 'Stadsparksvallen' },
+      { id: 'orgryte-is', name: 'Örgryte IS', city: 'Göteborg', founded: 1887, stadium: 'Gamla Ullevi' },
+      { id: 'akropolis-if', name: 'Akropolis IF', city: 'Aten', founded: 2008, stadium: 'Åkeshovs IP' },
+      { id: 'falkenbergs-ff', name: 'Falkenbergs FF', city: 'Falkenberg', founded: 1928, stadium: 'Falkenbergs IP' },
+      { id: 'vasalunds-if', name: 'Vasalunds IF', city: 'Stockholm', founded: 1934, stadium: 'Skytteholms IP' },
+      { id: 'skövde-aik', name: 'Skövde AIK', city: 'Skövde', founded: 1919, stadium: 'Södermalms IP' }
+    ]
+  },
+
+  {
+    id: 'superligaen',
+    name: 'Superligaen',
+    country: 'Denmark',
+    continent: 'Europe',
+    tier: 1,
+    clubs: [
+      { id: 'fc-copenhagen', name: 'FC Copenhagen', city: 'Copenhagen', founded: 1992, stadium: 'Parken Stadium', notable: true },
+      { id: 'fc-midtjylland', name: 'FC Midtjylland', city: 'Herning', founded: 1999, stadium: 'MCH Arena', notable: true },
+      { id: 'brondby-if', name: 'Brøndby IF', city: 'Brøndby', founded: 1964, stadium: 'Brøndby Stadium', notable: true },
+      { id: 'agf-aarhus', name: 'AGF Aarhus', city: 'Aarhus', founded: 1880, stadium: 'Ceres Park', notable: true },
+      { id: 'fc-nordsjaelland', name: 'FC Nordsjælland', city: 'Farum', founded: 1991, stadium: 'Right to Dream Park' },
+      { id: 'randers-fc', name: 'Randers FC', city: 'Randers', founded: 2003, stadium: 'Cepheus Park' },
+      { id: 'aab-aalborg', name: 'AaB Aalborg', city: 'Aalborg', founded: 1885, stadium: 'Aalborg Portland Park' },
+      { id: 'silkeborg-if', name: 'Silkeborg IF', city: 'Silkeborg', founded: 1917, stadium: 'JYSK Park' },
+      { id: 'odense-boldklub', name: 'Odense Boldklub', city: 'Odense', founded: 1887, stadium: 'Nature Energy Park' },
+      { id: 'viborg-ff', name: 'Viborg FF', city: 'Viborg', founded: 1896, stadium: 'Energi Viborg Arena' },
+      { id: 'lyngby-bk', name: 'Lyngby BK', city: 'Lyngby', founded: 1921, stadium: 'Lyngby Stadion' },
+      { id: 'vejle-bk', name: 'Vejle BK', city: 'Vejle', founded: 1891, stadium: 'Vejle Stadion' }
+    ]
+  },
+
+  {
+    id: 'danish-1st-division',
+    name: '1. Division',
+    country: 'Denmark',
+    continent: 'Europe',
+    tier: 2,
+    clubs: [
+      { id: 'esbjerg-fb', name: 'Esbjerg fB', city: 'Esbjerg', founded: 1924, stadium: 'Blue Water Arena', notable: true },
+      { id: 'hvidovre-if', name: 'Hvidovre IF', city: 'Hvidovre', founded: 1925, stadium: 'Pro Ventilation Arena' },
+      { id: 'fc-helsingor', name: 'FC Helsingør', city: 'Helsingør', founded: 2005, stadium: 'Helsingør Stadion' },
+      { id: 'kolding-if', name: 'Kolding IF', city: 'Kolding', founded: 1895, stadium: 'Kolding Stadion' },
+      { id: 'fredericia-fi', name: 'FC Fredericia', city: 'Fredericia', founded: 1991, stadium: 'Monjasa Park' },
+      { id: 'hobro-ik', name: 'Hobro IK', city: 'Hobro', founded: 1913, stadium: 'DS Arena' },
+      { id: 'vendsyssel-ff', name: 'Vendsyssel FF', city: 'Hjørring', founded: 1919, stadium: 'Nord Energi Arena' },
+      { id: 'hillerod-fodbold', name: 'Hillerød Fodbold', city: 'Hillerød', founded: 2009, stadium: 'Hillerød Stadion' },
+      { id: 'naestved-bk', name: 'Næstved BK', city: 'Næstved', founded: 1939, stadium: 'Næstved Stadion' },
+      { id: 'thisted-fc', name: 'Thisted FC', city: 'Thisted', founded: 1919, stadium: 'Sparekassen Thy Arena' },
+      { id: 'nykoebing-fc', name: 'Nykøbing FC', city: 'Nykøbing Falster', founded: 1968, stadium: 'Nykøbing Stadion' },
+      { id: 'fremad-amager', name: 'Fremad Amager', city: 'Copenhagen', founded: 1910, stadium: 'Sundby Idrætspark' }
+    ]
+  },
+
+  {
+    id: 'eliteserien',
+    name: 'Eliteserien',
+    country: 'Norway',
+    continent: 'Europe',
+    tier: 1,
+    clubs: [
+      { id: 'molde-fk', name: 'Molde FK', city: 'Molde', founded: 1911, stadium: 'Aker Stadion', notable: true },
+      { id: 'rosenborg-bk', name: 'Rosenborg BK', city: 'Trondheim', founded: 1917, stadium: 'Lerkendal Stadion', notable: true },
+      { id: 'sk-brann', name: 'SK Brann', city: 'Bergen', founded: 1908, stadium: 'Brann Stadion', notable: true },
+      { id: 'valerenga', name: 'Vålerenga', city: 'Oslo', founded: 1913, stadium: 'Intility Arena', notable: true },
+      { id: 'bodo-glimt', name: 'Bodø/Glimt', city: 'Bodø', founded: 1916, stadium: 'Aspmyra Stadion', notable: true },
+      { id: 'viking-fk', name: 'Viking FK', city: 'Stavanger', founded: 1899, stadium: 'SR-Bank Arena' },
+      { id: 'sarpsborg-08', name: 'Sarpsborg 08', city: 'Sarpsborg', founded: 2008, stadium: 'Sarpsborg Stadion' },
+      { id: 'stromsgodset', name: 'Strömsgodset', city: 'Drammen', founded: 1876, stadium: 'Marienlyst Stadion' },
+      { id: 'kristiansund-bk', name: 'Kristiansund BK', city: 'Kristiansund', founded: 2003, stadium: 'Kristiansund Stadion' },
+      { id: 'aalesund-fk', name: 'Aalesunds FK', city: 'Ålesund', founded: 1914, stadium: 'Color Line Stadion' },
+      { id: 'lillestrom-sk', name: 'Lillestrøm SK', city: 'Lillestrøm', founded: 1917, stadium: 'Åråsen Stadion' },
+      { id: 'haugesund-fk', name: 'FK Haugesund', city: 'Haugesund', founded: 1993, stadium: 'Haugesund Stadion' },
+      { id: 'odd-grenland', name: 'Odds BK', city: 'Skien', founded: 1894, stadium: 'Skagerak Arena' },
+      { id: 'ham-kam', name: 'HamKam', city: 'Hamar', founded: 1946, stadium: 'Briskeby Arena' },
+      { id: 'sandefjord-fotball', name: 'Sandefjord Fotball', city: 'Sandefjord', founded: 1998, stadium: 'Komplett Arena' },
+      { id: 'tromso-il', name: 'Tromsø IL', city: 'Tromsø', founded: 1920, stadium: 'Alfheim Stadion' }
+    ]
+  },
+
+  {
+    id: 'norwegian-1st-division',
+    name: '1. Division',
+    country: 'Norway',
+    continent: 'Europe',
+    tier: 2,
+    clubs: [
+      { id: 'start-kristiansand', name: 'IK Start', city: 'Kristiansand', founded: 1905, stadium: 'Sør Arena', notable: true },
+      { id: 'bryne-fk', name: 'Bryne FK', city: 'Bryne', founded: 1926, stadium: 'Bryne Stadion' },
+      { id: 'sandnes-ulf', name: 'Sandnes Ulf', city: 'Sandnes', founded: 1911, stadium: 'Øster Hus Arena' },
+      { id: 'raufoss-il', name: 'Raufoss IL', city: 'Raufoss', founded: 1918, stadium: 'Gjemselund Stadion' },
+      { id: 'kongsvinger-il', name: 'Kongsvinger IL', city: 'Kongsvinger', founded: 1892, stadium: 'Gjemselund Stadion' },
+      { id: 'ranheim-fotball', name: 'Ranheim Fotball', city: 'Trondheim', founded: 1901, stadium: 'Extra Arena' },
+      { id: 'jerv', name: 'FK Jerv', city: 'Grimstad', founded: 1921, stadium: 'J.J. Ugland Stadion' },
+      { id: 'stjordals-blink', name: 'Stjørdals-Blink', city: 'Stjørdal', founded: 1896, stadium: 'Stjørdals-Blink Stadion' },
+      { id: 'aasane-fotball', name: 'Åsane Fotball', city: 'Bergen', founded: 1937, stadium: 'Myrdal Stadion' },
+      { id: 'sogndal-fotball', name: 'Sogndal Fotball', city: 'Sogndal', founded: 1926, stadium: 'Fosshaugane Campus' },
+      { id: 'mjondalen-if', name: 'Mjøndalen IF', city: 'Mjøndalen', founded: 1910, stadium: 'Consto Arena' },
+      { id: 'stabaek-fotball', name: 'Stabæk Fotball', city: 'Bærum', founded: 1912, stadium: 'Nadderud Stadion' },
+      { id: 'ullensaker-kisa', name: 'Ullensaker/Kisa', city: 'Jessheim', founded: 2003, stadium: 'Jessheim Stadion' },
+      { id: 'egersund-ik', name: 'Egersunds IK', city: 'Egersund', founded: 1917, stadium: 'Eigerøy Stadion' },
+      { id: 'levanger-fk', name: 'Levanger FK', city: 'Levanger', founded: 1929, stadium: 'Levanger Stadion' },
+      { id: 'lyn-oslo', name: 'Lyn Oslo', city: 'Oslo', founded: 1896, stadium: 'Kringsjå Kunstgressbane' }
+    ]
+  },
+
+  {
+    id: 'veikkausliiga',
+    name: 'Veikkausliiga',
+    country: 'Finland',
+    continent: 'Europe',
+    tier: 1,
+    clubs: [
+      { id: 'hjk-helsinki', name: 'HJK Helsinki', city: 'Helsinki', founded: 1907, stadium: 'Bolt Arena', notable: true },
+      { id: 'kups-kuopio', name: 'KuPS', city: 'Kuopio', founded: 1923, stadium: 'Savon Sanomat Areena', notable: true },
+      { id: 'fc-lahti', name: 'FC Lahti', city: 'Lahti', founded: 1996, stadium: 'Lahti Stadium' },
+      { id: 'fc-inter-turku', name: 'FC Inter Turku', city: 'Turku', founded: 1990, stadium: 'Veritas Stadion' },
+      { id: 'seinajoen-jk', name: 'SJK Seinäjoki', city: 'Seinäjoki', founded: 2007, stadium: 'OmaSP Stadion' },
+      { id: 'fc-haka', name: 'FC Haka', city: 'Valkeakoski', founded: 1934, stadium: 'Tehtaan kenttä' },
+      { id: 'ilves-tampere', name: 'Ilves', city: 'Tampere', founded: 1931, stadium: 'Tampere Stadium' },
+      { id: 'mariehamn', name: 'IFK Mariehamn', city: 'Mariehamn', founded: 1919, stadium: 'Wiklöf Holding Arena' },
+      { id: 'oulu-palloseura', name: 'AC Oulu', city: 'Oulu', founded: 2002, stadium: 'Raatti Stadium' },
+      { id: 'vaasa-ps', name: 'Vaasan Palloseura', city: 'Vaasa', founded: 1924, stadium: 'Elisa Stadion' },
+      { id: 'honka-espoo', name: 'FC Honka', city: 'Espoo', founded: 1975, stadium: 'Tapiolan Honka' },
+      { id: 'jjk-jyvaskyla', name: 'JJK Jyväskylä', city: 'Jyväskylä', founded: 1923, stadium: 'Harjun Stadion' }
+    ]
+  },
+
+  {
+    id: 'ykkonen',
+    name: 'Ykkönen',
+    country: 'Finland',
+    continent: 'Europe',
+    tier: 2,
+    clubs: [
+      { id: 'tps-turku', name: 'TPS', city: 'Turku', founded: 1922, stadium: 'Veritas Stadion', notable: true },
+      { id: 'ff-jaro', name: 'FF Jaro', city: 'Jakobstad', founded: 1965, stadium: 'Jakobstad Centralplan' },
+      { id: 'pk-35-vantaa', name: 'PK-35 Vantaa', city: 'Vantaa', founded: 1975, stadium: 'Vantaan urheilupuisto' },
+      { id: 'gnistan', name: 'Gnistan', city: 'Helsinki', founded: 1924, stadium: 'Oulunkylän Stadion' },
+      { id: 'mps-pori', name: 'MPS', city: 'Pori', founded: 1974, stadium: 'Porin Stadion' },
+      { id: 'fc-jazz', name: 'FC Jazz', city: 'Pori', founded: 1992, stadium: 'Porin Stadion' },
+      { id: 'ekenas-if', name: 'EkenÄs IF', city: 'Ekenäs', founded: 1905, stadium: 'Ekenäs Centrumplan' },
+      { id: 'rovaniemi-ps', name: 'RoPS', city: 'Rovaniemi', founded: 1950, stadium: 'Keskuskenttä' },
+      { id: 'jips-helsinki', name: 'JIPS', city: 'Helsinki', founded: 1989, stadium: 'Pirkkolan urheilupuisto' },
+      { id: 'klubi-04', name: 'Klubi 04', city: 'Helsinki', founded: 2004, stadium: 'Myllypuro Areena' },
+      { id: 'atlantis-helsinki', name: 'Atlantis FC', city: 'Helsinki', founded: 1995, stadium: 'Vuosaaren urheilupuisto' },
+      { id: 'mp-mikkeli', name: 'MP', city: 'Mikkeli', founded: 1929, stadium: 'Mikkelin urheilupuisto' }
+    ]
   }
 ]
 
