@@ -12,7 +12,10 @@
   - `/modules/{feature}/services` → server/data logic
   - `/modules/{feature}/types` → shared TS types
 - Shared utilities go in `/lib`.
+  - `countries.ts` → Complete world countries database (195+ countries) for nationality selection, scout locations, etc.
+  - Includes search functions and ISO country codes for reusability across features
 - Global UI components (buttons, modals, etc.) go in `/components/ui`.
+  - `SearchableSelect.tsx` → Reusable dropdown with real-time search, keyboard navigation, and glassmorphism styling
 
 ## 🔐 Multi-Tenant Rules
 - Tenant resolution is **path-based**: `/[tenant]/...`

@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { X, User, MapPin, Calendar, Users } from 'lucide-react'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
+import { searchCountries } from '@/lib/countries'
 
 interface AddPlayerModalProps {
   isOpen: boolean
@@ -282,20 +284,18 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                     <MapPin className="w-4 h-4 inline mr-1" />
                     Nationality
                   </label>
-                  <input
-                    type="text"
+                  <SearchableSelect
+                    options={[]}
                     value={formData.nationality}
-                    onChange={(e) => handleInputChange('nationality', e.target.value)}
-                    className="
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border border-white/20 rounded-lg
-                      text-white placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      hover:border-white/30
-                      transition-all duration-200
-                    "
-                    placeholder="e.g. England"
+                    onChange={(value) => handleInputChange('nationality', value || '')}
+                    placeholder="Search for a country..."
+                    searchPlaceholder="Type to search countries..."
+                    onSearch={(query) =>
+                      searchCountries(query).map(country => ({
+                        value: country.name,
+                        label: country.name
+                      }))
+                    }
                   />
                 </div>
 
@@ -304,20 +304,18 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId }: AddPlayerM
                     <MapPin className="w-4 h-4 inline mr-1" />
                     Nationality
                   </label>
-                  <input
-                    type="text"
+                  <SearchableSelect
+                    options={[]}
                     value={formData.nationality}
-                    onChange={(e) => handleInputChange('nationality', e.target.value)}
-                    className="
-                      w-full px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border border-white/20 rounded-lg
-                      text-white placeholder-white/50
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      hover:border-white/30
-                      transition-all duration-200
-                    "
-                    placeholder="e.g. England"
+                    onChange={(value) => handleInputChange('nationality', value || '')}
+                    placeholder="Search for a country..."
+                    searchPlaceholder="Type to search countries..."
+                    onSearch={(query) =>
+                      searchCountries(query).map(country => ({
+                        value: country.name,
+                        label: country.name
+                      }))
+                    }
                   />
                 </div>
 

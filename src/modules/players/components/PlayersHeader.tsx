@@ -2,6 +2,8 @@
 
 import { Search, Filter, Users, Grid, List } from 'lucide-react'
 import { PlayerFilters } from '../types/player'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
+import { searchCountries } from '@/lib/countries'
 
 interface PlayersHeaderProps {
   filters: PlayerFilters
@@ -185,37 +187,20 @@ export function PlayersHeader({
             </div>
 
             {/* Nationality Filter */}
-            <div className="relative">
-              <select
-                value={filters.nationality || ''}
-                onChange={(e) => handleFilterChange('nationality', e.target.value || undefined)}
-                className="
-                  px-4 py-3 pr-10
-                  bg-white/5 backdrop-blur-sm
-                  border border-white/20 rounded-lg
-                  text-white text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                  hover:border-white/30
-                  transition-all duration-200 cursor-pointer
-                  appearance-none w-full
-                "
-              >
-              <option value="" className="bg-slate-800 text-white">All Nationalities</option>
-              <option value="England" className="bg-slate-800 text-white">England</option>
-              <option value="Spain" className="bg-slate-800 text-white">Spain</option>
-              <option value="Germany" className="bg-slate-800 text-white">Germany</option>
-              <option value="France" className="bg-slate-800 text-white">France</option>
-              <option value="Brazil" className="bg-slate-800 text-white">Brazil</option>
-              <option value="Argentina" className="bg-slate-800 text-white">Argentina</option>
-              <option value="Portugal" className="bg-slate-800 text-white">Portugal</option>
-              <option value="Netherlands" className="bg-slate-800 text-white">Netherlands</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+            <SearchableSelect
+              options={[]}
+              value={filters.nationality}
+              onChange={(value) => handleFilterChange('nationality', value)}
+              placeholder="All Nationalities"
+              searchPlaceholder="Search for a country..."
+              className="w-48"
+              onSearch={(query) =>
+                searchCountries(query).map(country => ({
+                  value: country.name,
+                  label: country.name
+                }))
+              }
+            />
 
             {/* Clear Filters */}
             {activeFiltersCount > 0 && (
