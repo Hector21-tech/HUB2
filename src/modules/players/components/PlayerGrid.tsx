@@ -102,11 +102,10 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
                     if (player.contractExpiry) {
                       const today = new Date()
                       const expiry = new Date(player.contractExpiry)
-                      const monthsUntilExpiry = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)
-                      const isExpiring = monthsUntilExpiry <= 6 && monthsUntilExpiry > 0
+                      const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                      const isExpiring = daysUntilExpiry > 0 && daysUntilExpiry <= 180 // 6 months = ~180 days
 
                       if (isExpiring) {
-                        const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
                         const urgencyColor = daysUntilExpiry <= 30 ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
 
                         return (

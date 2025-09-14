@@ -199,15 +199,15 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     }
 
     // Contract status filter
-    if (filters.contractStatus) {
+    if (filters.contractStatus && filters.contractStatus !== '') {
       filtered = filtered.filter(player => {
         const isFreeAgent = !player.club || player.club === ''
         const hasContract = !isFreeAgent && player.contractExpiry
         const isContractExpiring = hasContract && (() => {
           const today = new Date()
           const expiry = new Date(player.contractExpiry!)
-          const monthsUntilExpiry = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)
-          return monthsUntilExpiry <= 6 && monthsUntilExpiry > 0
+          const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          return daysUntilExpiry > 0 && daysUntilExpiry <= 180 // 6 months = ~180 days
         })()
 
         switch (filters.contractStatus) {
@@ -216,7 +216,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
           case 'expiring':
             return isContractExpiring
           case 'active':
-            return hasContract && !isContractExpiring
+            // Players with club (not free agent) are considered active, even without explicit contract expiry
+            return !isFreeAgent && (!player.contractExpiry || !isContractExpiring)
           default:
             return true
         }

@@ -54,8 +54,8 @@ export function isContractExpiring(contractExpiry?: Date): boolean {
   if (!contractExpiry) return false
   const today = new Date()
   const expiry = new Date(contractExpiry)
-  const monthsUntilExpiry = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)
-  return monthsUntilExpiry <= 6 && monthsUntilExpiry > 0
+  const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  return daysUntilExpiry > 0 && daysUntilExpiry <= 180 // 6 months = ~180 days
 }
 
 /**

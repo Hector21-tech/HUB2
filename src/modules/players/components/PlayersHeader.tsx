@@ -212,7 +212,7 @@ export function PlayersHeader({
             <div className="relative flex-1 min-w-[160px] sm:flex-none">
               <select
                 value={filters.contractStatus || 'all'}
-                onChange={(e) => handleFilterChange('contractStatus', e.target.value === 'all' ? undefined : e.target.value)}
+                onChange={(e) => handleFilterChange('contractStatus', e.target.value === 'all' ? '' : e.target.value)}
                 className="
                   px-3 sm:px-4 py-3 pr-8 sm:pr-10 text-sm sm:text-sm
                   bg-white/5 backdrop-blur-sm
