@@ -56,11 +56,11 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
             <div
               key={player.id}
               onClick={() => onPlayerSelect(player)}
-              className="grid grid-cols-12 gap-4 p-4 hover:bg-[blue-400]/5 cursor-pointer transition-colors duration-200"
+              className="grid grid-cols-12 gap-4 p-4 hover:bg-white/10 hover:border-l-4 hover:border-l-blue-400 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
             >
               <div className="col-span-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[blue-400]/10 to-[blue-400]/5 flex items-center justify-center">
-                  <span className="text-sm font-medium text-[blue-400]">
+                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center shadow-lg overflow-hidden">
+                  <span className="text-lg font-semibold text-white">
                     {player.firstName?.[0]}{player.lastName?.[0]}
                   </span>
                 </div>

@@ -118,6 +118,7 @@ export function PlayersHeader({
                 focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                 hover:border-white/30
                 transition-all duration-200 cursor-pointer
+                appearance-none
               "
             >
               <option value="" className="bg-slate-800 text-white">All Positions</option>
@@ -174,6 +175,7 @@ export function PlayersHeader({
                 focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                 hover:border-white/30
                 transition-all duration-200 cursor-pointer
+                appearance-none
               "
             >
               <option value="" className="bg-slate-800 text-white">All Nationalities</option>
