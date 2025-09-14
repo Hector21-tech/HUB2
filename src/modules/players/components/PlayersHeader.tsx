@@ -107,27 +107,34 @@ export function PlayersHeader({
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-3">
             {/* Position Filter */}
-            <select
-              value={filters.position || ''}
-              onChange={(e) => handleFilterChange('position', e.target.value || undefined)}
-              className="
-                px-4 py-3
-                bg-white/5 backdrop-blur-sm
-                border border-white/20 rounded-lg
-                text-white text-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                hover:border-white/30
-                transition-all duration-200 cursor-pointer
-                appearance-none
-              "
-            >
+            <div className="relative">
+              <select
+                value={filters.position || ''}
+                onChange={(e) => handleFilterChange('position', e.target.value || undefined)}
+                className="
+                  px-4 py-3 pr-10
+                  bg-white/5 backdrop-blur-sm
+                  border border-white/20 rounded-lg
+                  text-white text-sm
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                  hover:border-white/30
+                  transition-all duration-200 cursor-pointer
+                  appearance-none w-full
+                "
+              >
               <option value="" className="bg-slate-800 text-white">All Positions</option>
               <option value="Goalkeeper" className="bg-slate-800 text-white">Goalkeeper</option>
               <option value="Defender" className="bg-slate-800 text-white">Defender</option>
               <option value="Midfielder" className="bg-slate-800 text-white">Midfielder</option>
               <option value="Forward" className="bg-slate-800 text-white">Forward</option>
               <option value="Striker" className="bg-slate-800 text-white">Striker</option>
-            </select>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
 
             {/* Age Filter */}
             <div className="flex gap-2">
@@ -164,20 +171,21 @@ export function PlayersHeader({
             </div>
 
             {/* Nationality Filter */}
-            <select
-              value={filters.nationality || ''}
-              onChange={(e) => handleFilterChange('nationality', e.target.value || undefined)}
-              className="
-                px-4 py-3
-                bg-white/5 backdrop-blur-sm
-                border border-white/20 rounded-lg
-                text-white text-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                hover:border-white/30
-                transition-all duration-200 cursor-pointer
-                appearance-none
-              "
-            >
+            <div className="relative">
+              <select
+                value={filters.nationality || ''}
+                onChange={(e) => handleFilterChange('nationality', e.target.value || undefined)}
+                className="
+                  px-4 py-3 pr-10
+                  bg-white/5 backdrop-blur-sm
+                  border border-white/20 rounded-lg
+                  text-white text-sm
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                  hover:border-white/30
+                  transition-all duration-200 cursor-pointer
+                  appearance-none w-full
+                "
+              >
               <option value="" className="bg-slate-800 text-white">All Nationalities</option>
               <option value="England" className="bg-slate-800 text-white">England</option>
               <option value="Spain" className="bg-slate-800 text-white">Spain</option>
@@ -187,7 +195,13 @@ export function PlayersHeader({
               <option value="Argentina" className="bg-slate-800 text-white">Argentina</option>
               <option value="Portugal" className="bg-slate-800 text-white">Portugal</option>
               <option value="Netherlands" className="bg-slate-800 text-white">Netherlands</option>
-            </select>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
 
             {/* Clear Filters */}
             {activeFiltersCount > 0 && (
