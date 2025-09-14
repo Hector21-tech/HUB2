@@ -55,10 +55,10 @@ export async function GET(request: NextRequest) {
     // Transform data to match expected format
     const transformedPlayers = players?.map(player => ({
       ...player,
-      positions: player.position ? player.position.split(', ').filter(p => p.length > 0) : [],
+      positions: player.position ? player.position.split(', ').filter((p: string) => p.length > 0) : [],
       dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null,
       // Clean up any remaining avatar tags from tags array
-      tags: player.tags ? player.tags.filter(tag => !tag.startsWith('avatar:')) : []
+      tags: player.tags ? player.tags.filter((tag: string) => !tag.startsWith('avatar:')) : []
     })) || []
 
     return NextResponse.json({
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     // Transform response data
     const transformedPlayer = {
       ...player,
-      positions: player.position ? player.position.split(', ').filter(p => p.length > 0) : [],
+      positions: player.position ? player.position.split(', ').filter((p: string) => p.length > 0) : [],
       dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null
     }
 
@@ -253,7 +253,7 @@ export async function PUT(request: NextRequest) {
     // Transform response data
     const transformedPlayer = {
       ...player,
-      positions: player.position ? player.position.split(', ').filter(p => p.length > 0) : [],
+      positions: player.position ? player.position.split(', ').filter((p: string) => p.length > 0) : [],
       dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null
     }
 
