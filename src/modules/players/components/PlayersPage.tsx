@@ -199,7 +199,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     }
 
     // Contract status filter
-    if (filters.contractStatus && filters.contractStatus !== '') {
+    if (filters.contractStatus) {
       filtered = filtered.filter(player => {
         const isFreeAgent = !player.club || player.club === ''
         const hasContract = !isFreeAgent && player.contractExpiry
