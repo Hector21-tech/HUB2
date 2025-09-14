@@ -37,7 +37,7 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
       className={`
         relative bg-white/10 backdrop-blur-md
         rounded-lg shadow-lg cursor-pointer transition-all duration-200
-        border border-white/20 overflow-hidden touch-none
+        border border-white/20 overflow-hidden
         ${isHovered ? 'bg-white/15 border-white/30 shadow-xl' : 'shadow-lg'}
       `}
       onMouseEnter={() => setIsHovered(true)}
