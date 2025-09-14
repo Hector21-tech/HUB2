@@ -10,6 +10,7 @@ interface PlayerCardProps {
 
 export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const calculateAge = (dateOfBirth?: Date) => {
     if (!dateOfBirth) return null
@@ -46,15 +47,26 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
       {/* Hero Header */}
       <div className="relative h-32 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
         {/* Player Avatar/Background */}
-        {player.avatarUrl ? (
+        {player.avatarUrl && !imageError ? (
           <img
             src={player.avatarUrl}
             alt={`${player.firstName} ${player.lastName}`}
             className="absolute inset-0 w-full h-full object-cover filter sepia-[5%] contrast-105 brightness-98"
+            loading="lazy"
             onError={(e) => {
-              // Fallback to gradient if image fails to load
+              // More robust fallback - try loading once more, then hide
               const target = e.target as HTMLImageElement
-              target.style.display = 'none'
+              if (!target.dataset.retried) {
+                target.dataset.retried = 'true'
+                // Force reload the image
+                target.src = target.src + '?retry=' + Date.now()
+              } else {
+                setImageError(true)
+              }
+            }}
+            onLoad={() => {
+              // Reset error state on successful load
+              setImageError(false)
             }}
           />
         ) : null}

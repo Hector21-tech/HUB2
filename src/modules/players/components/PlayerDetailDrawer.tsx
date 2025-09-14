@@ -103,9 +103,22 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
               src={player.avatarUrl}
               alt={`${player.firstName} ${player.lastName}`}
               className="absolute inset-0 w-full h-full object-cover filter sepia-[5%] contrast-105 brightness-98"
+              loading="lazy"
               onError={(e) => {
+                // More robust fallback - try loading once more, then hide
                 const target = e.target as HTMLImageElement
-                target.style.display = 'none'
+                if (!target.dataset.retried) {
+                  target.dataset.retried = 'true'
+                  // Force reload the image
+                  target.src = target.src + '?retry=' + Date.now()
+                } else {
+                  target.style.display = 'none'
+                }
+              }}
+              onLoad={(e) => {
+                // Ensure image is visible when loaded successfully
+                const target = e.target as HTMLImageElement
+                target.style.display = 'block'
               }}
             />
           ) : null}
