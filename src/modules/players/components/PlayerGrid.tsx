@@ -38,8 +38,8 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
   if (viewMode === 'list') {
     return (
       <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-        {/* List Header */}
-        <div className="grid grid-cols-12 gap-4 p-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-sm font-medium text-white/60">
+        {/* Desktop List Header - Hidden on mobile */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-sm font-medium text-white/60">
           <div className="col-span-3">Player</div>
           <div className="col-span-2">Position</div>
           <div className="col-span-2">Club</div>
@@ -56,78 +56,141 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
             <div
               key={player.id}
               onClick={() => onPlayerSelect(player)}
-              className="grid grid-cols-12 gap-4 p-3 hover:bg-white/5 cursor-pointer transition-colors duration-200"
+              className="cursor-pointer transition-colors duration-200 hover:bg-white/5 min-h-[80px]"
             >
-              <div className="col-span-3 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center overflow-hidden">
-                  {player.avatarUrl ? (
-                    <img
-                      src={player.avatarUrl}
-                      alt={`${player.firstName} ${player.lastName}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to initials if image fails
-                        const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                      }}
-                    />
-                  ) : (
-                    <span className="text-lg font-semibold text-white">
-                      {player.firstName?.[0]}{player.lastName?.[0]}
+              {/* Desktop Layout */}
+              <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 items-center">
+                <div className="col-span-3 flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-full flex items-center justify-center overflow-hidden">
+                    {player.avatarUrl ? (
+                      <img
+                        src={player.avatarUrl}
+                        alt={`${player.firstName} ${player.lastName}`}
+                        className="w-full h-full object-cover object-top"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold text-white">
+                        {player.firstName?.[0]}{player.lastName?.[0]}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-white/90" translate="no" lang="en">
+                      {player.firstName} {player.lastName}
+                    </p>
+                    <p className="text-xs text-white/60">{player.nationality}</p>
+                  </div>
+                </div>
+                <div className="col-span-2 flex items-center">
+                  <span className="text-sm text-white/90">{player.positions?.join(', ') || 'N/A'}</span>
+                </div>
+                <div className="col-span-2 flex items-center">
+                  <span className="text-sm text-white/90 truncate">{player.club || 'Free Agent'}</span>
+                </div>
+                <div className="col-span-1 flex items-center">
+                  <span className="text-sm text-white/90">
+                    {player.dateOfBirth ?
+                      Math.floor((new Date().getTime() - new Date(player.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365))
+                      : 'N/A'
+                    }
+                  </span>
+                </div>
+                <div className="col-span-1 flex items-center">
+                  {player.rating ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-400/10 text-blue-400">
+                      {player.rating.toFixed(1)}
                     </span>
+                  ) : (
+                    <span className="text-sm text-white/50">N/A</span>
                   )}
                 </div>
-                <div>
-                  <p className="font-medium text-white/90">
-                    {player.firstName} {player.lastName}
-                  </p>
-                  <p className="text-xs text-white/60">{player.nationality}</p>
+                <div className="col-span-1 flex items-center">
+                  <span className="text-sm font-medium text-white/90">
+                    {player.goalsThisSeason || 0}
+                  </span>
+                </div>
+                <div className="col-span-1 flex items-center">
+                  <span className="text-sm font-medium text-white/90">
+                    {player.assistsThisSeason || 0}
+                  </span>
+                </div>
+                <div className="col-span-1 flex items-center">
+                  <span className="text-sm font-medium text-blue-400">
+                    {player.marketValue ?
+                      player.marketValue >= 1000000 ?
+                        `€${(player.marketValue / 1000000).toFixed(1)}M` :
+                        player.marketValue >= 1000 ?
+                          `€${(player.marketValue / 1000).toFixed(0)}K` :
+                          `€${player.marketValue}`
+                      : 'N/A'
+                    }
+                  </span>
                 </div>
               </div>
-              <div className="col-span-2 flex items-center">
-                <span className="text-sm text-white/90">{player.positions?.join(', ') || 'N/A'}</span>
-              </div>
-              <div className="col-span-2 flex items-center">
-                <span className="text-sm text-white/90 truncate">{player.club || 'Free Agent'}</span>
-              </div>
-              <div className="col-span-1 flex items-center">
-                <span className="text-sm text-white/90">
-                  {player.dateOfBirth ?
-                    Math.floor((new Date().getTime() - new Date(player.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365))
-                    : 'N/A'
-                  }
-                </span>
-              </div>
-              <div className="col-span-1 flex items-center">
-                {player.rating ? (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[blue-400]/10 text-[blue-400]">
-                    {player.rating.toFixed(1)}
-                  </span>
-                ) : (
-                  <span className="text-sm text-white/50">N/A</span>
-                )}
-              </div>
-              <div className="col-span-1 flex items-center">
-                <span className="text-sm font-medium text-white/90">
-                  {player.goalsThisSeason || 0}
-                </span>
-              </div>
-              <div className="col-span-1 flex items-center">
-                <span className="text-sm font-medium text-white/90">
-                  {player.assistsThisSeason || 0}
-                </span>
-              </div>
-              <div className="col-span-1 flex items-center">
-                <span className="text-sm font-medium text-[blue-400]">
-                  {player.marketValue ?
-                    player.marketValue >= 1000000 ?
-                      `€${(player.marketValue / 1000000).toFixed(1)}M` :
-                      player.marketValue >= 1000 ?
-                        `€${(player.marketValue / 1000).toFixed(0)}K` :
-                        `€${player.marketValue}`
-                    : 'N/A'
-                  }
-                </span>
+
+              {/* Mobile Layout - Card style */}
+              <div className="lg:hidden p-4">
+                <div className="flex items-center gap-4">
+                  {/* Avatar */}
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {player.avatarUrl ? (
+                      <img
+                        src={player.avatarUrl}
+                        alt={`${player.firstName} ${player.lastName}`}
+                        className="w-full h-full object-cover object-top"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <span className="text-lg font-semibold text-white">
+                        {player.firstName?.[0]}{player.lastName?.[0]}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Player Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-white/90 text-lg leading-tight mb-1" translate="no" lang="en">
+                      {player.firstName} {player.lastName}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-white/70 mb-2">
+                      <span>{player.club || 'Free Agent'}</span>
+                      <span>•</span>
+                      <span>{player.positions?.join(', ') || 'Player'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-white/60">
+                          Age {player.dateOfBirth ?
+                            Math.floor((new Date().getTime() - new Date(player.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365))
+                            : 'N/A'
+                          }
+                        </span>
+                        {player.rating && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-400/10 text-blue-400">
+                            {player.rating.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm font-medium text-blue-400">
+                        {player.marketValue ?
+                          player.marketValue >= 1000000 ?
+                            `€${(player.marketValue / 1000000).toFixed(1)}M` :
+                            player.marketValue >= 1000 ?
+                              `€${(player.marketValue / 1000).toFixed(0)}K` :
+                              `€${player.marketValue}`
+                          : ''
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

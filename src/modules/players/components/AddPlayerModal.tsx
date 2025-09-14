@@ -194,8 +194,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#020617] via-[#0c1532] to-[#1e3a8a] rounded-xl shadow-2xl border border-white/20">
+      <div className="relative min-h-screen flex items-center justify-center p-2 sm:p-4">
+        <div className="relative w-full max-w-2xl bg-gradient-to-br from-[#020617] via-[#0c1532] to-[#1e3a8a] rounded-lg sm:rounded-xl shadow-2xl border border-white/20">
 
           {/* Header */}
           <div className="relative h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-t-xl overflow-hidden">
@@ -203,27 +203,27 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
 
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors duration-200 backdrop-blur-sm"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors duration-200 backdrop-blur-sm touch-none"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="absolute bottom-4 left-6">
-              <h2 className="text-2xl font-semibold text-white flex items-center gap-3">
-                <User className="w-6 h-6" />
+            <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-6">
+              <h2 className="text-lg sm:text-2xl font-semibold text-white flex items-center gap-2 sm:gap-3">
+                <User className="w-5 h-5 sm:w-6 sm:h-6" />
                 {editingPlayer ? 'Redigera spelare' : 'Add New Player'}
               </h2>
             </div>
           </div>
 
           {/* Content */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
             {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Basic Information</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     First Name *
@@ -233,9 +233,9 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
                     className={`
-                      w-full px-4 py-3
+                      w-full px-3 sm:px-4 py-3 sm:py-3
                       bg-white/5 backdrop-blur-sm
-                      border rounded-lg
+                      border rounded-lg text-base
                       text-white placeholder-white/50
                       focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                       transition-all duration-200
@@ -257,9 +257,9 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
                     className={`
-                      w-full px-4 py-3
+                      w-full px-3 sm:px-4 py-3 sm:py-3
                       bg-white/5 backdrop-blur-sm
-                      border rounded-lg
+                      border rounded-lg text-base
                       text-white placeholder-white/50
                       focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                       transition-all duration-200
@@ -273,7 +273,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <Calendar className="w-4 h-4 inline mr-1" />
@@ -286,10 +286,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                     min="1950-01-01"
                     max="2010-12-31"
                     className="
-                      w-full px-4 py-3
+                      w-full px-3 sm:px-4 py-3
                       bg-white/5 backdrop-blur-sm
                       border border-white/20 rounded-lg
-                      text-white
+                      text-white text-base
                       focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                       hover:border-white/30
                       transition-all duration-200
@@ -307,10 +307,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                     value={formData.avatarUrl}
                     onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
                     className="
-                      w-full px-4 py-3
+                      w-full px-3 sm:px-4 py-3
                       bg-white/5 backdrop-blur-sm
                       border border-white/20 rounded-lg
-                      text-white placeholder-white/50
+                      text-white placeholder-white/50 text-base
                       focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                       hover:border-white/30
                       transition-all duration-200
@@ -320,7 +320,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <MapPin className="w-4 h-4 inline mr-1" />
@@ -357,10 +357,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                         value={formData.club}
                         onChange={(e) => handleInputChange('club', e.target.value)}
                         className="
-                          w-full px-4 py-3
+                          w-full px-3 sm:px-4 py-3
                           bg-white/5 backdrop-blur-sm
                           border border-white/20 rounded-lg
-                          text-white placeholder-white/50
+                          text-white placeholder-white/50 text-base
                           focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                           hover:border-white/30
                           transition-all duration-200
@@ -415,7 +415,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                   <Users className="w-4 h-4 inline mr-1" />
                   Positions * (Select max 2 positions)
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   {POSITION_OPTIONS.map((option) => {
                     const isSelected = formData.positions.includes(option.value)
                     const canSelect = formData.positions.length < 2 || isSelected
@@ -426,8 +426,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                         type="button"
                         onClick={() => canSelect && handlePositionToggle(option.value)}
                         className={`
-                          p-3 rounded-lg border text-sm font-medium transition-all duration-200 h-12
-                          flex items-center justify-center text-center leading-tight
+                          p-2 sm:p-3 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 h-10 sm:h-12
+                          flex items-center justify-center text-center leading-tight touch-none
                           ${isSelected
                             ? 'bg-blue-600 border-blue-400 text-white'
                             : canSelect
@@ -471,10 +471,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 rows={3}
                 className="
-                  w-full px-4 py-3
+                  w-full px-3 sm:px-4 py-3
                   bg-white/5 backdrop-blur-sm
                   border border-white/20 rounded-lg
-                  text-white placeholder-white/50
+                  text-white placeholder-white/50 text-base
                   focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                   hover:border-white/30
                   transition-all duration-200 resize-none
@@ -484,18 +484,18 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 pt-6 border-t border-white/20">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-white/20">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm"
+                className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm touch-none"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed touch-none"
               >
                 {isSubmitting
                   ? (editingPlayer ? 'Uppdaterar...' : 'Adding Player...')

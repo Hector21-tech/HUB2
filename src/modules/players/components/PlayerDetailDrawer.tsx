@@ -96,7 +96,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
       {/* Drawer */}
       <div className={`
-        absolute top-0 right-0 h-full w-full max-w-2xl
+        absolute top-0 right-0 h-full w-full sm:max-w-2xl
         bg-gradient-to-br from-[#020617] via-[#0c1532] via-[#1e3a8a] via-[#0f1b3e] to-[#020510]
         transform transition-transform duration-300 ease-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
@@ -136,19 +136,19 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors duration-200 backdrop-blur-sm z-10"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 sm:p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors duration-200 backdrop-blur-sm z-10 touch-none"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 sm:w-5 sm:h-5" />
           </button>
 
           {/* Player Info Overlay */}
-          <div className="absolute bottom-6 left-6 right-6">
+          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
             <div className="flex items-end justify-between">
               <div>
-                <h2 className="text-3xl font-semibold text-white mb-2 leading-tight" translate="no" lang="en">
+                <h2 className="text-xl sm:text-3xl font-semibold text-white mb-2 leading-tight" translate="no" lang="en">
                   {player.firstName} {player.lastName}
                 </h2>
-                <div className="flex items-center gap-4 text-white/90">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-white/90">
                   <span className="font-medium">{player.club || 'Free Agent'}</span>
                   <span>•</span>
                   <span className="font-medium">{formatPositionsDisplay(player.positions || []) || 'Player'}</span>
@@ -163,33 +163,33 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-2 sm:mt-0">
                 <button
                   onClick={() => onEdit(player)}
-                  className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg"
+                  className="p-2 sm:p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg touch-none"
                 >
-                  <Edit className="w-5 h-5" />
+                  <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 shadow-lg"
+                  className="p-2 sm:p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 shadow-lg touch-none"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 space-y-8">
+        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
           {/* Basic Information */}
           <section>
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-blue-400" />
               Basic Information
             </h3>
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 sm:p-6 border border-white/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-white/60">Age</label>
@@ -240,7 +240,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
               <TrendingUp className="w-5 h-5 text-blue-400" />
               Season Performance
             </h3>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { label: 'Goals', value: player.goalsThisSeason || 0 },
                 { label: 'Assists', value: player.assistsThisSeason || 0 },
@@ -249,10 +249,10 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center"
+                  className="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 text-center"
                 >
-                  <div className="text-2xl font-bold text-blue-400 drop-shadow-sm mb-1">{stat.value}</div>
-                  <div className="text-sm text-white/60">{stat.label}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-400 drop-shadow-sm mb-1">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-white/60">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -261,8 +261,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           {/* Technical Skills */}
           <section>
             <h3 className="text-lg font-semibold text-white mb-4">Technical Skills</h3>
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 sm:p-6 border border-white/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {technicalSkills.map((skill) => (
                   <div key={skill.name} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-white">{skill.name}</span>
@@ -286,8 +286,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           {/* Physical Attributes */}
           <section>
             <h3 className="text-lg font-semibold text-white mb-4">Physical Attributes</h3>
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 sm:p-6 border border-white/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {physicalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-white">{attr.name}</span>
@@ -311,8 +311,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           {/* Mental Attributes */}
           <section>
             <h3 className="text-lg font-semibold text-white mb-4">Mental Attributes</h3>
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 sm:p-6 border border-white/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {mentalAttributes.map((attr) => (
                   <div key={attr.name} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-white">{attr.name}</span>
@@ -364,11 +364,11 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-white/20">
-            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 border-t border-white/20">
+            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl touch-none">
               Schedule Trial
             </button>
-            <button className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm">
+            <button className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm touch-none">
               Add to Shortlist
             </button>
           </div>
@@ -377,8 +377,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 max-w-md w-full mx-4">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10 p-4">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold text-white mb-4">Ta bort spelare</h3>
             <p className="text-white/80 mb-6">
               Är du säker på att du vill ta bort <strong translate="no" lang="en">{player.firstName} {player.lastName}</strong>?
@@ -388,7 +388,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/15 transition-colors duration-200 disabled:opacity-50"
+                className="flex-1 px-4 py-3 sm:py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/15 transition-colors duration-200 disabled:opacity-50 touch-none"
               >
                 Avbryt
               </button>
@@ -406,7 +406,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
                   }
                 }}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+                className="flex-1 px-4 py-3 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 touch-none"
               >
                 {isDeleting ? 'Tar bort...' : 'Ta bort'}
               </button>
