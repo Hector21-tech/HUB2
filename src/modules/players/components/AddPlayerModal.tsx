@@ -22,6 +22,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     nationality: '',
     positions: [] as string[],
     club: '',
+    contractExpiry: '',
     height: '',
     weight: '',
     notes: '',
@@ -57,6 +58,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         nationality: editingPlayer.nationality || '',
         positions: editingPlayer.positions || [],
         club: editingPlayer.club || '',
+        contractExpiry: editingPlayer.contractExpiry ?
+          new Date(editingPlayer.contractExpiry).toISOString().split('T')[0] : '',
         height: editingPlayer.height ? String(editingPlayer.height) : '',
         weight: editingPlayer.weight ? String(editingPlayer.weight) : '',
         notes: editingPlayer.notes || '',
@@ -72,6 +75,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         nationality: '',
         positions: [],
         club: '',
+        contractExpiry: '',
         height: '',
         weight: '',
         notes: '',
@@ -139,6 +143,27 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
       newErrors.rating = 'Rating must be between 1-10'
     }
 
+    // Validate contract expiry date if club is selected and not Free Agent
+    if (formData.club && formData.club !== 'Free Agent') {
+      if (formData.contractExpiry) {
+        const contractDate = new Date(formData.contractExpiry)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0) // Reset time to compare dates only
+
+        if (contractDate < today) {
+          newErrors.contractExpiry = 'Contract expiry date must be in the future'
+        }
+
+        // Check if contract is too far in the future (more than 10 years)
+        const maxDate = new Date()
+        maxDate.setFullYear(maxDate.getFullYear() + 10)
+        if (contractDate > maxDate) {
+          newErrors.contractExpiry = 'Contract expiry date cannot be more than 10 years in the future'
+        }
+      }
+      // Note: We don't make contract expiry required to allow flexibility
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -154,10 +179,13 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         ...formData,
         tenantId,
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
+        contractExpiry: formData.contractExpiry ? new Date(formData.contractExpiry) : undefined,
         height: formData.height ? Number(formData.height) : undefined,
         weight: formData.weight ? Number(formData.weight) : undefined,
         rating: formData.rating ? Number(formData.rating) : undefined,
-        tags: [] // Default empty tags
+        tags: [], // Default empty tags
+        // Clear club if Free Agent is selected
+        club: formData.club === 'Free Agent' ? undefined : formData.club
       }
 
       await onSave(playerData)
@@ -170,6 +198,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         nationality: '',
         positions: [],
         club: '',
+        contractExpiry: '',
         height: '',
         weight: '',
         notes: '',
@@ -381,20 +410,29 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                   ) : (
                     <div className="space-y-2">
                       <SearchableSelect
-                        options={getAllClubNames().map(name => ({
-                          value: name,
-                          label: name
-                        }))}
+                        options={[
+                          { value: 'Free Agent', label: '🟡 Free Agent' },
+                          ...getAllClubNames().map(name => ({
+                            value: name,
+                            label: name
+                          }))
+                        ]}
                         value={formData.club}
                         onChange={(value) => handleInputChange('club', value || '')}
-                        placeholder="Search for a club..."
+                        placeholder="Search for a club or select Free Agent..."
                         searchPlaceholder="Type to search clubs..."
-                        onSearch={(query) =>
-                          searchClubs(query).map(club => ({
+                        onSearch={(query) => {
+                          const clubResults = searchClubs(query).map(club => ({
                             value: club.name,
                             label: `${club.name} (${club.city})`
                           }))
-                        }
+
+                          // Include Free Agent if query matches
+                          const freeAgentMatch = 'Free Agent'.toLowerCase().includes(query.toLowerCase())
+                          return freeAgentMatch
+                            ? [{ value: 'Free Agent', label: '🟡 Free Agent' }, ...clubResults]
+                            : clubResults
+                        }}
                       />
                       <button
                         type="button"
@@ -408,6 +446,38 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 </div>
 
               </div>
+
+              {/* Contract Expiry Date - Only show if club is selected and not Free Agent */}
+              {formData.club && formData.club !== 'Free Agent' && (
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-2">
+                    <Calendar className="w-4 h-4 inline mr-1" />
+                    Contract Expiry Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.contractExpiry}
+                    onChange={(e) => handleInputChange('contractExpiry', e.target.value)}
+                    min={new Date().toISOString().split('T')[0]} // Minimum date is today
+                    max="2035-12-31" // Maximum reasonable contract length
+                    className="
+                      w-full px-3 sm:px-4 py-3
+                      bg-white/5 backdrop-blur-sm
+                      border border-white/20 rounded-lg
+                      text-white text-base
+                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                      hover:border-white/30
+                      transition-all duration-200
+                    "
+                  />
+                  <p className="text-xs text-white/50 mt-1">
+                    When does the player's contract with {formData.club} expire?
+                  </p>
+                  {errors.contractExpiry && (
+                    <p className="text-red-400 text-sm mt-1">{errors.contractExpiry}</p>
+                  )}
+                </div>
+              )}
 
               {/* Multi-Position Selection */}
               <div>
