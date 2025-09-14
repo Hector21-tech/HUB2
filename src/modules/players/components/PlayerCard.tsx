@@ -81,11 +81,8 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
             }}
           />
         ) : (
-          // Fallback Avatar with Initials
+          // Fallback Avatar - Clean gradient background
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
-            <div className="text-white text-4xl font-bold tracking-wider drop-shadow-lg">
-              {getPlayerInitials(player.firstName, player.lastName)}
-            </div>
           </div>
         )}
 

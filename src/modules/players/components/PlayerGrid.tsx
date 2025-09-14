@@ -40,9 +40,10 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
       <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
         {/* Desktop List Header - Hidden on mobile */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-sm font-medium text-white/60">
-          <div className="col-span-3">Player</div>
+          <div className="col-span-2">Player</div>
           <div className="col-span-2">Position</div>
-          <div className="col-span-2">Club</div>
+          <div className="col-span-1">Club</div>
+          <div className="col-span-2">Contract Status</div>
           <div className="col-span-1">Age</div>
           <div className="col-span-1">Rating</div>
           <div className="col-span-1">Goals</div>
@@ -60,7 +61,7 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
             >
               {/* Desktop Layout */}
               <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 items-center">
-                <div className="col-span-3 flex items-center gap-3">
+                <div className="col-span-2 flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-full flex items-center justify-center overflow-hidden">
                     {player.avatarUrl ? (
                       <img
@@ -72,11 +73,7 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
                           target.style.display = 'none'
                         }}
                       />
-                    ) : (
-                      <span className="text-sm font-semibold text-white">
-                        {player.firstName?.[0]}{player.lastName?.[0]}
-                      </span>
-                    )}
+                    ) : null}
                   </div>
                   <div>
                     <p className="font-medium text-white/90" translate="no" lang="en">
@@ -88,8 +85,48 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
                 <div className="col-span-2 flex items-center">
                   <span className="text-sm text-white/90">{player.positions?.join(', ') || 'N/A'}</span>
                 </div>
-                <div className="col-span-2 flex items-center">
+                <div className="col-span-1 flex items-center">
                   <span className="text-sm text-white/90 truncate">{player.club || 'Free Agent'}</span>
+                </div>
+                <div className="col-span-2 flex items-center">
+                  {(() => {
+                    const isFreeAgent = !player.club || player.club === ''
+                    if (isFreeAgent) {
+                      return (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                          🟡 Free Agent
+                        </span>
+                      )
+                    }
+
+                    if (player.contractExpiry) {
+                      const today = new Date()
+                      const expiry = new Date(player.contractExpiry)
+                      const monthsUntilExpiry = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)
+                      const isExpiring = monthsUntilExpiry <= 6 && monthsUntilExpiry > 0
+
+                      if (isExpiring) {
+                        const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                        const urgencyColor = daysUntilExpiry <= 30 ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
+
+                        return (
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${urgencyColor}`}>
+                            ⚠️ {daysUntilExpiry}d left
+                          </span>
+                        )
+                      }
+
+                      return (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                          ✅ Active
+                        </span>
+                      )
+                    }
+
+                    return (
+                      <span className="text-sm text-white/50">No contract data</span>
+                    )
+                  })()}
                 </div>
                 <div className="col-span-1 flex items-center">
                   <span className="text-sm text-white/90">

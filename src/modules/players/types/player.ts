@@ -74,6 +74,7 @@ export interface PlayerFilters {
   position?: string
   nationality?: string
   club?: string
+  contractStatus?: 'all' | 'expiring' | 'active' | 'free_agent'
   ageMin?: number
   ageMax?: number
   ratingMin?: number

@@ -170,13 +170,22 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
-      filtered = filtered.filter(player =>
-        player.firstName?.toLowerCase().includes(searchLower) ||
-        player.lastName?.toLowerCase().includes(searchLower) ||
-        player.club?.toLowerCase().includes(searchLower) ||
-        player.positions?.some(pos => pos.toLowerCase().includes(searchLower)) ||
-        player.nationality?.toLowerCase().includes(searchLower)
-      )
+      filtered = filtered.filter(player => {
+        // Standard search fields
+        const nameMatch = player.firstName?.toLowerCase().includes(searchLower) ||
+                          player.lastName?.toLowerCase().includes(searchLower)
+        const clubMatch = player.club?.toLowerCase().includes(searchLower)
+        const positionMatch = player.positions?.some(pos => pos.toLowerCase().includes(searchLower))
+        const nationalityMatch = player.nationality?.toLowerCase().includes(searchLower)
+
+        // Free Agent search - check if player has no club and search includes free agent terms
+        const freeAgentTerms = ['free agent', 'free', 'agent', 'freeagent']
+        const isFreeAgentSearch = freeAgentTerms.some(term => searchLower.includes(term))
+        const isFreeAgent = !player.club || player.club === ''
+        const freeAgentMatch = isFreeAgentSearch && isFreeAgent
+
+        return nameMatch || clubMatch || positionMatch || nationalityMatch || freeAgentMatch
+      })
     }
 
     // Position filter
@@ -187,6 +196,31 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     // Nationality filter
     if (filters.nationality) {
       filtered = filtered.filter(player => player.nationality === filters.nationality)
+    }
+
+    // Contract status filter
+    if (filters.contractStatus) {
+      filtered = filtered.filter(player => {
+        const isFreeAgent = !player.club || player.club === ''
+        const hasContract = !isFreeAgent && player.contractExpiry
+        const isContractExpiring = hasContract && (() => {
+          const today = new Date()
+          const expiry = new Date(player.contractExpiry!)
+          const monthsUntilExpiry = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)
+          return monthsUntilExpiry <= 6 && monthsUntilExpiry > 0
+        })()
+
+        switch (filters.contractStatus) {
+          case 'free_agent':
+            return isFreeAgent
+          case 'expiring':
+            return isContractExpiring
+          case 'active':
+            return hasContract && !isContractExpiring
+          default:
+            return true
+        }
+      })
     }
 
     // Age filters

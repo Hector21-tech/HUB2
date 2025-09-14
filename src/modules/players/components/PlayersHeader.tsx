@@ -106,7 +106,7 @@ export function PlayersHeader({
             <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search players by name, club, or position..."
+              placeholder="Search players by name, club, position, or 'free agent'..."
               value={filters.search || ''}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="
@@ -208,6 +208,34 @@ export function PlayersHeader({
               />
             </div>
 
+            {/* Contract Status Filter */}
+            <div className="relative flex-1 min-w-[160px] sm:flex-none">
+              <select
+                value={filters.contractStatus || 'all'}
+                onChange={(e) => handleFilterChange('contractStatus', e.target.value === 'all' ? undefined : e.target.value)}
+                className="
+                  px-3 sm:px-4 py-3 pr-8 sm:pr-10 text-sm sm:text-sm
+                  bg-white/5 backdrop-blur-sm
+                  border border-white/20 rounded-lg
+                  text-white
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                  hover:border-white/30
+                  transition-all duration-200 cursor-pointer
+                  appearance-none w-full
+                "
+              >
+                <option value="all" className="bg-slate-800 text-white">All Contract Status</option>
+                <option value="expiring" className="bg-slate-800 text-white">⚠️ Expiring Soon</option>
+                <option value="active" className="bg-slate-800 text-white">✅ Active Contract</option>
+                <option value="free_agent" className="bg-slate-800 text-white">🟡 Free Agent</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
             {/* Clear Filters */}
             {activeFiltersCount > 0 && (
               <button
@@ -270,6 +298,21 @@ export function PlayersHeader({
                     handleFilterChange('ageMin', undefined)
                     handleFilterChange('ageMax', undefined)
                   }}
+                  className="text-blue-400/70 hover:text-blue-400 transition-colors duration-200 touch-none"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {filters.contractStatus && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-400 text-sm rounded-full border border-blue-500/30">
+                Contract: {
+                  filters.contractStatus === 'expiring' ? '⚠️ Expiring Soon' :
+                  filters.contractStatus === 'active' ? '✅ Active' :
+                  filters.contractStatus === 'free_agent' ? '🟡 Free Agent' : ''
+                }
+                <button
+                  onClick={() => handleFilterChange('contractStatus', undefined)}
                   className="text-blue-400/70 hover:text-blue-400 transition-colors duration-200 touch-none"
                 >
                   ×
