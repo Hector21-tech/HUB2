@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         dateOfBirth,
         position,
         club,
+        contractExpiry,
         nationality,
         height,
         weight,
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
       ...player,
       positions: player.position ? player.position.split(', ').filter((p: string) => p.length > 0) : [],
       dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null,
+      contractExpiry: player.contractExpiry ? new Date(player.contractExpiry) : null,
       // Clean up any remaining avatar tags from tags array
       tags: player.tags ? player.tags.filter((tag: string) => !tag.startsWith('avatar:')) : []
     })) || []
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
       nationality,
       positions = [],
       club,
+      contractExpiry,
       height,
       weight,
       rating,
@@ -122,6 +125,7 @@ export async function POST(request: NextRequest) {
       nationality: nationality?.trim() || null,
       position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
       club: club?.trim() || null,
+      contractExpiry: contractExpiry ? new Date(contractExpiry).toISOString() : null,
       height: height ? parseInt(height) : null,
       weight: weight ? parseInt(weight) : null,
       rating: rating ? parseFloat(rating) : null,
@@ -155,7 +159,8 @@ export async function POST(request: NextRequest) {
     const transformedPlayer = {
       ...player,
       positions: player.position ? player.position.split(', ').filter((p: string) => p.length > 0) : [],
-      dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null
+      dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null,
+      contractExpiry: player.contractExpiry ? new Date(player.contractExpiry) : null
     }
 
     return NextResponse.json({
@@ -187,6 +192,7 @@ export async function PUT(request: NextRequest) {
       nationality,
       positions = [],
       club,
+      contractExpiry,
       height,
       weight,
       rating,
@@ -226,6 +232,7 @@ export async function PUT(request: NextRequest) {
       nationality: nationality?.trim() || null,
       position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
       club: club?.trim() || null,
+      contractExpiry: contractExpiry ? new Date(contractExpiry).toISOString() : null,
       height: height ? parseInt(height) : null,
       weight: weight ? parseInt(weight) : null,
       rating: rating ? parseFloat(rating) : null,
@@ -254,7 +261,8 @@ export async function PUT(request: NextRequest) {
     const transformedPlayer = {
       ...player,
       positions: player.position ? player.position.split(', ').filter((p: string) => p.length > 0) : [],
-      dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null
+      dateOfBirth: player.dateOfBirth ? new Date(player.dateOfBirth) : null,
+      contractExpiry: player.contractExpiry ? new Date(player.contractExpiry) : null
     }
 
     return NextResponse.json({
