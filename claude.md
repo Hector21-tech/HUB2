@@ -104,3 +104,22 @@
 - **Production URL:** https://hub2-seven.vercel.app
 - **Test APIs:** /api/migrate, /api/setup-rls, /api/test-crud
 
+## Databastabeller
+
+- **tenants** – Tenant-hantering (multi-tenant)  
+- **users** – Användarkonton  
+- **tenant_memberships** – Koppling user ↔ tenant med roller  
+- **players** – Spelarinformation  
+- **requests** – Scout-requests från klubbar  
+- **trials** – Trial sessions & utvärderingar  
+- **calendar_events** – Kalenderhändelser  
+
+## Viktiga Enums
+
+- **TenantRole** – OWNER, ADMIN, MANAGER, SCOUT, VIEWER  
+- **Priority** – LOW, MEDIUM, HIGH, URGENT  
+- **RequestStatus** – OPEN, IN_PROGRESS, COMPLETED, CANCELLED  
+- **TrialStatus** – SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW  
+- **EventType** – TRIAL, MEETING, MATCH, TRAINING, SCOUTING, OTHER  
+
+

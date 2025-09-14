@@ -9,6 +9,7 @@ interface PlayersHeaderProps {
   totalPlayers: number
   viewMode: 'grid' | 'list'
   onViewModeChange: (mode: 'grid' | 'list') => void
+  onAddPlayer: () => void
 }
 
 export function PlayersHeader({
@@ -16,7 +17,8 @@ export function PlayersHeader({
   onFiltersChange,
   totalPlayers,
   viewMode,
-  onViewModeChange
+  onViewModeChange,
+  onAddPlayer
 }: PlayersHeaderProps) {
   const handleSearchChange = (search: string) => {
     onFiltersChange({ ...filters, search })
@@ -57,8 +59,19 @@ export function PlayersHeader({
             </div>
           </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            {/* Add Player Button */}
+            <button
+              onClick={onAddPlayer}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
+              <Users className="w-5 h-5" />
+              Add Player
+            </button>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
             <button
               onClick={() => onViewModeChange('grid')}
               className={`p-2 rounded-md transition-all duration-200 ${

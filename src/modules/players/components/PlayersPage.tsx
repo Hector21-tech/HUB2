@@ -5,6 +5,7 @@ import { Player, PlayerFilters } from '../types/player'
 import { PlayersHeader } from './PlayersHeader'
 import { PlayerGrid, PlayerGridSkeleton } from './PlayerGrid'
 import { PlayerDetailDrawer } from './PlayerDetailDrawer'
+import { AddPlayerModal } from './AddPlayerModal'
 
 interface PlayersPageProps {
   tenantId: string
@@ -17,6 +18,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
   const [filters, setFilters] = useState<PlayerFilters>({})
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [isAddPlayerModalOpen, setIsAddPlayerModalOpen] = useState(false)
 
   // Fetch players data
   useEffect(() => {
@@ -242,6 +244,40 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     setSelectedPlayer(null)
   }
 
+  const handleAddPlayer = () => {
+    setIsAddPlayerModalOpen(true)
+  }
+
+  const handleAddPlayerClose = () => {
+    setIsAddPlayerModalOpen(false)
+  }
+
+  const handleSavePlayer = async (playerData: any) => {
+    try {
+      const response = await fetch('/api/players', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(playerData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Add new player to local state
+        setPlayers(prev => [...prev, result.data])
+        console.log('✅ Player added successfully:', result.data)
+      } else {
+        console.error('❌ Error adding player:', result.error)
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error('❌ Error saving player:', error)
+      throw error
+    }
+  }
+
   // Don't show error state since we have fallback data
   // if (error) {
   //   return (
@@ -285,6 +321,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         totalPlayers={filteredPlayers.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        onAddPlayer={handleAddPlayer}
         />
       </div>
 
@@ -307,6 +344,14 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         player={selectedPlayer}
         isOpen={!!selectedPlayer}
         onClose={handleDrawerClose}
+      />
+
+      {/* Add Player Modal */}
+      <AddPlayerModal
+        isOpen={isAddPlayerModalOpen}
+        onClose={handleAddPlayerClose}
+        onSave={handleSavePlayer}
+        tenantId={tenantId}
       />
     </div>
   )
