@@ -51,7 +51,9 @@ export async function GET(request: NextRequest) {
 // POST - Create new player
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 POST /api/players - Starting...')
     const body = await request.json()
+    console.log('📦 Request body:', JSON.stringify(body, null, 2))
 
     const {
       tenantId,
@@ -71,29 +73,39 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!tenantId || !firstName || !lastName) {
+      console.log('❌ Validation failed: Missing required fields')
       return NextResponse.json(
         { success: false, error: 'Tenant ID, first name, and last name are required' },
         { status: 400 }
       )
     }
 
+    console.log('✅ Validation passed, creating player...')
+
+    // Create player data object
+    const playerData = {
+      tenantId,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      nationality: nationality?.trim() || null,
+      position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
+      club: club?.trim() || null,
+      height: height ? parseInt(height) : null,
+      weight: weight ? parseInt(weight) : null,
+      rating: rating ? parseFloat(rating) : null,
+      notes: notes?.trim() || null,
+      tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])] // Store avatar URL in tags temporarily
+    }
+
+    console.log('🗄️ Creating player with data:', JSON.stringify(playerData, null, 2))
+
     // Create player
     const player = await prisma.player.create({
-      data: {
-        tenantId,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        nationality: nationality?.trim() || null,
-        position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
-        club: club?.trim() || null,
-        height: height ? parseInt(height) : null,
-        weight: weight ? parseInt(weight) : null,
-        rating: rating ? parseFloat(rating) : null,
-        notes: notes?.trim() || null,
-        tags: [...tags, ...(avatarUrl ? [`avatar:${avatarUrl}`] : [])] // Store avatar URL in tags temporarily
-      }
+      data: playerData
     })
+
+    console.log('✅ Player created successfully:', player.id)
 
     return NextResponse.json({
       success: true,
@@ -102,9 +114,25 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating player:', error)
+    console.error('❌ Error creating player:')
+    console.error('Error type:', typeof error)
+    console.error('Error message:', error instanceof Error ? error.message : String(error))
+    console.error('Full error:', error)
+
+    // More specific error messages
+    let errorMessage = 'Internal server error'
+    if (error instanceof Error) {
+      if (error.message.includes('Foreign key constraint')) {
+        errorMessage = 'Invalid tenant ID or data relationship error'
+      } else if (error.message.includes('Unique constraint')) {
+        errorMessage = 'Player with this data already exists'
+      } else if (error.message.includes('Required field')) {
+        errorMessage = 'Missing required field in database'
+      }
+    }
+
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: errorMessage, details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
