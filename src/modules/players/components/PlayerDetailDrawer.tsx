@@ -118,7 +118,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose }: PlayerDetailDraw
                 <div className="flex items-center gap-4 text-white/90">
                   <span className="font-medium">{player.club || 'Free Agent'}</span>
                   <span>•</span>
-                  <span className="font-medium">{player.position || 'Player'}</span>
+                  <span className="font-medium">{player.positions?.join(', ') || 'Player'}</span>
                   {player.rating && (
                     <>
                       <span>•</span>
