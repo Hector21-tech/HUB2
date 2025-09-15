@@ -73,7 +73,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     }
 
     fetchPlayers()
-  }, [tenantId, filters])
+  }, [tenantId])
 
   // Mock players for demo/fallback
   const getMockPlayers = (): Player[] => [
