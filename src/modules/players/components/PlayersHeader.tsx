@@ -39,7 +39,7 @@ export function PlayersHeader({
   ).length
 
   return (
-    <div className="bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
+    <div className="relative z-40 bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
       <div className="p-4 sm:p-6">
         {/* Stats and Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 sm:gap-0">
@@ -56,64 +56,68 @@ export function PlayersHeader({
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-            {/* Add Player Button */}
-            <button
-              onClick={onAddPlayer}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-none"
-            >
-              <Users className="w-5 h-5" />
-              <span className="hidden sm:inline">Add Player</span>
-              <span className="sm:hidden">Add</span>
-            </button>
-
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20 justify-center sm:justify-start">
-            <button
-              onClick={() => onViewModeChange('grid')}
-              className={`p-3 sm:p-2 rounded-md transition-all duration-200 touch-none ${
-                viewMode === 'grid'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => onViewModeChange('list')}
-              className={`p-3 sm:p-2 rounded-md transition-all duration-200 touch-none ${
-                viewMode === 'list'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-            </div>
-          </div>
         </div>
 
         {/* Search and Filter Bar */}
         <div className="flex flex-col gap-4">
-          {/* Search Field */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search players by name, club, position, or 'free agent'..."
-              value={filters.search || ''}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="
-                w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 text-base
-                bg-white/5 backdrop-blur-sm
-                border border-white/20 rounded-lg
-                text-white placeholder-white/50
-                focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                hover:border-white/30
-                transition-all duration-200
-              "
-            />
+          {/* Search Field with Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+            {/* Search Field */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search players by name, club, position, or 'free agent'..."
+                value={filters.search || ''}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="
+                  w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 text-base
+                  bg-white/5 backdrop-blur-sm
+                  border border-white/20 rounded-lg
+                  text-white placeholder-white/50
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                  hover:border-white/30
+                  transition-all duration-200
+                "
+              />
+            </div>
+
+            {/* Actions moved here */}
+            <div className="flex items-center gap-3">
+              {/* Add Player Button */}
+              <button
+                onClick={onAddPlayer}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <Users className="w-5 h-5" />
+                <span className="hidden sm:inline">Add Player</span>
+                <span className="sm:hidden">Add</span>
+              </button>
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
+                <button
+                  onClick={() => onViewModeChange('grid')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    viewMode === 'grid'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onViewModeChange('list')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    viewMode === 'list'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Filter Buttons */}

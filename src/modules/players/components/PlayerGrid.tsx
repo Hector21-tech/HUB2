@@ -62,7 +62,7 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
               {/* Desktop Layout */}
               <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 items-center">
                 <div className="col-span-2 flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-lg flex items-center justify-center overflow-hidden">
                     {player.avatarUrl ? (
                       <img
                         src={player.avatarUrl}
@@ -172,7 +172,7 @@ export function PlayerGrid({ players, loading, onPlayerSelect, viewMode }: Playe
               <div className="lg:hidden p-4">
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                     {player.avatarUrl ? (
                       <img
                         src={player.avatarUrl}
