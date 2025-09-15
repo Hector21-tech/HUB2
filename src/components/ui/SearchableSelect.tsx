@@ -224,7 +224,7 @@ export function SearchableSelect({
       {/* Dropdown options */}
       {isOpen && (
         <div className="
-          absolute top-full left-0 right-0 mt-1 z-50
+          absolute top-full left-0 right-0 mt-1 z-[9999]
           bg-slate-800/95 backdrop-blur-md
           border border-white/20 rounded-lg
           shadow-xl
