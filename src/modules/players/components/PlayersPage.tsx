@@ -425,7 +425,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/50 to-transparent pointer-events-none"></div>
       {/* Debug Info - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="relative z-10 bg-blue-600/20 border border-blue-400/30 text-white p-3 text-sm">
+        <div className="relative bg-blue-600/20 border border-blue-400/30 text-white p-3 text-sm">
           <strong>Debug:</strong> Tenant: {tenantId} | Players: {players.length} | Loading: {loading.toString()} | Error: {error || 'None'}
         </div>
       )}
