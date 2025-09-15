@@ -125,8 +125,8 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
 
         {/* Contract Expiry Warning */}
         {isContractExpiring(player.contractExpiry) && (
-          <div className={`absolute ${player.rating ? 'top-20' : 'top-12'} right-4`}>
-            <div className="bg-red-500/90 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-full">
+          <div className="absolute top-12 left-4">
+            <div className="bg-yellow-500/90 backdrop-blur-sm text-black text-xs font-semibold px-2 py-1 rounded-full">
               Contract Expiring
             </div>
           </div>

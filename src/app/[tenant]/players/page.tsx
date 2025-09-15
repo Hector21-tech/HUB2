@@ -1,3 +1,5 @@
+import { MainNav } from '@/components/main-nav'
+import { UserNav } from '@/components/user-nav'
 import { PlayersPage } from '@/modules/players/components/PlayersPage'
 
 interface PlayersPageProps {
@@ -7,7 +9,20 @@ interface PlayersPageProps {
 }
 
 export default function Players({ params }: PlayersPageProps) {
-  return <PlayersPage tenantId={params.tenant} />
+  return (
+    <div className="flex min-h-screen flex-col">
+      <div className="border-b">
+        <div className="flex h-16 items-center px-4">
+          <MainNav tenant={params.tenant} />
+          <div className="ml-auto flex items-center space-x-4">
+            <UserNav />
+          </div>
+        </div>
+      </div>
+
+      <PlayersPage tenantId={params.tenant} />
+    </div>
+  )
 }
 
 export const metadata = {

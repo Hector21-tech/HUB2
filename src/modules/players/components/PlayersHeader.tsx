@@ -41,24 +41,19 @@ export function PlayersHeader({
   return (
     <div className="bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
       <div className="p-4 sm:p-6">
-        {/* Title and Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-white/90 mb-2">
-              Players
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-white/70">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                <span>{totalPlayers} players</span>
-              </div>
-              {activeFiltersCount > 0 && (
-                <div className="flex items-center gap-2 text-blue-400">
-                  <Filter className="w-4 h-4" />
-                  <span>{activeFiltersCount} filters active</span>
-                </div>
-              )}
+        {/* Stats and Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 sm:gap-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-white/70">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>{totalPlayers} players</span>
             </div>
+            {activeFiltersCount > 0 && (
+              <div className="flex items-center gap-2 text-blue-400">
+                <Filter className="w-4 h-4" />
+                <span>{activeFiltersCount} filters active</span>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -66,7 +61,7 @@ export function PlayersHeader({
             {/* Add Player Button */}
             <button
               onClick={onAddPlayer}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-none"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-none"
             >
               <Users className="w-5 h-5" />
               <span className="hidden sm:inline">Add Player</span>
@@ -168,6 +163,7 @@ export function PlayersHeader({
                   focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                   hover:border-white/30
                   transition-all duration-200
+                  [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
                 "
               />
               <input
@@ -183,6 +179,7 @@ export function PlayersHeader({
                   focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                   hover:border-white/30
                   transition-all duration-200
+                  [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
                 "
               />
             </div>
