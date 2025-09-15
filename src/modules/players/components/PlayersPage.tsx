@@ -431,7 +431,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       )}
 
       {/* Header */}
-      <div className="relative z-10">
+      <div className="relative">
         <PlayersHeader
         filters={filters}
         onFiltersChange={handleFiltersChange}
@@ -443,7 +443,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 p-6">
+      <div className="relative p-6">
         {loading ? (
           <PlayerGridSkeleton />
         ) : (
