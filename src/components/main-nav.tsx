@@ -46,7 +46,7 @@ export function MainNav({ tenant }: MainNavProps) {
     <nav className="flex items-center space-x-4 lg:space-x-6">
       <Link
         href={`/${tenant}/dashboard`}
-        className="text-xl font-semibold text-white transition-all duration-200 hover:text-blue-400 mr-6"
+        className="text-xl font-semibold text-gray-900 transition-all duration-200 hover:text-blue-600 mr-6"
       >
         Scout Hub
       </Link>
@@ -54,7 +54,7 @@ export function MainNav({ tenant }: MainNavProps) {
         route.disabled ? (
           <span
             key={route.href}
-            className="text-sm font-medium text-white/40 cursor-not-allowed"
+            className="text-sm font-medium text-gray-400 cursor-not-allowed"
           >
             {route.label}
           </span>
@@ -65,8 +65,8 @@ export function MainNav({ tenant }: MainNavProps) {
             className={cn(
               'text-sm font-medium transition-all duration-200',
               route.active
-                ? 'text-blue-400 font-semibold'
-                : 'text-white/70 hover:text-blue-400'
+                ? 'text-blue-600 font-semibold'
+                : 'text-gray-600 hover:text-blue-600'
             )}
           >
             {route.label}

@@ -105,32 +105,16 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
           </div>
         </div>
 
-        {/* Free Agent Status Badge */}
-        {!player.club && (
-          <div className="absolute top-4 left-4">
-            <div className="bg-yellow-500/90 backdrop-blur-sm text-black text-xs font-semibold px-2 py-1 rounded-full">
-              Free Agent
-            </div>
-          </div>
-        )}
 
         {/* Rating Badge */}
         {player.rating && (
-          <div className={`absolute top-4 right-4 ${!player.club ? 'top-12' : ''}`}>
+          <div className="absolute top-4 right-4">
             <div className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full">
               {player.rating.toFixed(1)}
             </div>
           </div>
         )}
 
-        {/* Contract Expiry Warning */}
-        {isContractExpiring(player.contractExpiry) && (
-          <div className="absolute top-12 left-4">
-            <div className="bg-yellow-500/90 backdrop-blur-sm text-black text-xs font-semibold px-2 py-1 rounded-full">
-              Contract Expiring
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Content */}
@@ -166,6 +150,20 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
             </span>
             <span className="text-white/60" aria-label={`Nationality ${player.nationality || 'unknown'}`}>
               {player.nationality || 'Unknown'}
+            </span>
+            <span className={`${
+              !player.club
+                ? 'text-yellow-300 font-medium'
+                : isContractExpiring(player.contractExpiry)
+                  ? 'text-yellow-400 font-medium'
+                  : 'text-white/60'
+            }`} aria-label={`Contract status`}>
+              {!player.club
+                ? 'Free Agent'
+                : player.contractExpiry
+                  ? new Date(player.contractExpiry).toLocaleDateString('sv-SE')
+                  : 'No contract date'
+              }
             </span>
           </div>
           <span className="text-blue-400 font-semibold" aria-label={`Market value ${formatCurrency(player.marketValue)}`}>

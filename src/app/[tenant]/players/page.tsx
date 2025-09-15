@@ -11,7 +11,7 @@ interface PlayersPageProps {
 export default function Players({ params }: PlayersPageProps) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
+      <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="flex h-16 items-center px-4">
           <MainNav tenant={params.tenant} />
           <div className="ml-auto flex items-center space-x-4">
