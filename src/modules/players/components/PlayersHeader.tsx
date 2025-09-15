@@ -2,8 +2,7 @@
 
 import { Search, Filter, Users, Grid, List } from 'lucide-react'
 import { PlayerFilters } from '../types/player'
-import { SearchableSelect } from '@/components/ui/SearchableSelect'
-import { searchCountries, getAllCountryNames } from '@/lib/countries'
+import { getAllCountryNames } from '@/lib/countries'
 
 interface PlayersHeaderProps {
   filters: PlayerFilters
@@ -189,24 +188,33 @@ export function PlayersHeader({
             </div>
 
             {/* Nationality Filter */}
-            <div className="flex-1 min-w-[180px] sm:w-48 sm:flex-none">
-              <SearchableSelect
-                options={getAllCountryNames().map(name => ({
-                  value: name,
-                  label: name
-                }))}
-                value={filters.nationality}
-                onChange={(value) => handleFilterChange('nationality', value)}
-                placeholder="All Nationalities"
-                searchPlaceholder="Search for a country..."
-                className="w-full"
-                onSearch={(query) =>
-                  searchCountries(query).map(country => ({
-                    value: country.name,
-                    label: country.name
-                  }))
-                }
-              />
+            <div className="relative flex-1 min-w-[180px] sm:flex-none">
+              <select
+                value={filters.nationality || ''}
+                onChange={(e) => handleFilterChange('nationality', e.target.value || undefined)}
+                className="
+                  px-3 sm:px-4 py-3 pr-8 sm:pr-10 text-sm sm:text-sm
+                  bg-white/5 backdrop-blur-sm
+                  border border-white/20 rounded-lg
+                  text-white
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                  hover:border-white/30
+                  transition-all duration-200 cursor-pointer
+                  appearance-none w-full
+                "
+              >
+                <option value="" className="bg-slate-800 text-white">All Nationalities</option>
+                {getAllCountryNames().map(country => (
+                  <option key={country} value={country} className="bg-slate-800 text-white">
+                    {country}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Contract Status Filter */}
