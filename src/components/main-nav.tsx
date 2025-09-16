@@ -66,17 +66,17 @@ export function MainNav({ tenant }: MainNavProps) {
   }, [pathname])
 
   return (
-    <div className="flex items-center justify-between w-full relative" ref={mobileMenuRef}>
+    <div className="flex items-center w-full relative" ref={mobileMenuRef}>
       {/* Logo */}
       <Link
         href={`/${tenant}/dashboard`}
-        className="text-xl font-semibold text-gray-900 transition-all duration-200 hover:text-blue-600"
+        className="text-xl font-semibold text-gray-900 transition-all duration-200 hover:text-blue-600 mr-6"
       >
         Scout Hub
       </Link>
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+      <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 flex-1">
         {routes.map((route) => (
           route.disabled ? (
             <span
@@ -105,7 +105,7 @@ export function MainNav({ tenant }: MainNavProps) {
       {/* Mobile Hamburger Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+        className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 ml-auto"
         aria-label="Toggle mobile menu"
       >
         {isMobileMenuOpen ? (

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2 } from 'lucide-react'
+import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2 } from 'lucide-react'
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
+import jsPDF from 'jspdf'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -16,6 +17,7 @@ interface PlayerDetailDrawerProps {
 export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }: PlayerDetailDrawerProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
   if (!player || !isOpen) return null
 
@@ -82,6 +84,111 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     { name: 'Work Rate', value: player.workRate },
     { name: 'Determination', value: player.determination }
   ]
+
+  const handleExportPDF = async () => {
+    if (!player) return
+
+    setIsGeneratingPDF(true)
+
+    try {
+      // Call AI API to generate player description
+      const response = await fetch('/api/generate-player-description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerData: {
+            firstName: player.firstName,
+            lastName: player.lastName,
+            positions: player.positions,
+            club: player.club,
+            nationality: player.nationality,
+            dateOfBirth: player.dateOfBirth,
+            notes: player.notes,
+            rating: player.rating,
+            goalsThisSeason: player.goalsThisSeason,
+            assistsThisSeason: player.assistsThisSeason,
+            marketValue: player.marketValue
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate description')
+      }
+
+      const { description } = await response.json()
+
+      // Create PDF
+      const pdf = new jsPDF()
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const margin = 20
+
+      // Header
+      pdf.setFontSize(24)
+      pdf.setFont(undefined, 'bold')
+      pdf.text(`${player.firstName} ${player.lastName}`, margin, 30)
+
+      // Subtitle
+      pdf.setFontSize(14)
+      pdf.setFont(undefined, 'normal')
+      const subtitle = `${formatPositionsDisplay(player.positions || [])} • ${player.club || 'Klubblös'} • ${player.nationality || 'Okänd nationalitet'}`
+      pdf.text(subtitle, margin, 45)
+
+      // Basic stats
+      let yPosition = 65
+      pdf.setFontSize(12)
+      pdf.setFont(undefined, 'bold')
+      pdf.text('Grundläggande information:', margin, yPosition)
+
+      yPosition += 10
+      pdf.setFont(undefined, 'normal')
+      const age = calculateAge(player.dateOfBirth)
+      const basicInfo = [
+        `Ålder: ${age || 'Okänd'}`,
+        `Betyg: ${player.rating ? player.rating.toFixed(1) + '/10' : 'Ej betygsatt'}`,
+        `Marknadsvärde: ${formatCurrency(player.marketValue)}`,
+        `Mål denna säsong: ${player.goalsThisSeason || 0}`,
+        `Assist denna säsong: ${player.assistsThisSeason || 0}`
+      ]
+
+      basicInfo.forEach(info => {
+        pdf.text(info, margin, yPosition)
+        yPosition += 8
+      })
+
+      // AI Generated Description
+      yPosition += 15
+      pdf.setFontSize(12)
+      pdf.setFont(undefined, 'bold')
+      pdf.text('Spelaranalys:', margin, yPosition)
+
+      yPosition += 10
+      pdf.setFont(undefined, 'normal')
+
+      // Split description into lines that fit the page width
+      const splitDescription = pdf.splitTextToSize(description, pageWidth - (margin * 2))
+      pdf.text(splitDescription, margin, yPosition)
+
+      // Footer
+      const date = new Date().toLocaleDateString('sv-SE')
+      pdf.setFontSize(10)
+      pdf.setFont(undefined, 'italic')
+      const footerY = pdf.internal.pageSize.getHeight() - 20
+      pdf.text(`Genererad av Scout Hub • ${date}`, margin, footerY)
+
+      // Save PDF
+      const fileName = `${player.firstName}_${player.lastName}_Spelarrapport.pdf`
+      pdf.save(fileName)
+
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Ett fel uppstod vid generering av PDF. Försök igen.')
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
 
   return (
     <div className={`
@@ -368,8 +475,22 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
             <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl touch-none">
               Schedule Trial
             </button>
-            <button className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm touch-none">
-              Add to Shortlist
+            <button
+              onClick={handleExportPDF}
+              disabled={isGeneratingPDF}
+              className="flex-1 bg-white/10 border-2 border-white/20 text-white hover:bg-white/15 font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 backdrop-blur-sm touch-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Genererar PDF...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-5 h-5" />
+                  Exportera PDF
+                </>
+              )}
             </button>
           </div>
         </div>
