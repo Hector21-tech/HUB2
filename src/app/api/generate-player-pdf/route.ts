@@ -1,84 +1,117 @@
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer from 'puppeteer-core'
-import chromium from '@sparticuz/chromium'
 
-// Vercel serverless config
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
+interface PDFRequest {
+  html?: string
+  url?: string
+  fileName?: string
+  playerData?: any
+  aiImprovedNotes?: string | null
+}
+
+const ALLOWED_HOSTS = new Set([
+  'hub2-seven.vercel.app',
+  'hub2-fqi83azof-hector-bataks-projects.vercel.app',
+  'localhost:3000',
+  '127.0.0.1:3000'
+])
+
+function sanitizeFileName(name: string) {
+  const base = (name || 'document.pdf').replace(/[^a-zA-Z0-9_.-]/g, '_')
+  const withExt = base.toLowerCase().endsWith('.pdf') ? base : `${base}.pdf`
+  return withExt.slice(0, 120)
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { playerData, aiImprovedNotes } = await request.json()
+    const { html, url, fileName = 'document.pdf', playerData, aiImprovedNotes }: PDFRequest = await request.json()
 
-    if (!playerData) {
-      return NextResponse.json({ error: 'Player data is required' }, { status: 400 })
+    // Support both new format (html/url) and legacy format (playerData)
+    let htmlContent = html
+    let targetUrl = url
+    let finalFileName = fileName
+
+    if (playerData) {
+      // Legacy support - generate HTML from playerData
+      htmlContent = generatePDFHTML(playerData, aiImprovedNotes || null)
+      finalFileName = `${playerData.firstName}_${playerData.lastName}_Scout_Report.pdf`
     }
 
-    // Generate PDF using Puppeteer + Chromium (premium quality)
-    const pdfBuffer = await generatePuppeteerPDF(playerData, aiImprovedNotes)
+    if (!htmlContent && !targetUrl) {
+      return NextResponse.json({ error: 'Either html, url, or playerData is required' }, { status: 400 })
+    }
 
-    // Return PDF as response
-    return new Response(pdfBuffer as BodyInit, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${playerData.firstName}_${playerData.lastName}_Scout_Report.pdf"`,
-        'Cache-Control': 'no-store'
+    if (targetUrl) {
+      let host: string | null = null
+      try { host = new URL(targetUrl).host } catch {}
+      if (!host || !ALLOWED_HOSTS.has(host)) {
+        return NextResponse.json({ error: 'URL not allowed' }, { status: 400 })
       }
-    })
+    }
 
-  } catch (error) {
-    console.error('PDF generation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate PDF' },
-      { status: 500 }
-    )
-  }
-}
+    // Dynamic imports to prevent client bundling
+    const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
+      import('@sparticuz/chromium'),
+      import('puppeteer-core'),
+    ])
 
-async function generatePuppeteerPDF(player: any, aiImprovedNotes: string | null): Promise<Buffer> {
-  let browser
-
-  try {
-    // Launch Chromium with Vercel-optimized settings
-    browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      headless: true
+      headless: true,
+      defaultViewport: chromium.defaultViewport,
     })
 
-    const page = await browser.newPage()
+    try {
+      const page = await browser.newPage()
+      await page.setViewport({ width: 1200, height: 800 })
 
-    // Generate the HTML content using existing function
-    const htmlContent = generatePDFHTML(player, aiImprovedNotes)
+      // Block unnecessary resources for faster rendering
+      await page.setRequestInterception(true)
+      page.on('request', (req) => {
+        const type = req.resourceType()
+        if (['image', 'media', 'font', 'stylesheet'].includes(type)) {
+          return req.continue()
+        }
+        req.continue()
+      })
 
-    // Set content and wait for full load
-    await page.setContent(htmlContent, {
-      waitUntil: 'networkidle0',
-      timeout: 15000
-    })
+      if (htmlContent) {
+        await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 15000 })
+      } else if (targetUrl) {
+        await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 15000 })
+      }
 
-    // Generate PDF with high quality settings
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20mm',
-        right: '16mm',
-        bottom: '20mm',
-        left: '16mm'
-      },
-      preferCSSPageSize: true
-    })
+      // Apply print CSS
+      await page.emulateMediaType('print')
 
-    return Buffer.from(pdfBuffer)
+      const pdfBuffer = await page.pdf({
+        printBackground: true,
+        format: 'A4',
+        margin: { top: '16mm', right: '16mm', bottom: '16mm', left: '16mm' },
+        preferCSSPageSize: true,
+      })
 
-  } finally {
-    if (browser) {
+      const safeFileName = sanitizeFileName(finalFileName)
+      return new Response(pdfBuffer as BodyInit, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename="${safeFileName}"`,
+          'Cache-Control': 'no-store',
+        },
+      })
+    } finally {
       await browser.close()
     }
+  } catch (error) {
+    console.error('PDF generation error:', error)
+    return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 })
   }
 }
+
 
 function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
   const currentDate = new Date().toLocaleDateString('sv-SE')

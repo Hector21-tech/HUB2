@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2, Share } from 'lucide-react'
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
+import { generateAndSharePDF, isMobileDevice, isShareSupported } from '@/lib/sharePdf'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -100,98 +101,6 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     return formattedText
   }
 
-  // Utility to detect mobile devices
-  const isMobileDevice = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (navigator.maxTouchPoints && navigator.maxTouchPoints > 1)
-  }
-
-  // Check if native share is supported
-  const isShareSupported = () => {
-    return typeof navigator !== 'undefined' &&
-           'share' in navigator &&
-           'canShare' in navigator
-  }
-
-  const generatePDFBlob = async (player: Player, aiImprovedNotes: string | null): Promise<Blob> => {
-    try {
-      // Call server-side PDF generation API
-      const response = await fetch('/api/generate-player-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          playerData: player,
-          aiImprovedNotes: aiImprovedNotes
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error(`PDF generation failed: ${response.status}`)
-      }
-
-      // Return the PDF blob
-      return await response.blob()
-    } catch (error) {
-      console.error('Server PDF generation failed:', error)
-      throw error
-    }
-  }
-
-  const sharePlayerPDF = async (pdfBlob: Blob, player: Player) => {
-    const fileName = `${player.firstName}_${player.lastName}_Scout_Report.pdf`
-
-    try {
-      // Enhanced mobile share with better compatibility
-      if (navigator.share) {
-        const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
-
-        // Check if files are supported
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: `Scout Report - ${player.firstName} ${player.lastName}`,
-            text: `Spelarprofil för ${player.firstName} ${player.lastName}`,
-            files: [file]
-          })
-          return
-        }
-
-        // Fallback to URL-based share for better mobile compatibility
-        const url = URL.createObjectURL(pdfBlob)
-        await navigator.share({
-          title: `Scout Report - ${player.firstName} ${player.lastName}`,
-          text: `Spelarprofil för ${player.firstName} ${player.lastName}\n\nLadda ner PDF:`,
-          url: url
-        })
-
-        // Clean up URL after share
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
-        return
-      }
-
-      // Final fallback: download
-      downloadPDF(pdfBlob, fileName)
-
-    } catch (error: any) {
-      if (error?.name !== 'AbortError') {
-        console.error('Share failed:', error)
-        downloadPDF(pdfBlob, fileName)
-      }
-    }
-  }
-
-  const downloadPDF = (pdfBlob: Blob, fileName: string) => {
-    const url = URL.createObjectURL(pdfBlob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    a.style.display = 'none'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
 
   const handleExportPDF = async () => {
     if (!player) return
@@ -238,21 +147,21 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
         }
       }
 
-      // Generate PDF using server-side Puppeteer
-      const pdfBlob = await generatePDFBlob(player, aiImprovedNotes)
-
-      // Use native share on mobile, download on desktop
-      if (isMobileDevice() && isShareSupported()) {
-        await sharePlayerPDF(pdfBlob, player)
-      } else {
-        // Desktop: Direct download
-        const fileName = `${player.firstName}_${player.lastName}_Scout_Report.pdf`
-        downloadPDF(pdfBlob, fileName)
-      }
+      // Use new PDF helper with improved error handling and timeout
+      await generateAndSharePDF({
+        playerData: player,
+        aiImprovedNotes,
+        fileName: `${player.firstName}_${player.lastName}_Scout_Report.pdf`,
+        title: `Scout Report - ${player.firstName} ${player.lastName}`
+      })
 
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('Ett fel uppstod vid generering av PDF. Försök igen.')
+      if (error instanceof Error) {
+        alert(error.message)
+      } else {
+        alert('Ett fel uppstod vid generering av PDF. Försök igen.')
+      }
     } finally {
       setIsGeneratingPDF(false)
     }
