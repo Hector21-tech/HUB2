@@ -33,18 +33,9 @@ export async function generateAndSharePDF({
 
     const blob = await response.blob()
     const safeFileName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`
-    const file = new File([blob], safeFileName, { type: 'application/pdf' })
 
-    // Try native share on mobile
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({
-        title,
-        files: [file]
-      })
-      return
-    }
-
-    // Fallback: download
+    // Always fallback to download since navigator.share requires user gesture
+    // and we've lost the gesture context after async operations
     const href = URL.createObjectURL(blob)
     const a = Object.assign(document.createElement('a'), {
       href,
@@ -65,6 +56,38 @@ export async function generateAndSharePDF({
   } finally {
     clearTimeout(timeout)
   }
+}
+
+// For immediate sharing when user gesture is preserved
+export async function shareGeneratedPDF(blob: Blob, fileName: string, title: string): Promise<void> {
+  const safeFileName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`
+  const file = new File([blob], safeFileName, { type: 'application/pdf' })
+
+  // Try native share on mobile (only works in user gesture context)
+  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({
+        title,
+        files: [file]
+      })
+      return
+    } catch (shareError) {
+      // Fall back to download if sharing fails
+      console.warn('Share failed, falling back to download:', shareError)
+    }
+  }
+
+  // Fallback: download
+  const href = URL.createObjectURL(blob)
+  const a = Object.assign(document.createElement('a'), {
+    href,
+    download: safeFileName,
+    style: 'display: none'
+  })
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(href)
 }
 
 // Utility functions for mobile detection
