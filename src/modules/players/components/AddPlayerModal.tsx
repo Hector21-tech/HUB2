@@ -133,6 +133,18 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required'
     }
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = 'Date of birth is required'
+    }
+    if (!formData.nationality?.trim()) {
+      newErrors.nationality = 'Nationality is required'
+    }
+    if (!formData.club?.trim()) {
+      newErrors.club = 'Club is required'
+    }
+    if (formData.positions.length === 0) {
+      newErrors.positions = 'At least one position is required'
+    }
     if (!formData.height.trim()) {
       newErrors.height = 'Height is required'
     } else if (isNaN(Number(formData.height)) || Number(formData.height) < 150 || Number(formData.height) > 220) {
@@ -304,7 +316,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <Calendar className="w-4 h-4 inline mr-1" />
-                    Date of Birth (YYYY-MM-DD)
+                    Date of Birth (YYYY-MM-DD) *
                   </label>
                   <input
                     type="date"
@@ -312,16 +324,20 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                     onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                     min="1950-01-01"
                     max="2010-12-31"
-                    className="
+                    className={`
                       w-full px-3 sm:px-4 py-3
                       bg-white/5 backdrop-blur-sm
-                      border border-white/20 rounded-lg
+                      border rounded-lg
                       text-white text-base
                       focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                       hover:border-white/30
                       transition-all duration-200
-                    "
+                      ${errors.dateOfBirth ? 'border-red-400' : 'border-white/20'}
+                    `}
                   />
+                  {errors.dateOfBirth && (
+                    <p className="text-red-400 text-sm mt-1">{errors.dateOfBirth}</p>
+                  )}
                 </div>
 
                 <div>
@@ -351,7 +367,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <MapPin className="w-4 h-4 inline mr-1" />
-                    Nationality
+                    Nationality *
                   </label>
                   <SearchableSelect
                     options={getAllCountryNames().map(name => ({
@@ -369,6 +385,9 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                       }))
                     }
                   />
+                  {errors.nationality && (
+                    <p className="text-red-400 text-sm mt-1">{errors.nationality}</p>
+                  )}
                 </div>
 
                 <div>
@@ -403,7 +422,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <Users className="w-4 h-4 inline mr-1" />
-                    Club
+                    Club *
                   </label>
 
                   {showCustomClubInput ? (
@@ -412,15 +431,16 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                         type="text"
                         value={formData.club}
                         onChange={(e) => handleInputChange('club', e.target.value)}
-                        className="
+                        className={`
                           w-full px-3 sm:px-4 py-3
                           bg-white/5 backdrop-blur-sm
-                          border border-white/20 rounded-lg
+                          border rounded-lg
                           text-white placeholder-white/50 text-base
                           focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                           hover:border-white/30
                           transition-all duration-200
-                        "
+                          ${errors.club ? 'border-red-400' : 'border-white/20'}
+                        `}
                         placeholder="Enter club name manually..."
                       />
                       <button
@@ -469,6 +489,9 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                         Club not found? Enter manually →
                       </button>
                     </div>
+                  )}
+                  {errors.club && (
+                    <p className="text-red-400 text-sm mt-1">{errors.club}</p>
                   )}
                 </div>
 
