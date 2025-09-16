@@ -127,23 +127,23 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
       // Header
       pdf.setFontSize(24)
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       pdf.text(`${player.firstName} ${player.lastName}`, margin, 30)
 
       // Subtitle
       pdf.setFontSize(14)
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
       const subtitle = `${formatPositionsDisplay(player.positions || [])} • ${player.club || 'Klubblös'} • ${player.nationality || 'Okänd nationalitet'}`
       pdf.text(subtitle, margin, 45)
 
       // Basic stats
       let yPosition = 65
       pdf.setFontSize(12)
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       pdf.text('Grundläggande information:', margin, yPosition)
 
       yPosition += 10
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
       const age = calculateAge(player.dateOfBirth)
       const basicInfo = [
         `Ålder: ${age || 'Okänd'}`,
@@ -161,11 +161,11 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       // AI Generated Description
       yPosition += 15
       pdf.setFontSize(12)
-      pdf.setFont(undefined, 'bold')
+      pdf.setFont('helvetica', 'bold')
       pdf.text('Spelaranalys:', margin, yPosition)
 
       yPosition += 10
-      pdf.setFont(undefined, 'normal')
+      pdf.setFont('helvetica', 'normal')
 
       // Split description into lines that fit the page width
       const splitDescription = pdf.splitTextToSize(description, pageWidth - (margin * 2))
@@ -174,7 +174,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       // Footer
       const date = new Date().toLocaleDateString('sv-SE')
       pdf.setFontSize(10)
-      pdf.setFont(undefined, 'italic')
+      pdf.setFont('helvetica', 'italic')
       const footerY = pdf.internal.pageSize.getHeight() - 20
       pdf.text(`Genererad av Scout Hub • ${date}`, margin, footerY)
 
