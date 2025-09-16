@@ -84,7 +84,7 @@ model Player {
   club           String?
   contractExpiry DateTime? // Contract expiry date
   nationality    String?
-  height         Int? // cm
+  height         Int // cm
   weight         Int? // kg
   notes          String?
   tags           String[] // Array of tags

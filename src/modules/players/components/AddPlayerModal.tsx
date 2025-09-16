@@ -133,11 +133,10 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required'
     }
-    if (formData.height && (isNaN(Number(formData.height)) || Number(formData.height) < 50 || Number(formData.height) > 250)) {
+    if (!formData.height.trim()) {
+      newErrors.height = 'Height is required'
+    } else if (isNaN(Number(formData.height)) || Number(formData.height) < 50 || Number(formData.height) > 250) {
       newErrors.height = 'Height must be between 50-250 cm'
-    }
-    if (formData.weight && (isNaN(Number(formData.weight)) || Number(formData.weight) < 30 || Number(formData.weight) > 150)) {
-      newErrors.weight = 'Weight must be between 30-150 kg'
     }
     if (formData.rating && (isNaN(Number(formData.rating)) || Number(formData.rating) < 1 || Number(formData.rating) > 10)) {
       newErrors.rating = 'Rating must be between 1-10'
@@ -180,8 +179,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         tenantId,
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
         contractExpiry: formData.contractExpiry ? new Date(formData.contractExpiry) : undefined,
-        height: formData.height ? Number(formData.height) : undefined,
-        weight: formData.weight ? Number(formData.weight) : undefined,
+        height: Number(formData.height),
         rating: formData.rating ? Number(formData.rating) : undefined,
         tags: [], // Default empty tags
         // Clear club if Free Agent is selected
@@ -373,6 +371,34 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-2">
+                    Height (cm) *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.height}
+                    onChange={(e) => handleInputChange('height', e.target.value)}
+                    min="50"
+                    max="250"
+                    className={`
+                      w-full px-3 sm:px-4 py-3
+                      bg-white/5 backdrop-blur-sm
+                      border rounded-lg text-base
+                      text-white placeholder-white/50
+                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                      transition-all duration-200
+                      ${errors.height ? 'border-red-400' : 'border-white/20 hover:border-white/30'}
+                    `}
+                    placeholder="Enter height in cm"
+                  />
+                  {errors.height && (
+                    <p className="text-red-400 text-sm mt-1">{errors.height}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/60 mb-2">
                     <Users className="w-4 h-4 inline mr-1" />
