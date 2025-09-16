@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import jsPDF from 'jspdf'
+import puppeteer from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
+
+// Vercel serverless config
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 30
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,14 +15,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Player data is required' }, { status: 400 })
     }
 
-    // Generate PDF using jsPDF (server-compatible)
-    const pdfBuffer = await generateServerPDF(playerData, aiImprovedNotes)
+    // Generate PDF using Puppeteer + Chromium (premium quality)
+    const pdfBuffer = await generatePuppeteerPDF(playerData, aiImprovedNotes)
 
     // Return PDF as response
     return new Response(pdfBuffer as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${playerData.firstName}_${playerData.lastName}_Scout_Report.pdf"`
+        'Content-Disposition': `inline; filename="${playerData.firstName}_${playerData.lastName}_Scout_Report.pdf"`,
+        'Cache-Control': 'no-store'
       }
     })
 
@@ -29,184 +36,48 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateServerPDF(player: any, aiImprovedNotes: string | null): Promise<Buffer> {
-  const pdf = new jsPDF('p', 'mm', 'a4')
+async function generatePuppeteerPDF(player: any, aiImprovedNotes: string | null): Promise<Buffer> {
+  let browser
 
-  // Calculate age
-  const calculateAge = (dateOfBirth?: Date) => {
-    if (!dateOfBirth) return null
-    const today = new Date()
-    const birthDate = new Date(dateOfBirth)
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
-
-  const age = calculateAge(player.dateOfBirth)
-  const currentDate = new Date().toLocaleDateString('sv-SE')
-
-  // Format functions
-  const formatPositions = (positions: string[]) => {
-    if (!positions || positions.length === 0) return 'Player'
-    return positions.join(', ')
-  }
-
-  const formatCurrency = (amount?: number) => {
-    if (!amount) return 'N/A'
-    if (amount >= 1000000) return `€${(amount / 1000000).toFixed(1)}M`
-    if (amount >= 1000) return `€${(amount / 1000).toFixed(0)}K`
-    return `€${amount}`
-  }
-
-  const formatDate = (date?: Date) => {
-    if (!date) return 'Ej angivet'
-    return new Date(date).toLocaleDateString('sv-SE')
-  }
-
-  const positions = formatPositions(player.positions || [])
-
-  // Set up colors
-  const primaryColor: [number, number, number] = [212, 175, 55] // Gold
-  const textColor: [number, number, number] = [51, 51, 51] // Dark gray
-  const lightGray: [number, number, number] = [128, 128, 128]
-
-  // Title
-  pdf.setFontSize(24)
-  pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  pdf.text('SPELARPROFIL', 20, 30)
-
-  // Player header
-  pdf.setFontSize(20)
-  pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-  pdf.text(`${player.firstName || ''} ${player.lastName || ''}`, 20, 50)
-
-  pdf.setFontSize(12)
-  pdf.setTextColor(lightGray[0], lightGray[1], lightGray[2])
-  pdf.text(`${positions} | ${age || 'Okänd ålder'} år | ${player.nationality || 'Okänd nationalitet'}`, 20, 58)
-
-  // Personal Information Section
-  let yPos = 80
-  pdf.setFontSize(14)
-  pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  pdf.text('PERSONLIG INFORMATION', 20, yPos)
-
-  pdf.setFontSize(10)
-  pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-  yPos += 10
-
-  const personalInfo = [
-    ['Ålder:', `${age || 'Ej angivet'} år`],
-    ['Längd:', player.height ? `${player.height} cm` : 'Ej angivet'],
-    ['Vikt:', player.weight ? `${player.weight} kg` : 'Ej angivet'],
-    ['Födelsedatum:', formatDate(player.dateOfBirth)],
-    ['Nationalitet:', player.nationality || 'Ej angivet'],
-    ['Dominant fot:', player.preferredFoot || 'Ej angivet']
-  ]
-
-  personalInfo.forEach(([label, value]) => {
-    pdf.setTextColor(lightGray[0], lightGray[1], lightGray[2])
-    pdf.text(label, 25, yPos)
-    pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-    pdf.text(value, 70, yPos)
-    yPos += 8
-  })
-
-  // Club & Contract Section
-  yPos += 10
-  pdf.setFontSize(14)
-  pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  pdf.text('KLUBB & KONTRAKT', 20, yPos)
-
-  pdf.setFontSize(10)
-  pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-  yPos += 10
-
-  const clubInfo = [
-    ['Nuvarande klubb:', player.club || 'Free Agent'],
-    ['Kontraktslut:', formatDate(player.contractExpiry)],
-    ['Marknadsvärde:', formatCurrency(player.marketValue)],
-    ['Betyg:', player.rating ? player.rating.toFixed(1) : 'Ej angivet']
-  ]
-
-  clubInfo.forEach(([label, value]) => {
-    pdf.setTextColor(lightGray[0], lightGray[1], lightGray[2])
-    pdf.text(label, 25, yPos)
-    pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-    pdf.text(value, 70, yPos)
-    yPos += 8
-  })
-
-  // Season Stats Section
-  yPos += 10
-  pdf.setFontSize(14)
-  pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  pdf.text('SÄSONGSSTATISTIK', 20, yPos)
-
-  pdf.setFontSize(10)
-  pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-  yPos += 10
-
-  const stats = [
-    ['Mål:', (player.goalsThisSeason || 0).toString()],
-    ['Assist:', (player.assistsThisSeason || 0).toString()],
-    ['Matcher:', (player.appearances || 0).toString()],
-    ['Minuter:', (player.minutesPlayed || 0).toString()]
-  ]
-
-  stats.forEach(([label, value]) => {
-    pdf.setTextColor(lightGray[0], lightGray[1], lightGray[2])
-    pdf.text(label, 25, yPos)
-    pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-    pdf.text(value, 70, yPos)
-    yPos += 8
-  })
-
-  // Notes Section
-  if (player.notes || aiImprovedNotes) {
-    yPos += 10
-    pdf.setFontSize(14)
-    pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-    pdf.text('SCOUTANTECKNINGAR', 20, yPos)
-
-    pdf.setFontSize(10)
-    pdf.setTextColor(textColor[0], textColor[1], textColor[2])
-    yPos += 10
-
-    const notes = aiImprovedNotes || player.notes
-    // Split long text into lines
-    const lines = pdf.splitTextToSize(notes, 170)
-
-    lines.forEach((line: string) => {
-      if (yPos > 250) { // Start new page if needed
-        pdf.addPage()
-        yPos = 30
-      }
-      pdf.text(line, 25, yPos)
-      yPos += 6
+  try {
+    // Launch Chromium with Vercel-optimized settings
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true
     })
+
+    const page = await browser.newPage()
+
+    // Generate the HTML content using existing function
+    const htmlContent = generatePDFHTML(player, aiImprovedNotes)
+
+    // Set content and wait for full load
+    await page.setContent(htmlContent, {
+      waitUntil: 'networkidle0',
+      timeout: 15000
+    })
+
+    // Generate PDF with high quality settings
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '16mm',
+        bottom: '20mm',
+        left: '16mm'
+      },
+      preferCSSPageSize: true
+    })
+
+    return Buffer.from(pdfBuffer)
+
+  } finally {
+    if (browser) {
+      await browser.close()
+    }
   }
-
-  // Footer
-  yPos = 270 // Bottom of page
-  pdf.setFontSize(8)
-  pdf.setTextColor(lightGray[0], lightGray[1], lightGray[2])
-  pdf.text(`Genererad: ${currentDate}`, 20, yPos)
-
-  // Company info
-  yPos += 10
-  pdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  pdf.rect(20, yPos - 5, 170, 15, 'F')
-  pdf.setTextColor(255, 255, 255)
-  pdf.setFontSize(10)
-  pdf.text('Elite Sports Group AB', 25, yPos + 2)
-  pdf.setFontSize(8)
-  pdf.text('Professional Football Agents', 25, yPos + 8)
-
-  const arrayBuffer = pdf.output('arraybuffer')
-  return Buffer.from(arrayBuffer)
 }
 
 function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
@@ -448,12 +319,28 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
             margin-bottom: 5px;
         }
 
+        @page {
+            size: A4;
+            margin: 16mm;
+        }
+
         @media print {
             .page-container {
                 max-width: none;
                 margin: 0;
                 padding: 0;
             }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        /* Ensure fonts load properly */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
     </style>
 </head>

@@ -143,39 +143,54 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     const fileName = `${player.firstName}_${player.lastName}_Scout_Report.pdf`
 
     try {
-      const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
+      // Enhanced mobile share with better compatibility
+      if (navigator.share) {
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Check if files are supported
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: `Scout Report - ${player.firstName} ${player.lastName}`,
+            text: `Spelarprofil för ${player.firstName} ${player.lastName}`,
+            files: [file]
+          })
+          return
+        }
+
+        // Fallback to URL-based share for better mobile compatibility
+        const url = URL.createObjectURL(pdfBlob)
         await navigator.share({
           title: `Scout Report - ${player.firstName} ${player.lastName}`,
-          text: `Spelarprofil för ${player.firstName} ${player.lastName}`,
-          files: [file]
+          text: `Spelarprofil för ${player.firstName} ${player.lastName}\n\nLadda ner PDF:`,
+          url: url
         })
-      } else {
-        // Fallback: create download link
-        const url = URL.createObjectURL(pdfBlob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = fileName
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+
+        // Clean up URL after share
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+        return
       }
+
+      // Final fallback: download
+      downloadPDF(pdfBlob, fileName)
+
     } catch (error: any) {
       if (error?.name !== 'AbortError') {
         console.error('Share failed:', error)
-        // Fallback to download
-        const url = URL.createObjectURL(pdfBlob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = fileName
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        downloadPDF(pdfBlob, fileName)
       }
     }
+  }
+
+  const downloadPDF = (pdfBlob: Blob, fileName: string) => {
+    const url = URL.createObjectURL(pdfBlob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   const handleExportPDF = async () => {
@@ -232,14 +247,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       } else {
         // Desktop: Direct download
         const fileName = `${player.firstName}_${player.lastName}_Scout_Report.pdf`
-        const url = URL.createObjectURL(pdfBlob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = fileName
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        downloadPDF(pdfBlob, fileName)
       }
 
     } catch (error) {
