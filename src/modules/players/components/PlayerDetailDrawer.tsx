@@ -84,6 +84,22 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     { name: 'Determination', value: player.determination }
   ]
 
+  const formatAIText = (text: string) => {
+    if (!text) return text
+
+    // Remove all ** symbols
+    let formattedText = text.replace(/\*\*/g, '')
+
+    // Convert "Styrkor:" and "Svagheter:" to HTML strong tags
+    formattedText = formattedText.replace(/^Styrkor:/gm, '<strong>Styrkor:</strong>')
+    formattedText = formattedText.replace(/^Svagheter:/gm, '<strong>Svagheter:</strong>')
+
+    // Convert newlines to HTML line breaks
+    formattedText = formattedText.replace(/\n/g, '<br>')
+
+    return formattedText
+  }
+
   const handleExportPDF = async () => {
     if (!player) return
 
@@ -122,7 +138,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
           if (response.ok) {
             const { description } = await response.json()
-            aiImprovedNotes = description
+            aiImprovedNotes = formatAIText(description)
           }
         } catch (error) {
           console.error('AI improvement failed:', error)
@@ -308,9 +324,9 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
         }
 
         .pdf-footer {
-            margin-top: 40px;
+            margin-top: 80px;
             text-align: center;
-            padding-top: 20px;
+            padding-top: 30px;
             border-top: 1px solid #eee;
             color: #666;
             font-size: 0.9rem;

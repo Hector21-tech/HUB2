@@ -40,13 +40,13 @@ VIKTIGT: Basera ENDAST analysen på den information som faktiskt finns tillgäng
 
 Skapa en rapport strukturerad EXAKT så här:
 
-**Styrkor:**
+Styrkor:
 [Om det finns anteckningar eller positiva indikatorer i statistiken - skriv 2-3 punkter med • symbol. Om ingen information finns, skriv "Behöver utvärderas genom observation"]
 
-**Svagheter:**
-[ENDAST om det finns specifika negativa anteckningar eller tydliga brister i statistiken - skriv 1-2 punkter med • symbol. Om ingen negativ information finns tillgänglig, hoppa över denna sektion helt.]
+Svagheter:
+[ENDAST om det finns SPECIFIKA NEGATIVA anteckningar i scout-anteckningarna ovan - skriv 1-2 punkter med • symbol. Om det INTE finns några negativa kommentarer i scout-anteckningarna, hoppa över hela denna sektion helt och hållet. Statistik som "0 mål" räknas INTE som negativ information om det inte specifikt nämns som problem i anteckningarna.]
 
-Använd professionellt språk. Skriv INTE information som inte finns i underlaget.`
+Använd professionellt språk. Skriv INTE information som inte finns i underlaget. Använd ALDRIG ** symboler i texten.`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
