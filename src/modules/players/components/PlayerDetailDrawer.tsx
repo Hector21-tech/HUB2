@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2, Share } from 'lucide-react'
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
-import { generateAndSharePDF, isMobileDevice, isShareSupported } from '@/lib/sharePdf'
+import { generateAndSharePDFWithGesture, isMobileDevice, isShareSupported } from '@/lib/sharePdf'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -18,6 +18,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  const [pdfProgress, setPdfProgress] = useState('')
 
   if (!player || !isOpen) return null
 
@@ -147,12 +148,13 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
         }
       }
 
-      // Use new PDF helper with improved error handling and timeout
-      await generateAndSharePDF({
+      // Use new gesture-preserving PDF helper
+      await generateAndSharePDFWithGesture({
         playerData: player,
         aiImprovedNotes,
         fileName: `${player.firstName}_${player.lastName}_Scout_Report.pdf`,
-        title: `Scout Report - ${player.firstName} ${player.lastName}`
+        title: `Scout Report - ${player.firstName} ${player.lastName}`,
+        onProgress: setPdfProgress
       })
 
     } catch (error) {
@@ -164,6 +166,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       }
     } finally {
       setIsGeneratingPDF(false)
+      setPdfProgress('')
     }
   }
 
@@ -686,7 +689,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
               {isGeneratingPDF ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Genererar PDF...
+                  {pdfProgress || 'Genererar PDF...'}
                 </>
               ) : (
                 <>
