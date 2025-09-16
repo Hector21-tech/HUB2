@@ -53,17 +53,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Dynamic imports to prevent client bundling
-    const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
-      import('@sparticuz/chromium'),
-      import('puppeteer-core'),
-    ])
+    const isLocal = process.env.NODE_ENV === 'development'
 
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-      defaultViewport: chromium.defaultViewport,
-    })
+    let browser
+    if (isLocal) {
+      // Use full puppeteer in development
+      const { default: puppeteer } = await import('puppeteer')
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      })
+    } else {
+      // Use puppeteer-core + chromium in production
+      const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
+        import('@sparticuz/chromium'),
+        import('puppeteer-core'),
+      ])
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: true,
+        defaultViewport: chromium.defaultViewport,
+      })
+    }
 
     try {
       const page = await browser.newPage()

@@ -11,7 +11,8 @@
       "Bash(git push:*)",
       "Bash(npm install:*)",
       "Read(//tmp/scout-hub/**)",
-      "Bash(npm run typecheck:*)"
+      "Bash(npm run typecheck:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
