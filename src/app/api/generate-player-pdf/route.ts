@@ -52,18 +52,59 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Unified stack: Use puppeteer-core + @sparticuz/chromium for both dev and prod
-    const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
-      import('@sparticuz/chromium'),
-      import('puppeteer-core'),
-    ])
+    // Different setup for dev vs prod
+    const isDev = process.env.NODE_ENV === 'development'
+    let browser
 
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-      defaultViewport: chromium.defaultViewport,
-    })
+    if (isDev) {
+      // Local development: use system Chrome
+      const { default: puppeteer } = await import('puppeteer-core')
+
+      // Try to find Chrome executable on Windows
+      const possiblePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        process.env.CHROME_PATH || '',
+      ]
+
+      let executablePath = ''
+      for (const path of possiblePaths) {
+        if (path) {
+          try {
+            const fs = await import('fs')
+            if (fs.existsSync(path)) {
+              executablePath = path
+              break
+            }
+          } catch {}
+        }
+      }
+
+      if (!executablePath) {
+        return NextResponse.json({
+          error: 'Chrome not found. Please install Chrome or set CHROME_PATH environment variable'
+        }, { status: 500 })
+      }
+
+      browser = await puppeteer.launch({
+        executablePath,
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      })
+    } else {
+      // Production: use @sparticuz/chromium
+      const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
+        import('@sparticuz/chromium'),
+        import('puppeteer-core'),
+      ])
+
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: true,
+        defaultViewport: chromium.defaultViewport,
+      })
+    }
 
     try {
       const page = await browser.newPage()

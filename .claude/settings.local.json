@@ -12,7 +12,10 @@
       "Bash(npm install:*)",
       "Read(//tmp/scout-hub/**)",
       "Bash(npm run typecheck:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
