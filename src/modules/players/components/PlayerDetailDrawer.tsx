@@ -132,20 +132,18 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       const darkGray: [number, number, number] = [51, 51, 51]
       const lightGray: [number, number, number] = [128, 128, 128]
 
-      // Header with player name
-      pdf.setFillColor(...goldColor)
-      pdf.rect(0, 0, pageWidth, 60, 'F')
-
-      pdf.setTextColor(255, 255, 255)
-      pdf.setFontSize(28)
+      // Header enligt exakt format
+      pdf.setTextColor(...darkGray)
+      pdf.setFontSize(24)
       pdf.setFont('helvetica', 'bold')
-      pdf.text(`${player.firstName} ${player.lastName}`, margin, 35)
+      pdf.text(`Spelarprofil – ${player.firstName} ${player.lastName}`, margin, 30)
 
-      // Subtitle
+      // Rad 2 enligt format: "[Spelarnamn] | Position(er) | Ålder | Nationalitet"
       pdf.setFontSize(16)
       pdf.setFont('helvetica', 'normal')
-      const subtitle = `${formatPositionsDisplay(player.positions || [])} | ${calculateAge(player.dateOfBirth) || 'Okänd ålder'} år | ${player.nationality || 'Okänd'}`
-      pdf.text(subtitle, margin, 50)
+      const age = calculateAge(player.dateOfBirth)
+      const subtitle = `${player.firstName} ${player.lastName} | ${formatPositionsDisplay(player.positions || [])} | ${age || 'Okänd ålder'} år | ${player.nationality || 'Okänd'}`
+      pdf.text(subtitle, margin, 45)
 
       // Player photo placeholder (left column)
       let currentY = 80
@@ -180,7 +178,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       pdf.setFont('helvetica', 'normal')
 
       const personalInfo = [
-        { label: 'Ålder:', value: `${calculateAge(player.dateOfBirth) || 'Okänd'} år` },
+        { label: 'Ålder:', value: `${calculateAge(player.dateOfBirth) || 'Ej angivet'} år` },
         { label: 'Längd:', value: player.height ? `${player.height} cm` : 'Ej angivet' },
         { label: 'Födelsedatum:', value: player.dateOfBirth ? formatDate(player.dateOfBirth) : 'Ej angivet' },
         { label: 'Nationalitet:', value: player.nationality || 'Ej angivet' }
@@ -209,7 +207,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       pdf.setFont('helvetica', 'normal')
 
       const clubInfo = [
-        { label: 'Nuvarande klubb:', value: player.club || 'Klubblös' },
+        { label: 'Nuvarande klubb:', value: player.club || 'Ej angivet' },
         { label: 'Kontraktstart:', value: 'Ej angivet' },
         { label: 'Kontraktslut:', value: player.contractExpiry ? formatDate(player.contractExpiry) : 'Ej angivet' }
       ]
@@ -240,7 +238,6 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
       // Split AI description by sections
       const sections = description.split('**')
-      let currentSection = ''
 
       sections.forEach((section: string) => {
         if (section.trim().startsWith('Styrkor:')) {
@@ -252,9 +249,10 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
           const content = section.replace('Styrkor:', '').trim()
           pdf.setFont('helvetica', 'normal')
+          pdf.setFontSize(10)
           const splitContent = pdf.splitTextToSize(content, pageWidth - 2 * margin)
           pdf.text(splitContent, margin, scoutY)
-          scoutY += (splitContent.length * 5) + 10
+          scoutY += (splitContent.length * 6) + 15
         } else if (section.trim().startsWith('Svagheter:')) {
           pdf.setTextColor(...darkGray)
           pdf.setFontSize(11)
@@ -264,32 +262,27 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
           const content = section.replace('Svagheter:', '').trim()
           pdf.setFont('helvetica', 'normal')
+          pdf.setFontSize(10)
           const splitContent = pdf.splitTextToSize(content, pageWidth - 2 * margin)
           pdf.text(splitContent, margin, scoutY)
-          scoutY += (splitContent.length * 5) + 10
+          scoutY += (splitContent.length * 6) + 15
         }
       })
 
-      // Footer
-      const footerY = pageHeight - 30
-      pdf.setFillColor(...goldColor)
-      pdf.rect(0, footerY - 10, pageWidth, 40, 'F')
-
-      pdf.setTextColor(255, 255, 255)
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Elite Sports Group AB', margin, footerY + 5)
-
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'normal')
-      pdf.text('Professional Football Agents', margin, footerY + 15)
-
-      // Generation date
+      // Footer enligt exakt format
+      const footerY = pageHeight - 40
       const date = new Date().toLocaleDateString('sv-SE')
-      pdf.setTextColor(255, 255, 255)
+
+      // Genererad: [Datum]
+      pdf.setTextColor(...darkGray)
       pdf.setFontSize(10)
       pdf.setFont('helvetica', 'normal')
-      pdf.text(`Genererad: ${date}`, pageWidth - margin - 40, footerY + 15)
+      pdf.text(`Genererad: ${date}`, margin, footerY)
+
+      // Elite Sports Group AB – Professional Football Agents
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Elite Sports Group AB – Professional Football Agents', margin, footerY + 15)
 
       // Save PDF
       const fileName = `Spelarprofil - ${player.firstName} ${player.lastName}.pdf`
