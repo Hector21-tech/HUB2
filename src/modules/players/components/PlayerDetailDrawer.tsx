@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2 } from 'lucide-react'
+import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2, Share } from 'lucide-react'
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -100,6 +102,155 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     return formattedText
   }
 
+  // Utility to detect mobile devices
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (navigator.maxTouchPoints && navigator.maxTouchPoints > 1)
+  }
+
+  // Check if native share is supported
+  const isShareSupported = () => {
+    return typeof navigator !== 'undefined' &&
+           'share' in navigator &&
+           'canShare' in navigator
+  }
+
+  const generatePDFBlob = async (player: Player, aiImprovedNotes: string | null): Promise<Blob> => {
+    // Create a temporary div for PDF content
+    const tempDiv = document.createElement('div')
+    tempDiv.style.cssText = 'position: absolute; left: -9999px; top: -9999px; width: 794px; background: white; padding: 40px; font-family: Arial, sans-serif;'
+
+    const currentDate = new Date().toLocaleDateString('sv-SE')
+    const age = calculateAge(player.dateOfBirth)
+    const positions = formatPositionsDisplay(player.positions || []) || 'Player'
+
+    tempDiv.innerHTML = `
+      <div style="max-width: 700px;">
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding: 20px; background: #f9f9f9; border-radius: 10px;">
+          <div style="width: 120px; height: 120px; border-radius: 10px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #666; flex-shrink: 0;">
+            ${player.firstName ? player.firstName.substring(0, 1) : 'S'}${player.lastName ? player.lastName.substring(0, 1) : 'P'}
+          </div>
+          <div>
+            <h1 style="margin: 0 0 10px 0; font-size: 2rem; color: #333;">${player.firstName} ${player.lastName}</h1>
+            <div style="font-size: 1.1rem; color: #666;">
+              ${positions} | ${age || 'Okänd ålder'} år | ${player.nationality || 'Okänd'}
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+          <div style="background: white; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+            <h3 style="margin: 0 0 15px 0; color: #d4af37; font-size: 1.2rem; border-bottom: 2px solid #d4af37; padding-bottom: 5px;">Personlig Information</h3>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="font-weight: 600; color: #666;">Ålder:</span>
+              <span style="font-weight: 500; color: #333;">${age || 'Ej angivet'} år</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="font-weight: 600; color: #666;">Längd:</span>
+              <span style="font-weight: 500; color: #333;">${player.height ? player.height + ' cm' : 'Ej angivet'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="font-weight: 600; color: #666;">Nationalitet:</span>
+              <span style="font-weight: 500; color: #333;">${player.nationality || 'Ej angivet'}</span>
+            </div>
+          </div>
+
+          <div style="background: white; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+            <h3 style="margin: 0 0 15px 0; color: #d4af37; font-size: 1.2rem; border-bottom: 2px solid #d4af37; padding-bottom: 5px;">Klubb & Kontrakt</h3>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="font-weight: 600; color: #666;">Nuvarande klubb:</span>
+              <span style="font-weight: 500; color: #333;">${player.club || 'Ej angivet'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="font-weight: 600; color: #666;">Marknadsvärde:</span>
+              <span style="font-weight: 500; color: #333;">${formatCurrency(player.marketValue)}</span>
+            </div>
+          </div>
+        </div>
+
+        ${(player.notes || aiImprovedNotes) ? `
+          <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 10px; border-left: 5px solid #d4af37;">
+            <h3 style="margin: 0 0 15px 0; color: #d4af37;">Scoutanteckningar</h3>
+            <div style="color: #666; line-height: 1.6;">${aiImprovedNotes || player.notes}</div>
+          </div>
+        ` : ''}
+
+        <div style="margin-top: 40px; text-align: center; padding-top: 30px; border-top: 1px solid #eee; color: #666; font-size: 0.9rem;">
+          <div>Genererad: ${currentDate}</div>
+          <div style="margin-top: 20px; padding: 15px; background: #d4af37; color: white; border-radius: 5px;">
+            <strong>Elite Sports Group AB</strong><br>
+            Professional Football Agents
+          </div>
+        </div>
+      </div>
+    `
+
+    document.body.appendChild(tempDiv)
+
+    try {
+      // Capture the content as canvas
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      })
+
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const imgData = canvas.toDataURL('image/png')
+
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+
+      // Return as blob
+      return pdf.output('blob')
+    } finally {
+      document.body.removeChild(tempDiv)
+    }
+  }
+
+  const sharePlayerPDF = async (pdfBlob: Blob, player: Player) => {
+    const fileName = `${player.firstName}_${player.lastName}_Scout_Report.pdf`
+
+    try {
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Scout Report - ${player.firstName} ${player.lastName}`,
+          text: `Spelarprofil för ${player.firstName} ${player.lastName}`,
+          files: [file]
+        })
+      } else {
+        // Fallback: create download link
+        const url = URL.createObjectURL(pdfBlob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error: any) {
+      if (error?.name !== 'AbortError') {
+        console.error('Share failed:', error)
+        // Fallback to download
+        const url = URL.createObjectURL(pdfBlob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    }
+  }
+
   const handleExportPDF = async () => {
     if (!player) return
 
@@ -145,39 +296,46 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
         }
       }
 
-      // Create PDF content in a new window
-      const printWindow = window.open('', '_blank', 'width=800,height=600,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,directories=no,status=no')
+      // Check if we should use native share or fallback to print
+      if (isMobileDevice() && isShareSupported()) {
+        // Mobile: Generate PDF blob and use native share
+        const pdfBlob = await generatePDFBlob(player, aiImprovedNotes)
+        await sharePlayerPDF(pdfBlob, player)
+      } else {
+        // Desktop: Use existing print window approach
+        const printWindow = window.open('', '_blank', 'width=800,height=600,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,directories=no,status=no')
 
-      if (!printWindow) {
-        alert('Kunde inte öppna nytt fönster - kolla popup-blockering')
-        return
-      }
-
-      const pdfContent = generatePDFContent(player, aiImprovedNotes)
-
-      printWindow.document.open()
-      printWindow.document.write(pdfContent)
-      printWindow.document.close()
-
-      // Add instruction for saving as PDF
-      setTimeout(() => {
-        try {
-          printWindow.focus()
-          const instruction = printWindow.document.createElement('div')
-          instruction.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #d4af37; color: white; padding: 15px; border-radius: 5px; z-index: 9999; font-family: Arial; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);'
-          instruction.innerHTML = '💡 Tryck Ctrl+P och välj "Spara som PDF" för att undvika webbläsarens datum/tid-header'
-          printWindow.document.body.appendChild(instruction)
-
-          // Remove instruction after 10 seconds
-          setTimeout(() => {
-            if (instruction.parentNode) {
-              instruction.parentNode.removeChild(instruction)
-            }
-          }, 10000)
-        } catch (error) {
-          console.error('Error adding instruction:', error)
+        if (!printWindow) {
+          alert('Kunde inte öppna nytt fönster - kolla popup-blockering')
+          return
         }
-      }, 500)
+
+        const pdfContent = generatePDFContent(player, aiImprovedNotes)
+
+        printWindow.document.open()
+        printWindow.document.write(pdfContent)
+        printWindow.document.close()
+
+        // Add instruction for saving as PDF
+        setTimeout(() => {
+          try {
+            printWindow.focus()
+            const instruction = printWindow.document.createElement('div')
+            instruction.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #d4af37; color: white; padding: 15px; border-radius: 5px; z-index: 9999; font-family: Arial; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);'
+            instruction.innerHTML = '💡 Tryck Ctrl+P och välj "Spara som PDF" för att undvika webbläsarens datum/tid-header'
+            printWindow.document.body.appendChild(instruction)
+
+            // Remove instruction after 10 seconds
+            setTimeout(() => {
+              if (instruction.parentNode) {
+                instruction.parentNode.removeChild(instruction)
+              }
+            }, 10000)
+          } catch (error) {
+            console.error('Error adding instruction:', error)
+          }
+        }, 500)
+      }
 
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -710,8 +868,12 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
                 </>
               ) : (
                 <>
-                  <FileText className="w-5 h-5" />
-                  Exportera PDF
+                  {isMobileDevice() && isShareSupported() ? (
+                    <Share className="w-5 h-5" />
+                  ) : (
+                    <FileText className="w-5 h-5" />
+                  )}
+                  {isMobileDevice() && isShareSupported() ? 'Dela PDF' : 'Exportera PDF'}
                 </>
               )}
             </button>
