@@ -102,7 +102,6 @@ export async function POST(request: NextRequest) {
         args: chromium.args,
         executablePath: await chromium.executablePath(),
         headless: true,
-        defaultViewport: chromium.defaultViewport,
       })
     }
 
