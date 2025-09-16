@@ -120,6 +120,7 @@ export class PlayerService {
       const player = await prisma.player.create({
         data: {
           ...playerData,
+          height: playerData.height || 180, // Ensure height is always provided
           tags: playerData.tags || []
         },
         include: {

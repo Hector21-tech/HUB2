@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       nationality: nationality?.trim() || null,
       position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
       club: club?.trim() || null,
-      height: height ? parseInt(height) : null,
+      height: height ? parseInt(height) : 180, // Default height if not provided
       weight: weight ? parseInt(weight) : null,
       rating: rating ? parseFloat(rating) : null,
       notes: notes?.trim() || null,
@@ -192,7 +192,7 @@ export async function PUT(request: NextRequest) {
         nationality: nationality?.trim() || null,
         position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
         club: club?.trim() || null,
-        height: height ? parseInt(height) : null,
+        height: height ? parseInt(height) : 180, // Default height if not provided
         weight: weight ? parseInt(weight) : null,
         rating: rating ? parseFloat(rating) : null,
         notes: notes?.trim() || null,
