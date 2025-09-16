@@ -1,79 +1,31 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Player, PlayerFilters } from '../types/player'
 import { PlayersHeader } from './PlayersHeader'
 import { PlayerGrid, PlayerGridSkeleton } from './PlayerGrid'
 import { PlayerDetailDrawer } from './PlayerDetailDrawer'
 import { AddPlayerModal } from './AddPlayerModal'
+import { usePlayersQuery } from '../hooks/usePlayersQuery'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface PlayersPageProps {
   tenantId: string
 }
 
 export function PlayersPage({ tenantId }: PlayersPageProps) {
-  const [players, setPlayers] = useState<Player[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // React Query for data fetching with automatic caching
+  const { data: players = [], isLoading: loading, error } = usePlayersQuery(tenantId)
+  const queryClient = useQueryClient()
+
+  // UI State
   const [filters, setFilters] = useState<PlayerFilters>({})
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isAddPlayerModalOpen, setIsAddPlayerModalOpen] = useState(false)
   const [isEditPlayerModalOpen, setIsEditPlayerModalOpen] = useState(false)
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
-  const [actualTenantId, setActualTenantId] = useState<string>(tenantId) // Track which tenant ID actually works
 
-  // Fetch players data
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        console.log('🚀 Fetching players for tenant:', tenantId)
-
-        // Try to get players using the new SQL-based API
-        let response = await fetch('/api/players-sql?tenantId=' + tenantId)
-        let result = await response.json()
-
-        console.log('📊 SQL API Response:', result)
-
-        // If no players found, try with our test tenant
-        if (!result.success || !result.data || result.data.length === 0) {
-          console.log('🔄 No players found, trying test tenant...')
-          response = await fetch('/api/players-sql?tenantId=tenant-test-1')
-          result = await response.json()
-          console.log('📊 Test tenant response:', result)
-
-          // If test tenant worked, update the actual tenant ID
-          if (result.success && result.data && result.data.length > 0) {
-            setActualTenantId('tenant-test-1')
-          }
-        } else {
-          // Original tenant worked, keep it
-          setActualTenantId(tenantId)
-        }
-
-        // Still no data? Use mock data to show the UI
-        if (!result.success || !result.data || result.data.length === 0) {
-          console.log('📝 No data from API, using mock players')
-          setPlayers(getMockPlayers())
-          setActualTenantId(tenantId) // Use original tenant for mock data
-        } else {
-          console.log('✅ Setting players:', result.data.length, 'players found')
-          setPlayers(result.data)
-        }
-      } catch (err) {
-        console.error('❌ Error fetching players:', err)
-        console.log('📝 Error occurred, using mock players')
-        setPlayers(getMockPlayers())
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPlayers()
-  }, [tenantId])
 
   // Mock players for demo/fallback
   const getMockPlayers = (): Player[] => [
@@ -301,7 +253,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
 
   const handleSavePlayer = async (playerData: any) => {
     try {
-      console.log('💾 Saving player with tenant ID:', actualTenantId)
+      console.log('💾 Saving player with tenant ID:', tenantId)
       console.log('📋 Player data:', playerData)
 
       const response = await fetch('/api/players-sql', {
@@ -316,7 +268,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
 
       if (result.success) {
         // Add new player to local state
-        setPlayers(prev => [...prev, result.data])
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
         console.log('✅ Player added successfully:', result.data)
       } else {
         console.error('❌ Error adding player:', result.error)
@@ -353,10 +306,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       const result = await response.json()
 
       if (result.success) {
-        // Update player in local state
-        setPlayers(prev => prev.map(p =>
-          p.id === editingPlayer?.id ? result.data : p
-        ))
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
         console.log('✅ Player updated successfully:', result.data)
         setIsEditPlayerModalOpen(false)
         setEditingPlayer(null)
@@ -374,15 +325,15 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     try {
       console.log('🗑️ Deleting player:', player.id)
 
-      const response = await fetch(`/api/players-sql?id=${player.id}&tenantId=${actualTenantId}`, {
+      const response = await fetch(`/api/players-sql?id=${player.id}&tenantId=${tenantId}`, {
         method: 'DELETE'
       })
 
       const result = await response.json()
 
       if (result.success) {
-        // Remove player from local state
-        setPlayers(prev => prev.filter(p => p.id !== player.id))
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
         console.log('✅ Player deleted successfully')
         setSelectedPlayer(null) // Close detail drawer
       } else {
@@ -426,7 +377,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       {/* Debug Info - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
         <div className="relative bg-blue-600/20 border border-blue-400/30 text-white p-3 text-sm">
-          <strong>Debug:</strong> Tenant: {tenantId} | Players: {players.length} | Loading: {loading.toString()} | Error: {error || 'None'}
+          <strong>Debug:</strong> Tenant: {tenantId} | Players: {players.length} | Loading: {loading.toString()} | Error: {error?.message || 'None'}
         </div>
       )}
 
@@ -470,7 +421,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         isOpen={isAddPlayerModalOpen}
         onClose={handleAddPlayerClose}
         onSave={handleSavePlayer}
-        tenantId={actualTenantId}
+        tenantId={tenantId}
       />
 
       {/* Edit Player Modal */}
@@ -481,7 +432,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
           setEditingPlayer(null)
         }}
         onSave={handleUpdatePlayer}
-        tenantId={actualTenantId}
+        tenantId={tenantId}
         editingPlayer={editingPlayer}
       />
     </div>
