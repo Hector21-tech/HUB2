@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2 } from 'lucide-react'
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
-import jsPDF from 'jspdf'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -91,202 +90,78 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     setIsGeneratingPDF(true)
 
     try {
-      // Call AI API to generate player description
-      const response = await fetch('/api/generate-player-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          playerData: {
-            firstName: player.firstName,
-            lastName: player.lastName,
-            positions: player.positions,
-            club: player.club,
-            nationality: player.nationality,
-            dateOfBirth: player.dateOfBirth,
-            notes: player.notes,
-            rating: player.rating,
-            goalsThisSeason: player.goalsThisSeason,
-            assistsThisSeason: player.assistsThisSeason,
-            marketValue: player.marketValue
-          }
-        })
-      })
+      // Check if user wants AI improvement
+      const useAI = window.confirm('Vill du att AI ska förbättra anteckningarna innan PDF-genereringen?')
 
-      if (!response.ok) {
-        throw new Error('Failed to generate description')
-      }
+      let aiImprovedNotes = null
 
-      const { description } = await response.json()
-
-      // Create PDF with professional layout
-      const pdf = new jsPDF()
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const margin = 20
-      const columnWidth = (pageWidth - 3 * margin) / 2
-
-      // Colors
-      const goldColor: [number, number, number] = [212, 175, 55] // #D4AF37
-      const darkGray: [number, number, number] = [51, 51, 51]
-      const lightGray: [number, number, number] = [128, 128, 128]
-
-      // Header enligt exakt format
-      pdf.setTextColor(...darkGray)
-      pdf.setFontSize(24)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text(`Spelarprofil – ${player.firstName} ${player.lastName}`, margin, 30)
-
-      // Rad 2 enligt format: "[Spelarnamn] | Position(er) | Ålder | Nationalitet"
-      pdf.setFontSize(16)
-      pdf.setFont('helvetica', 'normal')
-      const age = calculateAge(player.dateOfBirth)
-      const subtitle = `${player.firstName} ${player.lastName} | ${formatPositionsDisplay(player.positions || [])} | ${age || 'Okänd ålder'} år | ${player.nationality || 'Okänd'}`
-      pdf.text(subtitle, margin, 45)
-
-      // Player photo placeholder (left column)
-      let currentY = 80
-      if (player.avatarUrl) {
+      // If AI improvement is requested and player has notes
+      if (useAI && player.notes) {
         try {
-          // Add image placeholder for now - will show as gray box
-          pdf.setFillColor(200, 200, 200)
-          pdf.rect(margin, currentY, 60, 80, 'F')
-          pdf.setTextColor(...darkGray)
-          pdf.setFontSize(10)
-          pdf.text('Spelarbild', margin + 20, currentY + 45)
-        } catch (e) {
-          // Image loading failed, continue without
+          const response = await fetch('/api/generate-player-description', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              playerData: {
+                firstName: player.firstName,
+                lastName: player.lastName,
+                positions: player.positions,
+                club: player.club,
+                nationality: player.nationality,
+                dateOfBirth: player.dateOfBirth,
+                notes: player.notes,
+                rating: player.rating,
+                goalsThisSeason: player.goalsThisSeason,
+                assistsThisSeason: player.assistsThisSeason,
+                marketValue: player.marketValue
+              }
+            })
+          })
+
+          if (response.ok) {
+            const { description } = await response.json()
+            aiImprovedNotes = description
+          }
+        } catch (error) {
+          console.error('AI improvement failed:', error)
         }
-      } else {
-        pdf.setFillColor(200, 200, 200)
-        pdf.rect(margin, currentY, 60, 80, 'F')
-        pdf.setTextColor(...darkGray)
-        pdf.setFontSize(10)
-        pdf.text('Ingen bild', margin + 20, currentY + 45)
       }
 
-      // Section: Personlig Information (top right)
-      const rightColumnX = margin + columnWidth + margin
-      pdf.setTextColor(...goldColor)
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Personlig Information', rightColumnX, currentY + 10)
+      // Create PDF content in a new window
+      const printWindow = window.open('', '_blank', 'width=800,height=600,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,directories=no,status=no')
 
-      pdf.setTextColor(...darkGray)
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'normal')
+      if (!printWindow) {
+        alert('Kunde inte öppna nytt fönster - kolla popup-blockering')
+        return
+      }
 
-      const personalInfo = [
-        { label: 'Ålder:', value: `${calculateAge(player.dateOfBirth) || 'Ej angivet'} år` },
-        { label: 'Längd:', value: player.height ? `${player.height} cm` : 'Ej angivet' },
-        { label: 'Födelsedatum:', value: player.dateOfBirth ? formatDate(player.dateOfBirth) : 'Ej angivet' },
-        { label: 'Nationalitet:', value: player.nationality || 'Ej angivet' }
-      ]
+      const pdfContent = generatePDFContent(player, aiImprovedNotes)
 
-      let infoY = currentY + 25
-      personalInfo.forEach(info => {
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(...lightGray)
-        pdf.text(info.label, rightColumnX, infoY)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(...darkGray)
-        pdf.text(info.value, rightColumnX + 40, infoY)
-        infoY += 12
-      })
+      printWindow.document.open()
+      printWindow.document.write(pdfContent)
+      printWindow.document.close()
 
-      // Section: Klubb & Kontrakt (right column)
-      currentY = 180
-      pdf.setTextColor(...goldColor)
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Klubb & Kontrakt', rightColumnX, currentY)
+      // Add instruction for saving as PDF
+      setTimeout(() => {
+        try {
+          printWindow.focus()
+          const instruction = printWindow.document.createElement('div')
+          instruction.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #d4af37; color: white; padding: 15px; border-radius: 5px; z-index: 9999; font-family: Arial; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);'
+          instruction.innerHTML = '💡 Tryck Ctrl+P och välj "Spara som PDF" för att undvika webbläsarens datum/tid-header'
+          printWindow.document.body.appendChild(instruction)
 
-      pdf.setTextColor(...darkGray)
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'normal')
-
-      const clubInfo = [
-        { label: 'Nuvarande klubb:', value: player.club || 'Ej angivet' },
-        { label: 'Kontraktstart:', value: 'Ej angivet' },
-        { label: 'Kontraktslut:', value: player.contractExpiry ? formatDate(player.contractExpiry) : 'Ej angivet' }
-      ]
-
-      let clubY = currentY + 15
-      clubInfo.forEach(info => {
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(...lightGray)
-        pdf.text(info.label, rightColumnX, clubY)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(...darkGray)
-        pdf.text(info.value, rightColumnX + 40, clubY)
-        clubY += 12
-      })
-
-      // Section: Scoutanteckningar (full width)
-      currentY = 250
-      pdf.setFillColor(...goldColor)
-      pdf.rect(margin - 5, currentY - 5, 5, 20, 'F') // Gold accent bar
-
-      pdf.setTextColor(...goldColor)
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Scoutanteckningar', margin + 5, currentY + 5)
-
-      // Parse AI description for Styrkor and Svagheter
-      let scoutY = currentY + 20
-
-      // Split AI description by sections
-      const sections = description.split('**')
-
-      sections.forEach((section: string) => {
-        if (section.trim().startsWith('Styrkor:')) {
-          pdf.setTextColor(...darkGray)
-          pdf.setFontSize(11)
-          pdf.setFont('helvetica', 'bold')
-          pdf.text('Styrkor:', margin, scoutY)
-          scoutY += 15
-
-          const content = section.replace('Styrkor:', '').trim()
-          pdf.setFont('helvetica', 'normal')
-          pdf.setFontSize(10)
-          const splitContent = pdf.splitTextToSize(content, pageWidth - 2 * margin)
-          pdf.text(splitContent, margin, scoutY)
-          scoutY += (splitContent.length * 6) + 15
-        } else if (section.trim().startsWith('Svagheter:')) {
-          pdf.setTextColor(...darkGray)
-          pdf.setFontSize(11)
-          pdf.setFont('helvetica', 'bold')
-          pdf.text('Svagheter:', margin, scoutY)
-          scoutY += 15
-
-          const content = section.replace('Svagheter:', '').trim()
-          pdf.setFont('helvetica', 'normal')
-          pdf.setFontSize(10)
-          const splitContent = pdf.splitTextToSize(content, pageWidth - 2 * margin)
-          pdf.text(splitContent, margin, scoutY)
-          scoutY += (splitContent.length * 6) + 15
+          // Remove instruction after 10 seconds
+          setTimeout(() => {
+            if (instruction.parentNode) {
+              instruction.parentNode.removeChild(instruction)
+            }
+          }, 10000)
+        } catch (error) {
+          console.error('Error adding instruction:', error)
         }
-      })
-
-      // Footer enligt exakt format
-      const footerY = pageHeight - 40
-      const date = new Date().toLocaleDateString('sv-SE')
-
-      // Genererad: [Datum]
-      pdf.setTextColor(...darkGray)
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'normal')
-      pdf.text(`Genererad: ${date}`, margin, footerY)
-
-      // Elite Sports Group AB – Professional Football Agents
-      pdf.setFontSize(12)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Elite Sports Group AB – Professional Football Agents', margin, footerY + 15)
-
-      // Save PDF
-      const fileName = `Spelarprofil - ${player.firstName} ${player.lastName}.pdf`
-      pdf.save(fileName)
+      }, 500)
 
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -294,6 +169,232 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
     } finally {
       setIsGeneratingPDF(false)
     }
+  }
+
+  const generatePDFContent = (player: Player, aiImprovedNotes: string | null) => {
+    const currentDate = new Date().toLocaleDateString('sv-SE')
+    const age = calculateAge(player.dateOfBirth)
+    const positions = formatPositionsDisplay(player.positions || []) || 'Player'
+
+    const formatDate = (date?: Date) => {
+      if (!date) return 'Ej angivet'
+      return new Date(date).toLocaleDateString('sv-SE')
+    }
+
+    return `<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelarprofil - ${player.firstName} ${player.lastName}</title>
+    <style>
+        @media print {
+            @page {
+                margin: 15mm 10mm 10mm 10mm;
+                size: A4;
+            }
+            body {
+                -webkit-print-color-adjust: exact;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .player-header {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            line-height: 1.4;
+            background: white;
+        }
+
+        .player-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .player-photo-pdf {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .player-basic-info h1 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            color: #333;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .info-section {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .info-section h3 {
+            margin: 0 0 15px 0;
+            color: #d4af37;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 5px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .notes-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border-left: 5px solid #d4af37;
+        }
+
+        .notes-section h3 {
+            margin: 0 0 15px 0;
+            color: #d4af37;
+        }
+
+        .notes-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .pdf-footer {
+            margin-top: 40px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .contact-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4af37;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-header">
+        <div class="player-photo-pdf">
+            ${player.avatarUrl ?
+                `<img src="${player.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" alt="${player.firstName} ${player.lastName}">` :
+                `<div style="width: 100%; height: 100%; background: #e0e0e0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 2.5rem; font-weight: bold;">${player.firstName ? player.firstName.substring(0, 1) : 'S'}${player.lastName ? player.lastName.substring(0, 1) : 'P'}</div>`}
+        </div>
+        <div class="player-basic-info">
+            <h1>${player.firstName} ${player.lastName}</h1>
+            <div style="font-size: 1.1rem; color: #666; margin-top: 10px;">
+                ${positions} | ${age || 'Okänd ålder'} år | ${player.nationality || 'Okänd'}
+            </div>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-section">
+            <h3>Personlig Information</h3>
+            <div class="info-item">
+                <span class="info-label">Ålder:</span>
+                <span class="info-value">${age || 'Ej angivet'} år</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Längd:</span>
+                <span class="info-value">${player.height ? player.height + ' cm' : 'Ej angivet'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Födelsedatum:</span>
+                <span class="info-value">${player.dateOfBirth ? formatDate(player.dateOfBirth) : 'Ej angivet'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Nationalitet:</span>
+                <span class="info-value">${player.nationality || 'Ej angivet'}</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Klubb & Kontrakt</h3>
+            <div class="info-item">
+                <span class="info-label">Nuvarande klubb:</span>
+                <span class="info-value">${player.club || 'Ej angivet'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Kontraktstart:</span>
+                <span class="info-value">Ej angivet</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Kontraktslut:</span>
+                <span class="info-value">${player.contractExpiry ? formatDate(player.contractExpiry) : 'Ej angivet'}</span>
+            </div>
+        </div>
+    </div>
+
+    ${(player.notes || aiImprovedNotes) ? `
+        <div class="notes-section">
+            <h3>Scoutanteckningar</h3>
+            <div class="notes-content">${aiImprovedNotes || player.notes}</div>
+        </div>
+    ` : ''}
+
+    <div class="pdf-footer">
+        <div>Genererad: ${currentDate}</div>
+        <div class="contact-info">
+            <strong>Elite Sports Group AB</strong><br>
+            Professional Football Agents
+        </div>
+    </div>
+</body>
+</html>`
   }
 
   return (
