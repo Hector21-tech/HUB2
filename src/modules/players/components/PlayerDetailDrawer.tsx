@@ -120,66 +120,179 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
       const { description } = await response.json()
 
-      // Create PDF
+      // Create PDF with professional layout
       const pdf = new jsPDF()
       const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
       const margin = 20
+      const columnWidth = (pageWidth - 3 * margin) / 2
 
-      // Header
-      pdf.setFontSize(24)
+      // Colors
+      const goldColor = [212, 175, 55] // #D4AF37
+      const darkGray = [51, 51, 51]
+      const lightGray = [128, 128, 128]
+
+      // Header with player name
+      pdf.setFillColor(...goldColor)
+      pdf.rect(0, 0, pageWidth, 60, 'F')
+
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFontSize(28)
       pdf.setFont('helvetica', 'bold')
-      pdf.text(`${player.firstName} ${player.lastName}`, margin, 30)
+      pdf.text(`${player.firstName} ${player.lastName}`, margin, 35)
 
       // Subtitle
+      pdf.setFontSize(16)
+      pdf.setFont('helvetica', 'normal')
+      const subtitle = `${formatPositionsDisplay(player.positions || [])} | ${calculateAge(player.dateOfBirth) || 'Okänd ålder'} år | ${player.nationality || 'Okänd'}`
+      pdf.text(subtitle, margin, 50)
+
+      // Player photo placeholder (left column)
+      let currentY = 80
+      if (player.avatarUrl) {
+        try {
+          // Add image placeholder for now - will show as gray box
+          pdf.setFillColor(200, 200, 200)
+          pdf.rect(margin, currentY, 60, 80, 'F')
+          pdf.setTextColor(...darkGray)
+          pdf.setFontSize(10)
+          pdf.text('Spelarbild', margin + 20, currentY + 45)
+        } catch (e) {
+          // Image loading failed, continue without
+        }
+      } else {
+        pdf.setFillColor(200, 200, 200)
+        pdf.rect(margin, currentY, 60, 80, 'F')
+        pdf.setTextColor(...darkGray)
+        pdf.setFontSize(10)
+        pdf.text('Ingen bild', margin + 20, currentY + 45)
+      }
+
+      // Section: Personlig Information (top right)
+      const rightColumnX = margin + columnWidth + margin
+      pdf.setTextColor(...goldColor)
       pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'normal')
-      const subtitle = `${formatPositionsDisplay(player.positions || [])} • ${player.club || 'Klubblös'} • ${player.nationality || 'Okänd nationalitet'}`
-      pdf.text(subtitle, margin, 45)
-
-      // Basic stats
-      let yPosition = 65
-      pdf.setFontSize(12)
       pdf.setFont('helvetica', 'bold')
-      pdf.text('Grundläggande information:', margin, yPosition)
+      pdf.text('Personlig Information', rightColumnX, currentY + 10)
 
-      yPosition += 10
+      pdf.setTextColor(...darkGray)
+      pdf.setFontSize(10)
       pdf.setFont('helvetica', 'normal')
-      const age = calculateAge(player.dateOfBirth)
-      const basicInfo = [
-        `Ålder: ${age || 'Okänd'}`,
-        `Betyg: ${player.rating ? player.rating.toFixed(1) + '/10' : 'Ej betygsatt'}`,
-        `Marknadsvärde: ${formatCurrency(player.marketValue)}`,
-        `Mål denna säsong: ${player.goalsThisSeason || 0}`,
-        `Assist denna säsong: ${player.assistsThisSeason || 0}`
+
+      const personalInfo = [
+        { label: 'Ålder:', value: `${calculateAge(player.dateOfBirth) || 'Okänd'} år` },
+        { label: 'Längd:', value: player.height ? `${player.height} cm` : 'Ej angivet' },
+        { label: 'Födelsedatum:', value: player.dateOfBirth ? formatDate(player.dateOfBirth) : 'Ej angivet' },
+        { label: 'Nationalitet:', value: player.nationality || 'Ej angivet' }
       ]
 
-      basicInfo.forEach(info => {
-        pdf.text(info, margin, yPosition)
-        yPosition += 8
+      let infoY = currentY + 25
+      personalInfo.forEach(info => {
+        pdf.setFont('helvetica', 'normal')
+        pdf.setTextColor(...lightGray)
+        pdf.text(info.label, rightColumnX, infoY)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setTextColor(...darkGray)
+        pdf.text(info.value, rightColumnX + 40, infoY)
+        infoY += 12
       })
 
-      // AI Generated Description
-      yPosition += 15
-      pdf.setFontSize(12)
+      // Section: Klubb & Kontrakt (right column)
+      currentY = 180
+      pdf.setTextColor(...goldColor)
+      pdf.setFontSize(14)
       pdf.setFont('helvetica', 'bold')
-      pdf.text('Spelaranalys:', margin, yPosition)
+      pdf.text('Klubb & Kontrakt', rightColumnX, currentY)
 
-      yPosition += 10
+      pdf.setTextColor(...darkGray)
+      pdf.setFontSize(10)
       pdf.setFont('helvetica', 'normal')
 
-      // Split description into lines that fit the page width
-      const splitDescription = pdf.splitTextToSize(description, pageWidth - (margin * 2))
-      pdf.text(splitDescription, margin, yPosition)
+      const clubInfo = [
+        { label: 'Nuvarande klubb:', value: player.club || 'Klubblös' },
+        { label: 'Kontraktstart:', value: 'Ej angivet' },
+        { label: 'Kontraktslut:', value: player.contractExpiry ? formatDate(player.contractExpiry) : 'Ej angivet' }
+      ]
+
+      let clubY = currentY + 15
+      clubInfo.forEach(info => {
+        pdf.setFont('helvetica', 'normal')
+        pdf.setTextColor(...lightGray)
+        pdf.text(info.label, rightColumnX, clubY)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setTextColor(...darkGray)
+        pdf.text(info.value, rightColumnX + 40, clubY)
+        clubY += 12
+      })
+
+      // Section: Scoutanteckningar (full width)
+      currentY = 250
+      pdf.setFillColor(...goldColor)
+      pdf.rect(margin - 5, currentY - 5, 5, 20, 'F') // Gold accent bar
+
+      pdf.setTextColor(...goldColor)
+      pdf.setFontSize(14)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Scoutanteckningar', margin + 5, currentY + 5)
+
+      // Parse AI description for Styrkor and Svagheter
+      let scoutY = currentY + 20
+
+      // Split AI description by sections
+      const sections = description.split('**')
+      let currentSection = ''
+
+      sections.forEach(section => {
+        if (section.trim().startsWith('Styrkor:')) {
+          pdf.setTextColor(...darkGray)
+          pdf.setFontSize(11)
+          pdf.setFont('helvetica', 'bold')
+          pdf.text('Styrkor:', margin, scoutY)
+          scoutY += 15
+
+          const content = section.replace('Styrkor:', '').trim()
+          pdf.setFont('helvetica', 'normal')
+          const splitContent = pdf.splitTextToSize(content, pageWidth - 2 * margin)
+          pdf.text(splitContent, margin, scoutY)
+          scoutY += (splitContent.length * 5) + 10
+        } else if (section.trim().startsWith('Svagheter:')) {
+          pdf.setTextColor(...darkGray)
+          pdf.setFontSize(11)
+          pdf.setFont('helvetica', 'bold')
+          pdf.text('Svagheter:', margin, scoutY)
+          scoutY += 15
+
+          const content = section.replace('Svagheter:', '').trim()
+          pdf.setFont('helvetica', 'normal')
+          const splitContent = pdf.splitTextToSize(content, pageWidth - 2 * margin)
+          pdf.text(splitContent, margin, scoutY)
+          scoutY += (splitContent.length * 5) + 10
+        }
+      })
 
       // Footer
-      const date = new Date().toLocaleDateString('sv-SE')
+      const footerY = pageHeight - 30
+      pdf.setFillColor(...goldColor)
+      pdf.rect(0, footerY - 10, pageWidth, 40, 'F')
+
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFontSize(14)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Elite Sports Group AB', margin, footerY + 5)
+
       pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'italic')
-      const footerY = pdf.internal.pageSize.getHeight() - 20
-      pdf.text(`Genererad av Scout Hub • ${date}`, margin, footerY)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text('Professional Football Agents', margin, footerY + 15)
+
+      // Generation date
+      const date = new Date().toLocaleDateString('sv-SE')
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(`Genererad: ${date}`, pageWidth - margin - 40, footerY + 15)
 
       // Save PDF
-      const fileName = `${player.firstName}_${player.lastName}_Spelarrapport.pdf`
+      const fileName = `Spelarprofil - ${player.firstName} ${player.lastName}.pdf`
       pdf.save(fileName)
 
     } catch (error) {

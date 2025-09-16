@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const age = dateOfBirth ? Math.floor((new Date().getTime() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365)) : null
 
-    const prompt = `Du är en professionell fotbollsscout som skriver detaljerade spelarrapporter för klubbar. Skapa en professionell och informativ beskrivning av följande spelare på svenska:
+    const prompt = `Du är en professionell fotbollsscout som skriver detaljerade spelarrapporter för klubbar. Skapa en strukturerad analys av följande spelare på svenska:
 
 Spelarinfo:
 - Namn: ${firstName} ${lastName}
@@ -36,13 +36,15 @@ Spelarinfo:
 Scout-anteckningar:
 ${notes || 'Inga anteckningar tillgängliga'}
 
-Skriv en professionell rapport på svenska som:
-1. Börjar med en kort sammanfattning av spelaren
-2. Beskriver tekniska färdigheter och spelstil
-3. Kommenterar fysiska egenskaper och prestationer
-4. Avslutar med rekommendationer och potential
+Skapa en rapport som är strukturerad EXAKT så här:
 
-Håll texten mellan 200-400 ord och använd professionellt språk som passar för att skicka till fotbollsklubbar.`
+**Styrkor:**
+[Skriv 2-3 meningar om spelarens styrkor baserat på position, stats och anteckningar. Fokusera på tekniska förmågor, fysiska egenskaper eller mentala kvaliteter.]
+
+**Svagheter:**
+[Skriv 1-2 meningar om områden för förbättring eller begränsningar. Var konstruktiv och balanserad.]
+
+Använd professionellt språk som passar för att skicka till fotbollsklubbar. Basera analysen på statistik och anteckningar.`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
