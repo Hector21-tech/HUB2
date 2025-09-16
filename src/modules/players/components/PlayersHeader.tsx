@@ -33,9 +33,11 @@ export function PlayersHeader({
     onFiltersChange({})
   }
 
-  const activeFiltersCount = Object.keys(filters).filter(
-    key => filters[key as keyof PlayerFilters] !== undefined && filters[key as keyof PlayerFilters] !== ''
-  ).length
+  const activeFiltersCount = Object.keys(filters).filter(key => {
+    const value = filters[key as keyof PlayerFilters]
+    // Exclude undefined, empty strings, and zero values
+    return value !== undefined && value !== '' && value !== 0
+  }).length
 
   return (
     <div className="relative z-40 bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
@@ -155,9 +157,17 @@ export function PlayersHeader({
             <div className="flex gap-2 flex-1 sm:flex-none">
               <input
                 type="number"
-                placeholder="Min Age"
+                placeholder="Min (14)"
+                min="14"
+                max="40"
                 value={filters.ageMin || ''}
-                onChange={(e) => handleFilterChange('ageMin', e.target.value ? Number(e.target.value) : undefined)}
+                onChange={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : undefined
+                  // Only set if value is within valid range or undefined
+                  if (value === undefined || (value >= 14 && value <= 40)) {
+                    handleFilterChange('ageMin', value)
+                  }
+                }}
                 className="
                   w-20 sm:w-24 px-2 sm:px-3 py-3 text-sm
                   bg-white/5 backdrop-blur-sm
@@ -171,9 +181,17 @@ export function PlayersHeader({
               />
               <input
                 type="number"
-                placeholder="Max Age"
+                placeholder="Max (40)"
+                min="14"
+                max="40"
                 value={filters.ageMax || ''}
-                onChange={(e) => handleFilterChange('ageMax', e.target.value ? Number(e.target.value) : undefined)}
+                onChange={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : undefined
+                  // Only set if value is within valid range or undefined
+                  if (value === undefined || (value >= 14 && value <= 40)) {
+                    handleFilterChange('ageMax', value)
+                  }
+                }}
                 className="
                   w-20 sm:w-24 px-2 sm:px-3 py-3 text-sm
                   bg-white/5 backdrop-blur-sm
@@ -299,9 +317,9 @@ export function PlayersHeader({
                 </button>
               </span>
             )}
-            {(filters.ageMin || filters.ageMax) && (
+            {((filters.ageMin && filters.ageMin > 0) || (filters.ageMax && filters.ageMax > 0)) && (
               <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-400 text-sm rounded-full border border-blue-500/30">
-                Age: {filters.ageMin || '0'}-{filters.ageMax || '99'}
+                Age: {filters.ageMin && filters.ageMin > 0 ? filters.ageMin : '14'}-{filters.ageMax && filters.ageMax > 0 ? filters.ageMax : '40'}
                 <button
                   onClick={() => {
                     handleFilterChange('ageMin', undefined)

@@ -176,8 +176,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       })
     }
 
-    // Age filters
-    if (filters.ageMin || filters.ageMax) {
+    // Age filters - only apply if values are > 0
+    if ((filters.ageMin && filters.ageMin > 0) || (filters.ageMax && filters.ageMax > 0)) {
       filtered = filtered.filter(player => {
         if (!player.dateOfBirth) return false
 
@@ -185,8 +185,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
           (new Date().getTime() - new Date(player.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365)
         )
 
-        if (filters.ageMin && age < filters.ageMin) return false
-        if (filters.ageMax && age > filters.ageMax) return false
+        if (filters.ageMin && filters.ageMin > 0 && age < filters.ageMin) return false
+        if (filters.ageMax && filters.ageMax > 0 && age > filters.ageMax) return false
 
         return true
       })
