@@ -151,18 +151,24 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const isDev = process.env.NODE_ENV === 'development'
 
-    if (isDev) {
-      console.error('PDF generation error (detailed):', {
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString()
-      })
-    } else {
-      console.error('PDF generation failed:', error instanceof Error ? error.message : 'Unknown error')
-    }
+    // Always log detailed errors for debugging production issues
+    console.error('PDF generation error (detailed):', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      nodeVersion: process.version,
+      platform: process.platform
+    })
 
+    // Return detailed error message for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json({
-      error: isDev ? `PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}` : 'Failed to generate PDF'
+      error: `PDF generation failed: ${errorMessage}`,
+      details: isDev ? {
+        stack: error instanceof Error ? error.stack : undefined,
+        environment: process.env.NODE_ENV
+      } : undefined
     }, { status: 500 })
   }
 }
