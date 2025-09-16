@@ -242,7 +242,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       const sections = description.split('**')
       let currentSection = ''
 
-      sections.forEach(section => {
+      sections.forEach((section: string) => {
         if (section.trim().startsWith('Styrkor:')) {
           pdf.setTextColor(...darkGray)
           pdf.setFontSize(11)
