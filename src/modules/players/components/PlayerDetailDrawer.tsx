@@ -128,9 +128,9 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
       const columnWidth = (pageWidth - 3 * margin) / 2
 
       // Colors
-      const goldColor = [212, 175, 55] // #D4AF37
-      const darkGray = [51, 51, 51]
-      const lightGray = [128, 128, 128]
+      const goldColor: [number, number, number] = [212, 175, 55] // #D4AF37
+      const darkGray: [number, number, number] = [51, 51, 51]
+      const lightGray: [number, number, number] = [128, 128, 128]
 
       // Header with player name
       pdf.setFillColor(...goldColor)
