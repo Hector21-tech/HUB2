@@ -163,9 +163,14 @@ export function PlayersHeader({
                 value={filters.ageMin || ''}
                 onChange={(e) => {
                   const value = e.target.value ? Number(e.target.value) : undefined
-                  // Only set if value is within valid range or undefined
-                  if (value === undefined || (value >= 14 && value <= 40)) {
-                    handleFilterChange('ageMin', value)
+                  handleFilterChange('ageMin', value)
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : undefined
+                  if (value !== undefined && (value < 14 || value > 40)) {
+                    // Reset to closest valid value
+                    const correctedValue = value < 14 ? 14 : 40
+                    handleFilterChange('ageMin', correctedValue)
                   }
                 }}
                 className="
@@ -187,9 +192,14 @@ export function PlayersHeader({
                 value={filters.ageMax || ''}
                 onChange={(e) => {
                   const value = e.target.value ? Number(e.target.value) : undefined
-                  // Only set if value is within valid range or undefined
-                  if (value === undefined || (value >= 14 && value <= 40)) {
-                    handleFilterChange('ageMax', value)
+                  handleFilterChange('ageMax', value)
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value ? Number(e.target.value) : undefined
+                  if (value !== undefined && (value < 14 || value > 40)) {
+                    // Reset to closest valid value
+                    const correctedValue = value < 14 ? 14 : 40
+                    handleFilterChange('ageMax', correctedValue)
                   }
                 }}
                 className="
