@@ -103,7 +103,7 @@ export async function generateAndSharePDFWithGesture({
   const safeFileName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`
 
   // Check if we can share before starting generation
-  const canShare = navigator.share && isMobileDevice()
+  const canShare = typeof navigator.share !== 'undefined' && isMobileDevice()
 
   if (onProgress) onProgress('Generating PDF...')
 
