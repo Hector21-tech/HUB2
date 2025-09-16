@@ -43,8 +43,12 @@ Skapa en rapport strukturerad EXAKT så här:
 Styrkor:
 [Om det finns anteckningar eller positiva indikatorer i statistiken - skriv 2-3 punkter med • symbol. Om ingen information finns, skriv "Behöver utvärderas genom observation"]
 
-Svagheter:
-[ENDAST om det finns SPECIFIKA NEGATIVA anteckningar i scout-anteckningarna ovan - skriv 1-2 punkter med • symbol. Om det INTE finns några negativa kommentarer i scout-anteckningarna, hoppa över hela denna sektion helt och hållet. Statistik som "0 mål" räknas INTE som negativ information om det inte specifikt nämns som problem i anteckningarna.]
+KRITISKT VIKTIGT: SVAGHETER-SEKTION
+- Om det INTE finns SPECIFIKA NEGATIVA kommentarer i scout-anteckningarna, skriv INGENTING om svagheter - hoppa över hela den sektionen helt.
+- Skriv ALDRIG "Svagheter:" som rubrik om du inte har faktiska negativa punkter att rapportera.
+- Skriv ALDRIG "Ingen specifik negativ information" eller liknande fraser.
+- Statistik som "0 mål" är INTE negativ information om det inte specifikt kritiseras i anteckningarna.
+- ENDAST om scout-anteckningarna innehåller faktiska kritiska kommentarer, då kan du skriva "Svagheter:" följt av de specifika punkterna med • symbol.
 
 Använd professionellt språk. Skriv INTE information som inte finns i underlaget. Använd ALDRIG ** symboler i texten.`
 

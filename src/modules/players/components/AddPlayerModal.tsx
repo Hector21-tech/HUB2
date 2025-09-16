@@ -135,8 +135,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     }
     if (!formData.height.trim()) {
       newErrors.height = 'Height is required'
-    } else if (isNaN(Number(formData.height)) || Number(formData.height) < 50 || Number(formData.height) > 250) {
-      newErrors.height = 'Height must be between 50-250 cm'
+    } else if (isNaN(Number(formData.height)) || Number(formData.height) < 150 || Number(formData.height) > 220) {
+      newErrors.height = 'Height must be between 150-220 cm'
     }
     if (formData.rating && (isNaN(Number(formData.rating)) || Number(formData.rating) < 1 || Number(formData.rating) > 10)) {
       newErrors.rating = 'Rating must be between 1-10'
@@ -379,8 +379,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                     type="number"
                     value={formData.height}
                     onChange={(e) => handleInputChange('height', e.target.value)}
-                    min="50"
-                    max="250"
+                    min="150"
+                    max="220"
                     className={`
                       w-full px-3 sm:px-4 py-3
                       bg-white/5 backdrop-blur-sm
@@ -388,6 +388,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                       text-white placeholder-white/50
                       focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
                       transition-all duration-200
+                      [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
                       ${errors.height ? 'border-red-400' : 'border-white/20 hover:border-white/30'}
                     `}
                     placeholder="Enter height in cm"
