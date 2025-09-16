@@ -52,41 +52,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Dynamic imports to prevent client bundling
-    const isLocal = process.env.NODE_ENV === 'development'
+    // Unified stack: Use puppeteer-core + @sparticuz/chromium for both dev and prod
+    const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
+      import('@sparticuz/chromium'),
+      import('puppeteer-core'),
+    ])
 
-    let browser
-    if (isLocal) {
-      // Use full puppeteer in development
-      const { default: puppeteer } = await import('puppeteer')
-      browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      })
-    } else {
-      // Use puppeteer-core + chromium in production
-      const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
-        import('@sparticuz/chromium'),
-        import('puppeteer-core'),
-      ])
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath: await chromium.executablePath(),
-        headless: true,
-        defaultViewport: chromium.defaultViewport,
-      })
-    }
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+      defaultViewport: chromium.defaultViewport,
+    })
 
     try {
       const page = await browser.newPage()
       await page.setViewport({ width: 1200, height: 800 })
 
-      // Block unnecessary resources for faster rendering
+      // Optimize resource loading for faster rendering
       await page.setRequestInterception(true)
       page.on('request', (req) => {
         const type = req.resourceType()
-        if (['image', 'media', 'font', 'stylesheet'].includes(type)) {
-          return req.continue()
+        // Block only truly unnecessary resources
+        if (['media', 'websocket', 'eventsource', 'manifest'].includes(type)) {
+          return req.abort()
         }
         req.continue()
       })
@@ -119,8 +108,21 @@ export async function POST(request: NextRequest) {
       await browser.close()
     }
   } catch (error) {
-    console.error('PDF generation error:', error)
-    return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 })
+    const isDev = process.env.NODE_ENV === 'development'
+
+    if (isDev) {
+      console.error('PDF generation error (detailed):', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      })
+    } else {
+      console.error('PDF generation failed:', error instanceof Error ? error.message : 'Unknown error')
+    }
+
+    return NextResponse.json({
+      error: isDev ? `PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}` : 'Failed to generate PDF'
+    }, { status: 500 })
   }
 }
 
@@ -179,11 +181,13 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #333;
             line-height: 1.5;
             background: white;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .page-container {
@@ -379,13 +383,14 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
             body {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                color-adjust: exact;
             }
-        }
 
-        /* Ensure fonts load properly */
-        body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            /* Optimize for print rendering */
+            * {
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
         }
     </style>
 </head>

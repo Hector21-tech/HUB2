@@ -16,7 +16,7 @@ export async function generateAndSharePDF({
   aiImprovedNotes
 }: SharePDFOptions): Promise<void> {
   const ac = new AbortController()
-  const timeout = setTimeout(() => ac.abort(), 28000)
+  const timeout = setTimeout(() => ac.abort(), 25000)
 
   try {
     const response = await fetch('/api/generate-player-pdf', {
