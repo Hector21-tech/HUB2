@@ -107,7 +107,12 @@ export async function POST(request: NextRequest) {
 
     try {
       const page = await browser.newPage()
-      await page.setViewport({ width: 1200, height: 800 })
+      // Set viewport to match typical A4 document proportions for consistent PDF rendering
+      await page.setViewport({
+        width: 800,
+        height: 1200,
+        deviceScaleFactor: 1
+      })
 
       // Optimize resource loading for faster rendering
       await page.setRequestInterception(true)
