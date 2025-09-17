@@ -10,7 +10,6 @@ export interface PlayerData {
   position?: string | null
   club?: string | null
   height?: number | null
-  weight?: number | null
   notes?: string | null
   tags: string[]
   rating?: number | null

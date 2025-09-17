@@ -24,7 +24,6 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     club: '',
     contractExpiry: '',
     height: '',
-    weight: '',
     notes: '',
     rating: '',
     avatarUrl: ''
@@ -61,7 +60,6 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         contractExpiry: editingPlayer.contractExpiry ?
           new Date(editingPlayer.contractExpiry).toISOString().split('T')[0] : '',
         height: editingPlayer.height ? String(editingPlayer.height) : '',
-        weight: editingPlayer.weight ? String(editingPlayer.weight) : '',
         notes: editingPlayer.notes || '',
         rating: editingPlayer.rating ? String(editingPlayer.rating) : '',
         avatarUrl: editingPlayer.avatarUrl || ''
@@ -77,8 +75,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         club: '',
         contractExpiry: '',
         height: '',
-        weight: '',
-        notes: '',
+            notes: '',
         rating: '',
         avatarUrl: ''
       })
@@ -210,8 +207,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         club: '',
         contractExpiry: '',
         height: '',
-        weight: '',
-        notes: '',
+            notes: '',
         rating: '',
         avatarUrl: ''
       })

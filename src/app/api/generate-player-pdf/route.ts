@@ -474,7 +474,7 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
                 </div>
                 <div class="info-item">
                     <span class="info-label">Vikt:</span>
-                    <span class="info-value">${player.weight ? player.weight + ' kg' : 'Ej angivet'}</span>
+                    <span class="info-value">Ej angivet</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Födelsedatum:</span>

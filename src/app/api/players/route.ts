@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
       positions = [],
       club,
       height,
-      weight,
       rating,
       notes,
       tags = [],
@@ -93,7 +92,6 @@ export async function POST(request: NextRequest) {
       position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
       club: club?.trim() || null,
       height: height ? parseInt(height) : 180, // Default height if not provided
-      weight: weight ? parseInt(weight) : null,
       rating: rating ? parseFloat(rating) : null,
       notes: notes?.trim() || null,
       tags: tags, // Store tags normally
@@ -155,7 +153,6 @@ export async function PUT(request: NextRequest) {
       positions = [],
       club,
       height,
-      weight,
       rating,
       notes,
       tags = [],
@@ -193,7 +190,6 @@ export async function PUT(request: NextRequest) {
         position: Array.isArray(positions) && positions.length > 0 ? positions.join(', ') : null,
         club: club?.trim() || null,
         height: height ? parseInt(height) : 180, // Default height if not provided
-        weight: weight ? parseInt(weight) : null,
         rating: rating ? parseFloat(rating) : null,
         notes: notes?.trim() || null,
         tags: tags, // Store tags normally

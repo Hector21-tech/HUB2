@@ -11,7 +11,6 @@ export interface Player {
 
   // Physical Attributes
   height?: number // cm
-  weight?: number // kg
 
   // Avatar
   avatarUrl?: string

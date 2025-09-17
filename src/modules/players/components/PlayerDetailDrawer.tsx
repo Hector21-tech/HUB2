@@ -525,9 +525,9 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-white/60">Height / Weight</label>
+                    <label className="text-sm font-medium text-white/60">Height</label>
                     <p className="text-lg font-semibold text-white">
-                      {player.height ? `${player.height}cm` : 'N/A'} / {player.weight ? `${player.weight}kg` : 'N/A'}
+                      {player.height ? `${player.height}cm` : 'N/A'}
                     </p>
                   </div>
                   <div>

@@ -180,7 +180,6 @@ export async function POST() {
         club: 'Manchester United',
         nationality: 'England',
         height: 186,
-        weight: 79,
         notes: 'Excellent pace and finishing ability',
         tags: ['pace', 'finishing', 'versatile'],
         rating: 8.5
@@ -200,7 +199,6 @@ export async function POST() {
         club: 'Manchester City',
         nationality: 'Norway',
         height: 194,
-        weight: 88,
         notes: 'Incredible goal scoring record',
         tags: ['goals', 'strength', 'positioning'],
         rating: 9.2

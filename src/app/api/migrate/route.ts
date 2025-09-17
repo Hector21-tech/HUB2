@@ -95,7 +95,6 @@ export async function POST() {
         "club" TEXT,
         "nationality" TEXT,
         "height" INTEGER,
-        "weight" INTEGER,
         "notes" TEXT,
         "tags" TEXT[],
         "rating" DOUBLE PRECISION,
