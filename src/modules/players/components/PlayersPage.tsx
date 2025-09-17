@@ -387,6 +387,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onAddPlayer={handleAddPlayer}
+        players={players}
         />
       </div>
 

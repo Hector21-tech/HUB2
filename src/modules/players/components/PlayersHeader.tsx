@@ -2,8 +2,7 @@
 
 import { Search, Filter, Users, Grid, List } from 'lucide-react'
 import { PlayerFilters } from '../types/player'
-import { getAllCountryNames } from '@/lib/countries'
-import { SearchableSelect } from '@/components/ui/SearchableSelect'
+import { Player } from '../types/player'
 
 interface PlayersHeaderProps {
   filters: PlayerFilters
@@ -12,6 +11,7 @@ interface PlayersHeaderProps {
   viewMode: 'grid' | 'list'
   onViewModeChange: (mode: 'grid' | 'list') => void
   onAddPlayer: () => void
+  players: Player[]
 }
 
 export function PlayersHeader({
@@ -20,7 +20,8 @@ export function PlayersHeader({
   totalPlayers,
   viewMode,
   onViewModeChange,
-  onAddPlayer
+  onAddPlayer,
+  players
 }: PlayersHeaderProps) {
   const handleSearchChange = (search: string) => {
     onFiltersChange({ ...filters, search })
@@ -40,11 +41,18 @@ export function PlayersHeader({
     return value !== undefined && value !== '' && value !== 0
   }).length
 
-  // Convert countries to options format for SearchableSelect
-  const countryOptions = getAllCountryNames().map(country => ({
-    value: country,
-    label: country
-  }))
+  // Get unique nationalities from existing players only
+  const getUsedNationalities = (players: Player[]): string[] => {
+    const nationalities = new Set<string>()
+    players.forEach(player => {
+      if (player.nationality && player.nationality.trim()) {
+        nationalities.add(player.nationality.trim())
+      }
+    })
+    return Array.from(nationalities).sort()
+  }
+
+  const usedNationalities = getUsedNationalities(players)
 
   return (
     <div className="relative z-40 bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
@@ -223,15 +231,33 @@ export function PlayersHeader({
             </div>
 
             {/* Nationality Filter */}
-            <div className="relative w-[180px] sm:w-[200px] overflow-hidden">
-              <SearchableSelect
-                options={countryOptions}
-                value={filters.nationality}
-                onChange={(value) => handleFilterChange('nationality', value)}
-                placeholder="All Nationalities"
-                searchPlaceholder="Search countries..."
-                className="w-full"
-              />
+            <div className="relative flex-1 min-w-[160px] sm:flex-none">
+              <select
+                value={filters.nationality || ''}
+                onChange={(e) => handleFilterChange('nationality', e.target.value || undefined)}
+                className="
+                  px-3 sm:px-4 py-3 pr-8 sm:pr-10 text-sm sm:text-sm
+                  bg-white/5 backdrop-blur-sm
+                  border border-white/20 rounded-lg
+                  text-white
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                  hover:border-white/30
+                  transition-all duration-200 cursor-pointer
+                  appearance-none w-full
+                "
+              >
+                <option value="" className="bg-slate-800 text-white">All Nationalities</option>
+                {usedNationalities.map(nationality => (
+                  <option key={nationality} value={nationality} className="bg-slate-800 text-white">
+                    {nationality}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Contract Status Filter */}
