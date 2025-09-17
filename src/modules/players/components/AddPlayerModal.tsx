@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { X, User, MapPin, Calendar, Users } from 'lucide-react'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
+import { AvatarUpload } from '@/components/ui/AvatarUpload'
 import { searchCountries, getAllCountryNames } from '@/lib/countries'
 import { searchClubs, getAllClubNames } from '@/lib/football-clubs'
+import { useAvatarUrl } from '../hooks/useAvatarUrl'
 
 interface AddPlayerModalProps {
   isOpen: boolean
@@ -26,12 +28,20 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     height: '',
     notes: '',
     rating: '',
-    avatarUrl: ''
+    avatarPath: ''
   })
   const [showCustomClubInput, setShowCustomClubInput] = useState(false)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [uploadError, setUploadError] = useState<string>('')
+
+  // Get current avatar URL for preview
+  const { url: currentAvatarUrl } = useAvatarUrl({
+    avatarPath: formData.avatarPath,
+    avatarUrl: editingPlayer?.avatarUrl,
+    tenantId
+  })
 
   const POSITION_OPTIONS = [
     { value: 'GK', label: 'GK (Goalkeeper)' },
@@ -62,7 +72,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         height: editingPlayer.height ? String(editingPlayer.height) : '',
         notes: editingPlayer.notes || '',
         rating: editingPlayer.rating ? String(editingPlayer.rating) : '',
-        avatarUrl: editingPlayer.avatarUrl || ''
+        avatarPath: editingPlayer.avatarPath || ''
       })
     } else {
       // Reset form for new player
@@ -77,7 +87,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         height: '',
             notes: '',
         rating: '',
-        avatarUrl: ''
+        avatarPath: ''
       })
     }
     setErrors({})
@@ -89,6 +99,16 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+  }
+
+  // Handle avatar upload
+  const handleAvatarUploadComplete = (avatarPath: string) => {
+    setFormData(prev => ({ ...prev, avatarPath }))
+    setUploadError('')
+  }
+
+  const handleAvatarUploadError = (error: string) => {
+    setUploadError(error)
   }
 
   const handlePositionToggle = (position: string) => {
@@ -209,7 +229,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         height: '',
             notes: '',
         rating: '',
-        avatarUrl: ''
+        avatarPath: ''
       })
       setShowCustomClubInput(false)
 
@@ -257,6 +277,25 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
             {/* Basic Information */}
             <div className="space-y-3 sm:space-y-4">
               <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Basic Information</h3>
+
+              {/* Avatar Upload Section */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-white/60 mb-3">
+                  Player Avatar
+                </label>
+                <AvatarUpload
+                  currentAvatarUrl={currentAvatarUrl}
+                  onUploadComplete={handleAvatarUploadComplete}
+                  onUploadError={handleAvatarUploadError}
+                  tenantId={tenantId}
+                  playerId={editingPlayer?.id}
+                  playerName={`${formData.firstName} ${formData.lastName}`.trim()}
+                  disabled={isSubmitting}
+                />
+                {uploadError && (
+                  <p className="text-red-400 text-sm mt-2">{uploadError}</p>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
@@ -336,27 +375,6 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2">
-                    <User className="w-4 h-4 inline mr-1" />
-                    Avatar URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.avatarUrl}
-                    onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
-                    className="
-                      w-full px-3 sm:px-4 py-3
-                      bg-white/5 backdrop-blur-sm
-                      border border-white/20 rounded-lg
-                      text-white placeholder-white/50 text-base
-                      focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                      hover:border-white/30
-                      transition-all duration-200
-                    "
-                    placeholder="https://example.com/player-image.jpg"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
