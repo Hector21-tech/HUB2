@@ -373,12 +373,12 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData
             left: 0;
             right: 0;
             height: 60px;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            border-top: 1px solid #b8941f;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #64748b;
+            color: white;
             font-size: 0.85rem;
             font-weight: 500;
             z-index: 1000;
@@ -389,7 +389,7 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData
         }
 
         .company-info strong {
-            color: #1e293b;
+            color: white;
             margin-right: 8px;
         }
 
