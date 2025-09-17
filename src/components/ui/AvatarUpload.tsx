@@ -138,19 +138,33 @@ export function AvatarUpload({
       formData.append('file', compressedFile)
 
       const uploadRequest = new XMLHttpRequest()
+      let uploadCompleted = false
+
+      const completeUpload = () => {
+        if (!uploadCompleted) {
+          uploadCompleted = true
+          onUploadComplete(path)
+          setIsUploading(false)
+          setUploadProgress(100)
+        }
+      }
 
       uploadRequest.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
           const progress = Math.round((e.loaded * 100) / e.total)
           setUploadProgress(progress)
+
+          // Complete upload immediately when progress reaches 100%
+          if (progress === 100) {
+            completeUpload()
+          }
         }
       })
 
       uploadRequest.addEventListener('load', () => {
+        // Backup completion handler in case progress event doesn't reach 100%
         if (uploadRequest.status === 200) {
-          onUploadComplete(path)
-          setIsUploading(false)
-          setUploadProgress(100)
+          completeUpload()
         } else {
           throw new Error('Upload failed')
         }
@@ -159,6 +173,21 @@ export function AvatarUpload({
       uploadRequest.addEventListener('error', () => {
         throw new Error('Upload failed')
       })
+
+      // Timeout fallback (30 seconds)
+      const timeoutId = setTimeout(() => {
+        if (!uploadCompleted) {
+          console.warn('Upload timeout - forcing completion')
+          completeUpload()
+        }
+      }, 30000)
+
+      // Clear timeout when upload completes
+      const originalCompleteUpload = completeUpload
+      completeUpload = () => {
+        clearTimeout(timeoutId)
+        originalCompleteUpload()
+      }
 
       uploadRequest.open('POST', uploadUrl)
       uploadRequest.send(formData)
