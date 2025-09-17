@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate that the path belongs to the requested tenant
-    if (!path.startsWith(`player-avatars/${tenantId}/`)) {
+    if (!path.startsWith(`${tenantId}/`)) {
       return NextResponse.json(
         { error: 'Access denied: path does not belong to tenant' },
         { status: 403 }
@@ -73,7 +73,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Validate that the path belongs to the requested tenant
-    if (!path.startsWith(`player-avatars/${tenantId}/`)) {
+    if (!path.startsWith(`${tenantId}/`)) {
       return NextResponse.json(
         { error: 'Access denied: path does not belong to tenant' },
         { status: 403 }

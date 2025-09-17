@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now()
     const uuid = Math.random().toString(36).substring(2, 15)
     const extension = fileName.split('.').pop()?.toLowerCase() || 'jpg'
-    const storagePath = `player-avatars/${tenantId}/${playerId}/${timestamp}-${uuid}.${extension}`
+    const storagePath = `${tenantId}/${playerId}/${timestamp}-${uuid}.${extension}`
 
     // Generate signed upload URL
     const { data: uploadData, error: uploadError } = await supabase.storage
