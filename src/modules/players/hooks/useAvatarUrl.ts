@@ -142,7 +142,9 @@ export function triggerAvatarCacheInvalidation() {
   cacheInvalidationListeners.forEach(listener => listener())
 }
 
-export function useCacheInvalidationTrigger(callback: () => void) {
+export function useCacheInvalidationTrigger(callback: () => void): () => void {
   cacheInvalidationListeners.add(callback)
-  return () => cacheInvalidationListeners.delete(callback)
+  return () => {
+    cacheInvalidationListeners.delete(callback)
+  }
 }
