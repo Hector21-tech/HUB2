@@ -105,6 +105,14 @@ export async function generateAndSharePDFWithGesture({
   // Check if we can share before starting generation
   const canShare = typeof navigator.share !== 'undefined' && isMobileDevice()
 
+  // Debug logging for mobile share capability
+  console.log('Mobile share debug:', {
+    hasNavigatorShare: typeof navigator.share !== 'undefined',
+    isMobile: isMobileDevice(),
+    canShare,
+    userAgent: navigator.userAgent
+  })
+
   if (onProgress) onProgress('Generating PDF...')
 
   const ac = new AbortController()
@@ -132,17 +140,34 @@ export async function generateAndSharePDFWithGesture({
     if (canShare) {
       const file = new File([blob], safeFileName, { type: 'application/pdf' })
 
+      console.log('Share attempt details:', {
+        fileSize: blob.size,
+        fileName: safeFileName,
+        canShareFiles: navigator.canShare?.({ files: [file] }),
+        navigatorShare: !!navigator.share
+      })
+
       if (navigator.canShare?.({ files: [file] })) {
         try {
+          console.log('Attempting native share...')
           await navigator.share({
             title,
             files: [file]
           })
+          console.log('Native share successful!')
           return
         } catch (shareError) {
           console.warn('Share failed, falling back to download:', shareError)
+          console.log('Share error details:', {
+            errorName: shareError instanceof Error ? shareError.name : 'Unknown',
+            errorMessage: shareError instanceof Error ? shareError.message : shareError
+          })
         }
+      } else {
+        console.log('navigator.canShare returned false for file sharing')
       }
+    } else {
+      console.log('canShare is false, using download fallback')
     }
 
     // Fallback: download
