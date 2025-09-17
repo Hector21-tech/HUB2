@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
 import { formatCurrency, calculateAge, isContractExpiring, getPlayerInitials } from '@/lib/formatters'
+import { useAvatarUrl } from '../hooks/useAvatarUrl'
 
 interface PlayerCardProps {
   player: Player
@@ -13,6 +14,13 @@ interface PlayerCardProps {
 export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [imageError, setImageError] = useState(false)
+
+  // Get the best avatar URL (new system with fallback to legacy)
+  const { url: avatarUrl, isLoading: avatarLoading } = useAvatarUrl({
+    avatarPath: player.avatarPath,
+    avatarUrl: player.avatarUrl,
+    tenantId: player.tenantId
+  })
 
   return (
     <div
@@ -40,9 +48,9 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
       {/* Hero Header */}
       <div className="relative h-32 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
         {/* Player Avatar/Background */}
-        {player.avatarUrl && !imageError ? (
+        {avatarUrl && !imageError && !avatarLoading ? (
           <img
-            src={player.avatarUrl}
+            src={avatarUrl}
             alt={`Profile photo of ${player.firstName} ${player.lastName}`}
             className="absolute inset-0 w-full h-full object-cover object-top filter sepia-[5%] contrast-105 brightness-98"
             loading="lazy"
@@ -81,8 +89,11 @@ export function PlayerCard({ player, onCardClick }: PlayerCardProps) {
             }}
           />
         ) : (
-          // Fallback Avatar - Clean gradient background
+          // Fallback Avatar - Show initials
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
+            <div className="text-white text-3xl font-bold">
+              {getPlayerInitials(player.firstName, player.lastName)}
+            </div>
           </div>
         )}
 

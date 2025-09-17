@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         tags,
         rating,
         avatarUrl,
+        avatarPath,
         createdAt,
         updatedAt
       `)
@@ -96,7 +97,8 @@ export async function POST(request: NextRequest) {
       rating,
       notes,
       tags = [],
-      avatarUrl
+      avatarUrl,
+      avatarPath
     } = body
 
     // Validation
@@ -128,7 +130,8 @@ export async function POST(request: NextRequest) {
       rating: rating ? parseFloat(rating) : null,
       notes: notes?.trim() || null,
       tags: tags || [], // Store regular tags only
-      avatarUrl: avatarUrl?.trim() || null, // Store avatar URL in dedicated field
+      avatarUrl: avatarUrl?.trim() || null, // Legacy avatar URL
+      avatarPath: avatarPath?.trim() || null, // New Supabase Storage path
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -194,7 +197,8 @@ export async function PUT(request: NextRequest) {
       rating,
       notes,
       tags = [],
-      avatarUrl
+      avatarUrl,
+      avatarPath
     } = body
 
     // Validation
@@ -234,6 +238,7 @@ export async function PUT(request: NextRequest) {
       notes: notes?.trim() || null,
       tags: tags || [],
       avatarUrl: avatarUrl?.trim() || null,
+      avatarPath: avatarPath?.trim() || null,
       updatedAt: new Date().toISOString()
     }
 

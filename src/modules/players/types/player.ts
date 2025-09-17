@@ -13,7 +13,8 @@ export interface Player {
   height?: number // cm
 
   // Avatar
-  avatarUrl?: string
+  avatarUrl?: string    // Legacy: deprecated, use avatarPath instead
+  avatarPath?: string   // New: Supabase Storage path
 
   // Club Information
   club?: string
