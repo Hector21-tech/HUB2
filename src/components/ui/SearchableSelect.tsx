@@ -170,7 +170,7 @@ export function SearchableSelect({
       {/* Selected value display / Search input */}
       <div
         className={`
-          relative flex items-center min-h-[48px] px-4 py-3
+          relative flex items-center min-h-[44px] px-3 py-3
           bg-white/5 backdrop-blur-sm
           border border-white/20 rounded-lg
           text-white text-sm
@@ -224,11 +224,12 @@ export function SearchableSelect({
       {/* Dropdown options */}
       {isOpen && (
         <div className="
-          absolute top-full left-0 w-full mt-1 z-[9999]
+          absolute top-full left-0 right-0 mt-1 z-50
           bg-slate-800/95 backdrop-blur-md
           border border-white/20 rounded-lg
           shadow-xl
           max-h-60 overflow-y-auto
+          max-w-full
         ">
           {filteredOptions.length > 0 ? (
             <ul ref={listRef} className="py-1">

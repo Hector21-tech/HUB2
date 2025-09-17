@@ -223,7 +223,7 @@ export function PlayersHeader({
             </div>
 
             {/* Nationality Filter */}
-            <div className="relative flex-1 min-w-[180px] sm:flex-none">
+            <div className="relative w-[180px] sm:w-[200px] overflow-hidden">
               <SearchableSelect
                 options={countryOptions}
                 value={filters.nationality}
