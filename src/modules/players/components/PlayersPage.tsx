@@ -8,6 +8,7 @@ import { PlayerDetailDrawer } from './PlayerDetailDrawer'
 import { AddPlayerModal } from './AddPlayerModal'
 import { usePlayersQuery } from '../hooks/usePlayersQuery'
 import { useQueryClient } from '@tanstack/react-query'
+import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
 
 interface PlayersPageProps {
   tenantId: string
@@ -267,6 +268,10 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         // Add new player to local state
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
+
+        // Invalidate avatar cache to ensure new avatars show immediately
+        triggerAvatarCacheInvalidation()
+
         console.log('✅ Player added successfully:', result.data)
       } else {
         console.error('❌ Error adding player:', result.error)
@@ -305,6 +310,10 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
       if (result.success) {
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
+
+        // Invalidate avatar cache to ensure updated avatars show immediately
+        triggerAvatarCacheInvalidation()
+
         console.log('✅ Player updated successfully:', result.data)
         setIsEditPlayerModalOpen(false)
         setEditingPlayer(null)

@@ -31,6 +31,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Debug logging
+    console.log('Avatar URL request - path:', path, 'tenantId:', tenantId)
+
     // Generate signed download URL (60 minutes TTL)
     const { data, error } = await supabase.storage
       .from('player-avatars')
@@ -38,6 +41,8 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Supabase signed URL error:', error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
+      console.error('Requested path:', path)
       return NextResponse.json(
         { error: 'Failed to generate download URL' },
         { status: 500 }

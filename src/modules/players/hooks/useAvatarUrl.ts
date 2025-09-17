@@ -19,6 +19,15 @@ export function useAvatarUrl({ avatarPath, avatarUrl, tenantId }: UseAvatarUrlPr
     isLoading: false,
     error: null
   })
+  const [invalidationTrigger, setInvalidationTrigger] = useState(0)
+
+  // Listen for cache invalidation events
+  useEffect(() => {
+    const cleanup = useCacheInvalidationTrigger(() => {
+      setInvalidationTrigger(prev => prev + 1)
+    })
+    return cleanup
+  }, [])
 
   useEffect(() => {
     // If we have legacy avatarUrl, use it directly
@@ -41,21 +50,15 @@ export function useAvatarUrl({ avatarPath, avatarUrl, tenantId }: UseAvatarUrlPr
       return
     }
 
-    // Fetch signed URL for path
+    // Fetch signed URL for path using cached function
     const fetchSignedUrl = async () => {
       setData(prev => ({ ...prev, isLoading: true, error: null }))
 
       try {
-        const response = await fetch(`/api/media/avatar-url?path=${encodeURIComponent(avatarPath)}&tenantId=${tenantId}`)
-
-        if (!response.ok) {
-          throw new Error(`Failed to get avatar URL: ${response.status}`)
-        }
-
-        const result = await response.json()
+        const url = await getCachedAvatarUrl(avatarPath, tenantId)
 
         setData({
-          url: result.url,
+          url,
           isLoading: false,
           error: null
         })
@@ -70,7 +73,7 @@ export function useAvatarUrl({ avatarPath, avatarUrl, tenantId }: UseAvatarUrlPr
     }
 
     fetchSignedUrl()
-  }, [avatarPath, avatarUrl, tenantId])
+  }, [avatarPath, avatarUrl, tenantId, invalidationTrigger])
 
   return data
 }
@@ -118,4 +121,28 @@ export async function getCachedAvatarUrl(avatarPath: string, tenantId: string): 
     console.error('Error fetching cached avatar URL:', error)
     return null
   }
+}
+
+// Cache invalidation functions
+export function invalidateAvatarCache(avatarPath: string, tenantId: string) {
+  const cacheKey = `${tenantId}:${avatarPath}`
+  urlCache.delete(cacheKey)
+}
+
+export function invalidateAllAvatarCache() {
+  urlCache.clear()
+}
+
+// Global cache invalidation trigger for React components
+let cacheInvalidationKey = 0
+const cacheInvalidationListeners = new Set<() => void>()
+
+export function triggerAvatarCacheInvalidation() {
+  cacheInvalidationKey++
+  cacheInvalidationListeners.forEach(listener => listener())
+}
+
+export function useCacheInvalidationTrigger(callback: () => void) {
+  cacheInvalidationListeners.add(callback)
+  return () => cacheInvalidationListeners.delete(callback)
 }
