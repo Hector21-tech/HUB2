@@ -57,10 +57,10 @@ STRIKT REGEL:
 - Om inga specifika tekniker nämns - skriv INGA tekniker
 - Citera eller parafrasera ENDAST från anteckningarna
 
-Skapa en rapport (max 2-3 meningar) strukturerad så här:
+Skapa en professionell scout-rapport i CV-stil (max 2-3 rader totalt):
 
 Styrkor:
-${hasNotes ? '[Använd ENDAST ord och begrepp som finns i scout-anteckningarna. Skriv 1-2 punkter med • symbol]' : '[Baserat på statistik: skriv 1 punkt med • symbol]'}
+${hasNotes ? '[Kombinera ord från scout-anteckningarna till professionella meningar. Skriv 2 sammanhängande punkter med • symbol som låter som en proffsig scout-rapport]' : '[Baserat på statistik: skriv 1 punkt med • symbol]'}
 
 ABSOLUT FÖRBUD - SVAGHETER:
 Du får ALDRIG skriva något av följande:
@@ -72,18 +72,16 @@ Du får ALDRIG skriva något av följande:
 
 KORREKT UTDATA EXEMPEL:
 
-OM scout-anteckningarna innehåller negativa kommentarer som "svag vänsterfot" eller "dålig huvudspel":
+OM scout-anteckningarna säger "Han är tvåfotat..snabb..bra skott.grymt bra 1on1..måltjuv":
 Styrkor:
-• Bra skott
+• Stark tvåfotadhet kombinerat med snabbhet skapar målfarliga situationer
+• Utmärker sig i 1-mot-1 dueller och visar måltjuvsinstinkt med bra skotteknik
 
-Svagheter:
-• [den specifika negativa kommentaren]
-
-OM scout-anteckningarna INTE innehåller negativa kommentarer (som i detta fall med bara "Bra skott"):
+OM scout-anteckningarna bara säger "Bra skott":
 Styrkor:
-• Bra skott
+• Visar god skotteknik som kan vara värdefull för laget
 
-[INGET MER - inget om svagheter överhuvudtaget]
+[Skriv ALDRIG mer än 2 punkter. Håll det kort men professionellt.]
 
 DU MÅSTE SLUTA EFTER STYRKOR OM INGA NEGATIVA KOMMENTARER FINNS.
 Skriv INGET om svagheter, inga förklaringar, inga parenteser, INGET.`
