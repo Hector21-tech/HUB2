@@ -57,37 +57,12 @@ const getMockPlayers = (): Player[] => [
   }
 ]
 
-const fetchPlayers = async (tenantId: string): Promise<Player[]> => {
-  try {
-    console.log('🚀 Fetching players for tenant:', tenantId)
+const fetchPlayers = async (tenantSlug: string): Promise<Player[]> => {
+  console.log('🚀 Using mock players for tenant:', tenantSlug)
 
-    // Try to get players using the new SQL-based API
-    let response = await fetch('/api/players-sql?tenantId=' + tenantId)
-    let result: PlayersResponse = await response.json()
-
-    console.log('📊 SQL API Response:', result)
-
-    // If no players found, try with our test tenant
-    if (!result.success || !result.data || result.data.length === 0) {
-      console.log('🔄 No players found, trying test tenant...')
-      response = await fetch('/api/players-sql?tenantId=tenant-test-1')
-      result = await response.json()
-      console.log('📊 Test tenant response:', result)
-    }
-
-    // Still no data? Use mock data to show the UI
-    if (!result.success || !result.data || result.data.length === 0) {
-      console.log('📝 No data from API, using mock players')
-      return getMockPlayers()
-    }
-
-    console.log('✅ Setting players:', result.data.length, 'players found')
-    return result.data
-  } catch (err) {
-    console.error('❌ Error fetching players:', err)
-    console.log('📝 Error occurred, using mock players')
-    return getMockPlayers()
-  }
+  // Temporary: Use mock data until schema issues are resolved
+  // The old code version has schema mismatches with the current database
+  return getMockPlayers()
 }
 
 export function usePlayersQuery(tenantId: string) {
