@@ -63,8 +63,25 @@ Styrkor:
 ${hasNotes ? '[Använd ENDAST ord och begrepp som finns i scout-anteckningarna. Skriv 1-2 punkter med • symbol]' : '[Baserat på statistik: skriv 1 punkt med • symbol]'}
 
 SVAGHETER-SEKTION:
-- Skriv ENDAST om det finns SPECIFIKA NEGATIVA kommentarer i anteckningarna
-- Annars hoppa över helt
+- OM det finns SPECIFIKA NEGATIVA kommentarer i scout-anteckningarna, då skriv "Svagheter:" följt av punkterna
+- OM det INTE finns negativa kommentarer, skriv INGENTING om svagheter
+- Skriv ALDRIG "Svagheter: Ingen specifik information tillgänglig"
+- Skriv ALDRIG "Svagheter:" som rubrik om du inte har faktiska svagheter att lista
+- HOPPA ÖVER hela svagheter-sektionen om ingen negativ information finns
+
+EXEMPEL PÅ KORREKT FORMAT:
+OM negativa kommentarer finns:
+Styrkor:
+• [punkt baserad på anteckningar]
+
+Svagheter:
+• [specifik negativ punkt från anteckningar]
+
+OM INGA negativa kommentarer finns:
+Styrkor:
+• [punkt baserad på anteckningar]
+
+[SLUT - ingen svagheter-sektion alls]
 
 TILLÅT INTE fantasier eller allmänna fotbollskommentarer.`
 
