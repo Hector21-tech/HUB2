@@ -140,7 +140,7 @@ export function AvatarUpload({
       const uploadRequest = new XMLHttpRequest()
       let uploadCompleted = false
 
-      const completeUpload = () => {
+      let completeUpload = () => {
         if (!uploadCompleted) {
           uploadCompleted = true
           onUploadComplete(path)
