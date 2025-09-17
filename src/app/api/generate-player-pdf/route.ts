@@ -368,32 +368,34 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData
         }
 
         .pdf-footer {
-            margin-top: 60px;
-            text-align: center;
-            padding-top: 30px;
-            border-top: 2px solid #e2e8f0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #64748b;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
         }
 
         .company-info {
-            margin-top: 25px;
-            padding: 20px;
-            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
-            color: white;
-            border-radius: 8px;
-            font-weight: 500;
+            text-align: center;
         }
 
         .company-info strong {
-            font-size: 1.1rem;
-            display: block;
-            margin-bottom: 5px;
+            color: #1e293b;
+            margin-right: 8px;
         }
 
         @page {
             size: A4;
-            margin: 16mm;
+            margin: 16mm 16mm 25mm 16mm;
         }
 
         @media print {
@@ -499,7 +501,7 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData
         <div class="pdf-footer">
             <div class="company-info">
                 <strong>${tenantData?.name || 'Scout Hub 2'}</strong>
-                ${tenantData?.description || 'Professional Football Scouting'}
+                | ${tenantData?.description || 'Professional Football Scouting'}
             </div>
         </div>
     </div>
