@@ -30,7 +30,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ description: null })
     }
 
-    const prompt = `Du är en professionell fotbollsscout som skriver spelarrapporter för klubbar. Analysera endast den faktiska informationen som finns tillgänglig.
+    const prompt = `Du är en professionell fotbollsscout som skriver spelarrapporter för klubbar.
+
+ABSOLUT FÖRBUD MOT:
+- Att hitta på information som INTE finns i tillhandahållen data
+- Att använda allmänna fotbollsfraser som "krosspassningar", "dynamisk spelare", "spelförståelse"
+- Att spekulera om ålder, erfarenhet eller värde
+- Att nämna specifika fotbollstekniker som inte nämns i scout-anteckningarna
 
 Spelarinfo:
 - Namn: ${firstName} ${lastName}
@@ -45,22 +51,22 @@ ${marketValue ? `- Marknadsvärde: €${marketValue.toLocaleString()}` : ''}
 
 ${hasNotes ? `Scout-anteckningar:\n${notes}` : ''}
 
-VIKTIGT:
-- Basera ENDAST analysen på den information som faktiskt finns tillgänglig
-- Skriv INTE samma punkt flera gånger
-- Variera innehållet och fokusera på olika aspekter
-- Skapa UNIKA och SPECIFIKA punkter baserat på tillgänglig data
+STRIKT REGEL:
+- Använd ENDAST ord och information som finns EXPLICIT i scout-anteckningarna ovan
+- Om scout-anteckningarna säger "bra skott" - skriv om skott, INTE "krosspassningar"
+- Om inga specifika tekniker nämns - skriv INGA tekniker
+- Citera eller parafrasera ENDAST från anteckningarna
 
-Skapa en kort rapport (max 3-4 meningar totalt) strukturerad så här:
+Skapa en rapport (max 2-3 meningar) strukturerad så här:
 
 Styrkor:
-${hasNotes ? '[Analysera scout-anteckningarna och skriv 2-3 OLIKA punkter med • symbol]' : '[Baserat på tillgänglig statistik, skriv 1-2 punkter med • symbol]'}
+${hasNotes ? '[Använd ENDAST ord och begrepp som finns i scout-anteckningarna. Skriv 1-2 punkter med • symbol]' : '[Baserat på statistik: skriv 1 punkt med • symbol]'}
 
 SVAGHETER-SEKTION:
-- Skriv ENDAST "Svagheter:" om det finns SPECIFIKA NEGATIVA kommentarer i anteckningarna
-- Annars hoppa över svagheter-sektionen helt
+- Skriv ENDAST om det finns SPECIFIKA NEGATIVA kommentarer i anteckningarna
+- Annars hoppa över helt
 
-Använd professionellt språk. Skriv ALDRIG samma information flera gånger.`
+TILLÅT INTE fantasier eller allmänna fotbollskommentarer.`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

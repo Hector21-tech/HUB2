@@ -479,6 +479,10 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData
                     <span class="info-label">Betyg:</span>
                     <span class="info-value">${player.rating ? player.rating.toFixed(1) : 'Ej angivet'}</span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">Rapport genererad:</span>
+                    <span class="info-value">${currentDate}</span>
+                </div>
             </div>
         </div>
 
@@ -493,7 +497,6 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData
 
         <!-- Footer -->
         <div class="pdf-footer">
-            <div>Genererad: ${currentDate}</div>
             <div class="company-info">
                 <strong>${tenantData?.name || 'Scout Hub 2'}</strong>
                 ${tenantData?.description || 'Professional Football Scouting'}
