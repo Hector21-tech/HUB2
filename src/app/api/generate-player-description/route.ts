@@ -20,6 +20,16 @@ export async function POST(request: NextRequest) {
 
     const age = dateOfBirth ? Math.floor((new Date().getTime() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365)) : null
 
+    // Check if there's meaningful data to create a report
+    const hasNotes = notes && notes.trim() && notes.trim() !== ''
+    const hasStats = (goalsThisSeason && goalsThisSeason > 0) || (assistsThisSeason && assistsThisSeason > 0)
+    const hasRating = rating && rating > 0
+
+    // If no meaningful data, return null to skip AI section
+    if (!hasNotes && !hasStats && !hasRating) {
+      return NextResponse.json({ description: null })
+    }
+
     const prompt = `Du är en professionell fotbollsscout som skriver spelarrapporter för klubbar. Analysera endast den faktiska informationen som finns tillgänglig.
 
 Spelarinfo:
@@ -28,29 +38,29 @@ Spelarinfo:
 - Nationalitet: ${nationality || 'Okänd'}
 - Position: ${positions?.join(', ') || 'Okänd'}
 - Nuvarande klubb: ${club || 'Klubblös'}
-- Betyg: ${rating || 'Ej betygsatt'}/10
-- Mål denna säsong: ${goalsThisSeason || 0}
-- Assist denna säsong: ${assistsThisSeason || 0}
-- Marknadsvärde: ${marketValue ? `€${marketValue.toLocaleString()}` : 'Ej uppskattat'}
+${hasRating ? `- Betyg: ${rating}/10` : ''}
+${hasStats ? `- Mål denna säsong: ${goalsThisSeason || 0}` : ''}
+${hasStats ? `- Assist denna säsong: ${assistsThisSeason || 0}` : ''}
+${marketValue ? `- Marknadsvärde: €${marketValue.toLocaleString()}` : ''}
 
-Scout-anteckningar:
-${notes || 'Inga anteckningar tillgängliga'}
+${hasNotes ? `Scout-anteckningar:\n${notes}` : ''}
 
-VIKTIGT: Basera ENDAST analysen på den information som faktiskt finns tillgänglig. Hitta INTE på information eller spekulera.
+VIKTIGT:
+- Basera ENDAST analysen på den information som faktiskt finns tillgänglig
+- Skriv INTE samma punkt flera gånger
+- Variera innehållet och fokusera på olika aspekter
+- Skapa UNIKA och SPECIFIKA punkter baserat på tillgänglig data
 
-Skapa en rapport strukturerad EXAKT så här:
+Skapa en kort rapport (max 3-4 meningar totalt) strukturerad så här:
 
 Styrkor:
-[Om det finns anteckningar eller positiva indikatorer i statistiken - skriv 2-3 punkter med • symbol. Om ingen information finns, skriv "Behöver utvärderas genom observation"]
+${hasNotes ? '[Analysera scout-anteckningarna och skriv 2-3 OLIKA punkter med • symbol]' : '[Baserat på tillgänglig statistik, skriv 1-2 punkter med • symbol]'}
 
-KRITISKT VIKTIGT: SVAGHETER-SEKTION
-- Om det INTE finns SPECIFIKA NEGATIVA kommentarer i scout-anteckningarna, skriv INGENTING om svagheter - hoppa över hela den sektionen helt.
-- Skriv ALDRIG "Svagheter:" som rubrik om du inte har faktiska negativa punkter att rapportera.
-- Skriv ALDRIG "Ingen specifik negativ information" eller liknande fraser.
-- Statistik som "0 mål" är INTE negativ information om det inte specifikt kritiseras i anteckningarna.
-- ENDAST om scout-anteckningarna innehåller faktiska kritiska kommentarer, då kan du skriva "Svagheter:" följt av de specifika punkterna med • symbol.
+SVAGHETER-SEKTION:
+- Skriv ENDAST "Svagheter:" om det finns SPECIFIKA NEGATIVA kommentarer i anteckningarna
+- Annars hoppa över svagheter-sektionen helt
 
-Använd professionellt språk. Skriv INTE information som inte finns i underlaget. Använd ALDRIG ** symboler i texten.`
+Använd professionellt språk. Skriv ALDRIG samma information flera gånger.`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

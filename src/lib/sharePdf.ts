@@ -5,6 +5,10 @@ interface SharePDFOptions {
   title?: string
   playerData?: any
   aiImprovedNotes?: string | null
+  tenantData?: {
+    name?: string
+    description?: string
+  }
 }
 
 export async function generateAndSharePDF({
@@ -13,7 +17,8 @@ export async function generateAndSharePDF({
   fileName = 'document.pdf',
   title = 'PDF Document',
   playerData,
-  aiImprovedNotes
+  aiImprovedNotes,
+  tenantData
 }: SharePDFOptions): Promise<void> {
   const ac = new AbortController()
   const timeout = setTimeout(() => ac.abort(), 25000)
@@ -22,7 +27,7 @@ export async function generateAndSharePDF({
     const response = await fetch('/api/generate-player-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ html, url, fileName, playerData, aiImprovedNotes }),
+      body: JSON.stringify({ html, url, fileName, playerData, aiImprovedNotes, tenantData }),
       cache: 'no-store',
       signal: ac.signal,
     })
@@ -98,6 +103,7 @@ export async function generateAndSharePDFWithGesture({
   title = 'PDF Document',
   playerData,
   aiImprovedNotes,
+  tenantData,
   onProgress
 }: SharePDFOptions & { onProgress?: (stage: string) => void }): Promise<void> {
   const safeFileName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`
@@ -122,7 +128,7 @@ export async function generateAndSharePDFWithGesture({
     const response = await fetch('/api/generate-player-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ html, url, fileName, playerData, aiImprovedNotes }),
+      body: JSON.stringify({ html, url, fileName, playerData, aiImprovedNotes, tenantData }),
       cache: 'no-store',
       signal: ac.signal,
     })

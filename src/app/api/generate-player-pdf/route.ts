@@ -10,6 +10,10 @@ interface PDFRequest {
   fileName?: string
   playerData?: any
   aiImprovedNotes?: string | null
+  tenantData?: {
+    name?: string
+    description?: string
+  }
 }
 
 const ALLOWED_HOSTS = new Set([
@@ -27,7 +31,7 @@ function sanitizeFileName(name: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { html, url, fileName = 'document.pdf', playerData, aiImprovedNotes }: PDFRequest = await request.json()
+    const { html, url, fileName = 'document.pdf', playerData, aiImprovedNotes, tenantData }: PDFRequest = await request.json()
 
     // Support both new format (html/url) and legacy format (playerData)
     let htmlContent = html
@@ -36,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (playerData) {
       // Legacy support - generate HTML from playerData
-      htmlContent = generatePDFHTML(playerData, aiImprovedNotes || null)
+      htmlContent = generatePDFHTML(playerData, aiImprovedNotes || null, tenantData || null)
       finalFileName = `${playerData.firstName}_${playerData.lastName}_Scout_Report.pdf`
     }
 
@@ -178,7 +182,7 @@ export async function POST(request: NextRequest) {
 }
 
 
-function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
+function generatePDFHTML(player: any, aiImprovedNotes: string | null, tenantData: any): string {
   const currentDate = new Date().toLocaleDateString('sv-SE')
 
   // Calculate age
@@ -250,9 +254,9 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
         .player-header {
             display: flex;
             align-items: center;
-            gap: 25px;
-            margin-bottom: 40px;
-            padding: 25px;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             border-radius: 12px;
             border-left: 6px solid #d4af37;
@@ -289,15 +293,15 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
+            gap: 20px;
+            margin-bottom: 25px;
         }
 
         .info-section {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 25px;
+            padding: 18px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
@@ -335,42 +339,10 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
             text-align: right;
         }
 
-        .stats-section {
-            margin-bottom: 40px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #d4af37;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: #64748b;
-            font-weight: 500;
-        }
 
         .notes-section {
-            margin-bottom: 40px;
-            padding: 25px;
+            margin-bottom: 25px;
+            padding: 18px;
             background: #fefcf3;
             border-radius: 12px;
             border-left: 6px solid #d4af37;
@@ -450,7 +422,10 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
         <!-- Header -->
         <div class="player-header">
             <div class="player-photo">
-                ${player.firstName ? player.firstName.substring(0, 1) : 'S'}${player.lastName ? player.lastName.substring(0, 1) : 'P'}
+                ${player.avatarUrl ?
+                    `<img src="${player.avatarUrl}" alt="${player.firstName} ${player.lastName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" />` :
+                    `${player.firstName ? player.firstName.substring(0, 1) : 'S'}${player.lastName ? player.lastName.substring(0, 1) : 'P'}`
+                }
             </div>
             <div class="player-basic-info">
                 <h1>${player.firstName || ''} ${player.lastName || ''}</h1>
@@ -471,10 +446,6 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
                 <div class="info-item">
                     <span class="info-label">Längd:</span>
                     <span class="info-value">${player.height ? player.height + ' cm' : 'Ej angivet'}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Vikt:</span>
-                    <span class="info-value">Ej angivet</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Födelsedatum:</span>
@@ -511,34 +482,12 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
             </div>
         </div>
 
-        <!-- Season Stats -->
-        <div class="stats-section">
-            <h3 style="color: #d4af37; font-size: 1.3rem; font-weight: 600; margin-bottom: 0;">Säsongsstatistik</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">${player.goalsThisSeason || 0}</div>
-                    <div class="stat-label">Mål</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${player.assistsThisSeason || 0}</div>
-                    <div class="stat-label">Assist</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${player.appearances || 0}</div>
-                    <div class="stat-label">Matcher</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${player.minutesPlayed || 0}</div>
-                    <div class="stat-label">Minuter</div>
-                </div>
-            </div>
-        </div>
 
         <!-- Notes -->
-        ${(player.notes || aiImprovedNotes) ? `
+        ${(player.notes || (aiImprovedNotes && aiImprovedNotes !== 'null')) ? `
             <div class="notes-section">
                 <h3>Scoutanteckningar</h3>
-                <div class="notes-content">${aiImprovedNotes || player.notes}</div>
+                <div class="notes-content">${(aiImprovedNotes && aiImprovedNotes !== 'null') ? aiImprovedNotes : player.notes}</div>
             </div>
         ` : ''}
 
@@ -546,8 +495,8 @@ function generatePDFHTML(player: any, aiImprovedNotes: string | null): string {
         <div class="pdf-footer">
             <div>Genererad: ${currentDate}</div>
             <div class="company-info">
-                <strong>Elite Sports Group AB</strong>
-                Professional Football Agents
+                <strong>${tenantData?.name || 'Scout Hub 2'}</strong>
+                ${tenantData?.description || 'Professional Football Scouting'}
             </div>
         </div>
     </div>
