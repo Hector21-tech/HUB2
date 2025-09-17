@@ -84,8 +84,7 @@ model Player {
   club           String?
   contractExpiry DateTime? // Contract expiry date
   nationality    String?
-  height         Int // cm
-  weight         Int? // kg
+  height         Int? // cm
   notes          String?
   tags           String[] // Array of tags
   rating         Float? // Overall rating 1-10
