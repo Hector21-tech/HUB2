@@ -20,7 +20,7 @@ export default function Players({ params }: PlayersPageProps) {
         </div>
       </div>
 
-      <PlayersPage tenantId={params.tenant} />
+      <PlayersPage tenantId="tenant-test-1" />
     </div>
   )
 }
