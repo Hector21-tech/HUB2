@@ -37,12 +37,10 @@ export async function POST(request: NextRequest) {
     const extension = fileName.split('.').pop()?.toLowerCase() || 'jpg'
     const storagePath = `player-avatars/${tenantId}/${playerId}/${timestamp}-${uuid}.${extension}`
 
-    // Generate signed upload URL (30 minutes TTL)
+    // Generate signed upload URL
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('player-avatars')
-      .createSignedUploadUrl(storagePath, {
-        expiresIn: 1800, // 30 minutes
-      })
+      .createSignedUploadUrl(storagePath)
 
     if (uploadError) {
       console.error('Supabase upload URL error:', uploadError)
@@ -55,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       uploadUrl: uploadData.signedUrl,
       path: storagePath,
-      expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min from now
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now (default)
     })
 
   } catch (error) {
