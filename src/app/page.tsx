@@ -21,11 +21,11 @@ export default function HomePage() {
             <p className="text-slate-300 mb-4">
               Access your tenant dashboard or sign in to get started
             </p>
-            <Link 
-              href="/demo/dashboard" 
+            <Link
+              href="/test-scout-hub/dashboard"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
             >
-              View Demo Dashboard
+              View Dashboard
             </Link>
           </div>
           
