@@ -55,26 +55,19 @@ const getMockPlayers = (): Player[] => [
   }
 ]
 
-const fetchPlayers = async (tenantSlug: string): Promise<Player[]> => {
+const fetchPlayers = async (tenantId: string): Promise<Player[]> => {
   try {
-    console.log('🚀 Fetching real players for tenant:', tenantSlug)
-
-    // Use test-crud API which should work now that schema is fixed
-    const response = await fetch('/api/test-crud?action=players&tenantId=tenant-test-1')
+    // Use players-sql API which properly transforms position data
+    const response = await fetch(`/api/players-sql?tenantId=${tenantId}`)
     const result = await response.json()
 
-    console.log('📊 API Response:', result)
-
     if (!result.success || !result.data || result.data.length === 0) {
-      console.log('📝 No data from API, using mock players')
       return getMockPlayers()
     }
 
-    console.log('✅ Setting players:', result.data.length, 'players found')
     return result.data
   } catch (err) {
-    console.error('❌ Error fetching players:', err)
-    console.log('📝 Error occurred, using mock players')
+    console.error('Error fetching players:', err)
     return getMockPlayers()
   }
 }
