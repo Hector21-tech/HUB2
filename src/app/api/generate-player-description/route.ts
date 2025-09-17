@@ -62,35 +62,38 @@ Skapa en rapport (max 2-3 meningar) strukturerad så här:
 Styrkor:
 ${hasNotes ? '[Använd ENDAST ord och begrepp som finns i scout-anteckningarna. Skriv 1-2 punkter med • symbol]' : '[Baserat på statistik: skriv 1 punkt med • symbol]'}
 
-SVAGHETER-SEKTION:
-- OM det finns SPECIFIKA NEGATIVA kommentarer i scout-anteckningarna, då skriv "Svagheter:" följt av punkterna
-- OM det INTE finns negativa kommentarer, skriv INGENTING om svagheter
-- Skriv ALDRIG "Svagheter: Ingen specifik information tillgänglig"
-- Skriv ALDRIG "Svagheter:" som rubrik om du inte har faktiska svagheter att lista
-- HOPPA ÖVER hela svagheter-sektionen om ingen negativ information finns
+ABSOLUT FÖRBUD - SVAGHETER:
+Du får ALDRIG skriva något av följande:
+- "Svagheter:"
+- "Svagheter: Ingen information"
+- "- (Inga specifika negativa kommentarer)"
+- "Inga svagheter identifierade"
+- NÅGON text om svagheter om det inte finns faktiska negativa kommentarer
 
-EXEMPEL PÅ KORREKT FORMAT:
-OM negativa kommentarer finns:
+KORREKT UTDATA EXEMPEL:
+
+OM scout-anteckningarna innehåller negativa kommentarer som "svag vänsterfot" eller "dålig huvudspel":
 Styrkor:
-• [punkt baserad på anteckningar]
+• Bra skott
 
 Svagheter:
-• [specifik negativ punkt från anteckningar]
+• [den specifika negativa kommentaren]
 
-OM INGA negativa kommentarer finns:
+OM scout-anteckningarna INTE innehåller negativa kommentarer (som i detta fall med bara "Bra skott"):
 Styrkor:
-• [punkt baserad på anteckningar]
+• Bra skott
 
-[SLUT - ingen svagheter-sektion alls]
+[INGET MER - inget om svagheter överhuvudtaget]
 
-TILLÅT INTE fantasier eller allmänna fotbollskommentarer.`
+DU MÅSTE SLUTA EFTER STYRKOR OM INGA NEGATIVA KOMMENTARER FINNS.
+Skriv INGET om svagheter, inga förklaringar, inga parenteser, INGET.`
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "Du är en expert fotbollsscout som skriver professionella spelarrapporter på svenska för fotbollsklubbar."
+          content: "Du är en expert fotbollsscout som skriver professionella spelarrapporter på svenska för fotbollsklubbar. Du MÅSTE följa instruktionerna exakt och ALDRIG skriva om svagheter om det inte finns specifika negativa kommentarer."
         },
         {
           role: "user",
