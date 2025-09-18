@@ -5,6 +5,8 @@ import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2
 import { Player } from '../types/player'
 import { formatPositionsDisplay } from '@/lib/positions'
 import { generateAndSharePDFWithGesture, isMobileDevice, isShareSupported } from '@/lib/sharePdf'
+import { useAvatarUrl } from '../hooks/useAvatarUrl'
+import { getPlayerInitials } from '@/lib/formatters'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -19,6 +21,13 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
   const [isDeleting, setIsDeleting] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [pdfProgress, setPdfProgress] = useState('')
+
+  // Get the best avatar URL (new system with fallback to legacy)
+  const { url: avatarUrl, isLoading: avatarLoading } = useAvatarUrl({
+    avatarPath: player?.avatarPath,
+    avatarUrl: player?.avatarUrl,
+    tenantId: player?.tenantId || ''
+  })
 
   if (!player || !isOpen) return null
 
@@ -328,9 +337,9 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 <body>
     <div class="player-header">
         <div class="player-photo-pdf">
-            ${player.avatarUrl ?
-                `<img src="${player.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" alt="${player.firstName} ${player.lastName}">` :
-                `<div style="width: 100%; height: 100%; background: #e0e0e0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 2.5rem; font-weight: bold;">${player.firstName ? player.firstName.substring(0, 1) : 'S'}${player.lastName ? player.lastName.substring(0, 1) : 'P'}</div>`}
+            ${avatarUrl ?
+                `<img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" alt="${player.firstName} ${player.lastName}">` :
+                `<div style="width: 100%; height: 100%; background: #e0e0e0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 2.5rem; font-weight: bold;">${getPlayerInitials(player.firstName, player.lastName)}</div>`}
         </div>
         <div class="player-basic-info">
             <h1>${player.firstName} ${player.lastName}</h1>
@@ -418,9 +427,9 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
         {/* Hero Header */}
         <div className="relative h-48 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
           {/* Player Avatar Background */}
-          {player.avatarUrl ? (
+          {avatarUrl && !avatarLoading ? (
             <img
-              src={player.avatarUrl}
+              src={avatarUrl}
               alt={`${player.firstName} ${player.lastName}`}
               className="absolute inset-0 w-full h-full object-cover object-top filter sepia-[5%] contrast-105 brightness-98"
               loading="lazy"
@@ -441,7 +450,14 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
                 target.style.display = 'block'
               }}
             />
-          ) : null}
+          ) : (
+            // Fallback background with player initials
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
+              <div className="text-white text-6xl font-bold opacity-20">
+                {getPlayerInitials(player.firstName, player.lastName)}
+              </div>
+            </div>
+          )}
 
           {/* Enhanced Gradient Overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
