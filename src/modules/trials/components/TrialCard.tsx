@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Calendar, MapPin, User, Star, Clock, Edit, Trash2 } from 'lucide-react'
 import { Trial } from '../types/trial'
 import { TrialStatusBadge } from './TrialStatusBadge'
+import { useAvatarUrl } from '../../players/hooks/useAvatarUrl'
+import { getPlayerInitials } from '@/lib/formatters'
 
 interface TrialCardProps {
   trial: Trial
@@ -13,11 +16,20 @@ interface TrialCardProps {
 }
 
 export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: TrialCardProps) {
+  const [imageError, setImageError] = useState(false)
+
   const playerName = trial.player
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
   const playerPositions = trial.player?.position || ''
+
+  // Get player avatar URL
+  const { url: avatarUrl, isLoading: avatarLoading } = useAvatarUrl({
+    avatarPath: trial.player?.avatarPath,
+    avatarUrl: trial.player?.avatarUrl,
+    tenantId: trial.tenantId
+  })
 
   const trialDate = new Date(trial.scheduledAt)
   const isUpcoming = trialDate > new Date()
@@ -56,23 +68,62 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
   return (
     <div
       className={`
-        group relative bg-white/80 backdrop-blur-sm rounded-xl border border-white/20
+        group relative bg-white/10 backdrop-blur-sm rounded-xl border border-white/20
         shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer
-        hover:scale-[1.02] hover:bg-white/90
+        hover:scale-[1.02] hover:bg-white/15
         ${canEvaluate ? 'ring-2 ring-yellow-400/50' : ''}
       `}
       onClick={handleCardClick}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-white/10">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
+            {/* Player Avatar */}
+            {avatarUrl && !imageError && !avatarLoading ? (
+              <img
+                src={avatarUrl}
+                alt={`Profile photo of ${trial.player?.firstName} ${trial.player?.lastName}`}
+                className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+                loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+
+                  // First attempt: try to reload with cache busting
+                  if (!target.dataset.retried) {
+                    target.dataset.retried = 'true'
+                    const url = new URL(target.src)
+                    url.searchParams.set('t', Date.now().toString())
+                    target.src = url.toString()
+                    return
+                  }
+
+                  // Final fallback: show initials
+                  console.warn(`Failed to load player image: ${target.src}`)
+                  setImageError(true)
+                }}
+                onLoad={(e) => {
+                  // Reset error state and retry flags on successful load
+                  setImageError(false)
+                  const target = e.target as HTMLImageElement
+                  delete target.dataset.retried
+                }}
+              />
+            ) : (
+              // Fallback Avatar - Show initials or generic icon
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-full flex items-center justify-center">
+                {trial.player ? (
+                  <div className="text-white text-sm font-bold">
+                    {getPlayerInitials(trial.player.firstName, trial.player.lastName)}
+                  </div>
+                ) : (
+                  <User className="w-5 h-5 text-white" />
+                )}
+              </div>
+            )}
             <div>
-              <h3 className="font-semibold text-gray-900">{playerName}</h3>
-              <p className="text-sm text-gray-600">{playerPositions}</p>
+              <h3 className="font-semibold text-white">{playerName}</h3>
+              <p className="text-sm text-white/60">{playerPositions}</p>
             </div>
           </div>
           <TrialStatusBadge status={trial.status} size="sm" />
@@ -83,15 +134,15 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
       <div className="p-4 space-y-3">
         {/* Date & Time */}
         <div className="flex items-center gap-2 text-sm">
-          <Calendar className="w-4 h-4 text-gray-400" />
+          <Calendar className="w-4 h-4 text-white/40" />
           <span className={`
-            ${isUpcoming ? 'text-blue-600 font-medium' : ''}
-            ${isPast ? 'text-gray-500' : ''}
+            ${isUpcoming ? 'text-blue-400 font-medium' : 'text-white'}
+            ${isPast ? 'text-white/60' : ''}
           `}>
             {formatDate(trialDate)}
           </span>
           {isUpcoming && (
-            <span className="text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded-full">
+            <span className="text-xs text-blue-300 bg-blue-600/20 px-2 py-1 rounded-full">
               Upcoming
             </span>
           )}
@@ -99,23 +150,23 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
         {/* Location */}
         {trial.location && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4 text-gray-400" />
+          <div className="flex items-center gap-2 text-sm text-white/70">
+            <MapPin className="w-4 h-4 text-white/40" />
             <span>{trial.location}</span>
           </div>
         )}
 
         {/* Club */}
         {trial.player?.club && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <User className="w-4 h-4 text-gray-400" />
+          <div className="flex items-center gap-2 text-sm text-white/70">
+            <User className="w-4 h-4 text-white/40" />
             <span>{trial.player.club}</span>
           </div>
         )}
 
         {/* Notes Preview */}
         {trial.notes && (
-          <div className="text-sm text-gray-600 line-clamp-2">
+          <div className="text-sm text-white/70 line-clamp-2">
             {trial.notes}
           </div>
         )}
@@ -123,17 +174,17 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
         {/* Rating */}
         {trial.rating && (
           <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            <span className="font-medium text-gray-900">{trial.rating}/10</span>
+            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+            <span className="font-medium text-white">{trial.rating}/10</span>
           </div>
         )}
 
         {/* Evaluation Required Banner */}
         {canEvaluate && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="bg-yellow-600/20 border border-yellow-400/30 rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-800">
+              <Clock className="w-4 h-4 text-yellow-400" />
+              <span className="text-sm font-medium text-yellow-200">
                 Evaluation Required
               </span>
             </div>
@@ -146,7 +197,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
         {canEvaluate && (
           <button
             onClick={handleEvaluate}
-            className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+            className="px-3 py-1 text-sm bg-yellow-600/20 text-yellow-300 rounded-lg hover:bg-yellow-600/30 transition-colors"
           >
             Evaluate
           </button>
@@ -154,7 +205,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
         <button
           onClick={handleEdit}
-          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+          className="p-2 text-white/40 hover:text-blue-400 transition-colors"
           title="Edit trial"
         >
           <Edit className="w-4 h-4" />
@@ -162,7 +213,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
         <button
           onClick={handleDelete}
-          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+          className="p-2 text-white/40 hover:text-red-400 transition-colors"
           title="Delete trial"
         >
           <Trash2 className="w-4 h-4" />
