@@ -81,8 +81,14 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
     } else {
       const selectedDate = new Date(formData.scheduledAt)
       const now = new Date()
+      const year = selectedDate.getFullYear()
+
       if (selectedDate < now) {
         newErrors.scheduledAt = 'Trial date must be in the future'
+      } else if (year < 1990 || year > 2040) {
+        newErrors.scheduledAt = 'Please enter a valid year between 1990 and 2040'
+      } else if (isNaN(selectedDate.getTime())) {
+        newErrors.scheduledAt = 'Please enter a valid date and time'
       }
     }
 
@@ -153,26 +159,32 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-md bg-gradient-to-br from-[#020617] via-[#0c1532] to-[#1e3a8a] rounded-xl shadow-2xl border border-white/20 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {trial ? 'Edit Trial' : 'Schedule Trial'}
-          </h2>
+        <div className="relative h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-t-xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="p-2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+            className="absolute top-3 right-3 p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors duration-200 backdrop-blur-sm disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
+
+          <div className="absolute bottom-3 left-4">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+              <Calendar className="w-6 h-6" />
+              {trial ? 'Edit Trial' : 'Schedule Trial'}
+            </h2>
+          </div>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Player Selection */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
               <User className="w-4 h-4" />
               Player *
             </label>
@@ -182,16 +194,15 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               onChange={(value) => handleInputChange('playerId', value || '')}
               placeholder={playersLoading ? "Loading players..." : "Select a player..."}
               disabled={isSubmitting || !!trial || playersLoading} // Disable when editing (can't change player)
-              variant="modal"
             />
             {errors.playerId && (
-              <p className="text-red-600 text-sm mt-1">{errors.playerId}</p>
+              <p className="text-red-300 text-sm mt-1">{errors.playerId}</p>
             )}
           </div>
 
           {/* Date & Time */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
               <Calendar className="w-4 h-4" />
               Date & Time *
             </label>
@@ -199,17 +210,19 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               type="datetime-local"
               value={formData.scheduledAt}
               onChange={(e) => handleInputChange('scheduledAt', e.target.value)}
+              min="1990-01-01T00:00"
+              max="2040-12-31T23:59"
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50"
+              className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400 outline-none disabled:opacity-50 transition-all duration-200"
             />
             {errors.scheduledAt && (
-              <p className="text-red-600 text-sm mt-1">{errors.scheduledAt}</p>
+              <p className="text-red-300 text-sm mt-1">{errors.scheduledAt}</p>
             )}
           </div>
 
           {/* Club */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
               <MapPin className="w-4 h-4" />
               Club *
             </label>
@@ -219,16 +232,15 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               onChange={(value) => handleInputChange('club', value || '')}
               placeholder="Select a club..."
               disabled={isSubmitting}
-              variant="modal"
             />
             {errors.club && (
-              <p className="text-red-600 text-sm mt-1">{errors.club}</p>
+              <p className="text-red-300 text-sm mt-1">{errors.club}</p>
             )}
           </div>
 
           {/* Location */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
               <MapPin className="w-4 h-4" />
               Location *
             </label>
@@ -238,16 +250,16 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               onChange={(e) => handleInputChange('location', e.target.value)}
               placeholder="e.g., Training Ground A, Stadium Name..."
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50"
+              className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400 outline-none disabled:opacity-50 transition-all duration-200"
             />
             {errors.location && (
-              <p className="text-red-600 text-sm mt-1">{errors.location}</p>
+              <p className="text-red-300 text-sm mt-1">{errors.location}</p>
             )}
           </div>
 
           {/* Notes */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
               <FileText className="w-4 h-4" />
               Notes
             </label>
@@ -257,7 +269,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               placeholder="Add any notes about this trial session..."
               rows={3}
               disabled={isSubmitting}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none disabled:bg-gray-50"
+              className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400 outline-none resize-none disabled:opacity-50 transition-all duration-200"
             />
           </div>
 
@@ -267,14 +279,14 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-white/70 hover:text-white transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               {isSubmitting
                 ? (trial ? 'Updating...' : 'Scheduling...')
