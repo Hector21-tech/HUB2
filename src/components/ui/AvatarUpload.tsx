@@ -133,10 +133,7 @@ export function AvatarUpload({
 
       const { uploadUrl, path } = await uploadResponse.json()
 
-      // Upload file to Supabase Storage
-      const formData = new FormData()
-      formData.append('file', compressedFile)
-
+      // Upload file to Supabase Storage using PUT with raw binary data
       const uploadRequest = new XMLHttpRequest()
       let uploadCompleted = false
 
@@ -166,12 +163,14 @@ export function AvatarUpload({
         if (uploadRequest.status === 200) {
           completeUpload()
         } else {
-          throw new Error('Upload failed')
+          console.error('Upload failed with status:', uploadRequest.status, uploadRequest.responseText)
+          throw new Error(`Upload failed with status: ${uploadRequest.status}`)
         }
       })
 
       uploadRequest.addEventListener('error', () => {
-        throw new Error('Upload failed')
+        console.error('Upload network error')
+        throw new Error('Upload failed - network error')
       })
 
       // Timeout fallback (30 seconds)
@@ -189,8 +188,10 @@ export function AvatarUpload({
         originalCompleteUpload()
       }
 
-      uploadRequest.open('POST', uploadUrl)
-      uploadRequest.send(formData)
+      // Use PUT method with correct headers for Supabase signed upload
+      uploadRequest.open('PUT', uploadUrl)
+      uploadRequest.setRequestHeader('Content-Type', compressedFile.type)
+      uploadRequest.send(compressedFile)
 
     } catch (error) {
       console.error('Upload error:', error)
