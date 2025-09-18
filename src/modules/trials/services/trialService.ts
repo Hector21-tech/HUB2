@@ -214,6 +214,15 @@ export class TrialService {
   }
 
   async deleteTrial(id: string, tenantId: string): Promise<void> {
+    // First verify the trial exists and belongs to the tenant
+    const trial = await prisma.trial.findFirst({
+      where: { id, tenantId }
+    })
+
+    if (!trial) {
+      throw new Error('Trial not found or access denied')
+    }
+
     await prisma.trial.delete({
       where: { id }
     })

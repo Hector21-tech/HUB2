@@ -26,8 +26,8 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
   // Get player avatar URL
   const { url: avatarUrl, isLoading: avatarLoading } = useAvatarUrl({
-    avatarPath: trial.player?.avatarPath,
-    avatarUrl: trial.player?.avatarUrl,
+    avatarPath: trial.player?.avatarPath || undefined,
+    avatarUrl: trial.player?.avatarUrl || undefined,
     tenantId: trial.tenantId
   })
 

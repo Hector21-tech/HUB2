@@ -6,6 +6,7 @@ import { useDeleteTrial } from '../hooks/useTrialMutations'
 import { TrialsHeader } from './TrialsHeader'
 import { TrialCard } from './TrialCard'
 import { AddTrialModal } from './AddTrialModal'
+import { TrialDetailDrawer } from './TrialDetailDrawer'
 import { TrialStatusBadge } from './TrialStatusBadge'
 import { Trial, TrialFilters } from '../types/trial'
 import { Calendar, MapPin, User, Edit, Trash2 } from 'lucide-react'
@@ -22,6 +23,8 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [showTrialDetail, setShowTrialDetail] = useState(false)
+  const [detailTrial, setDetailTrial] = useState<Trial | null>(null)
 
   // Fetch trials with filters
   const { data: trials = [], isLoading, error } = useTrialsQuery(tenantId, filters)
@@ -73,8 +76,8 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
   }
 
   const handleTrialClick = (trial: Trial) => {
-    // TODO: Open trial detail drawer
-    console.log('View trial details:', trial.id)
+    setDetailTrial(trial)
+    setShowTrialDetail(true)
   }
 
   if (error) {
@@ -190,19 +193,17 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
                     }
 
                     return (
-                      <TrialListItem
+                      <div
                         key={trial.id}
-                        trial={trial}
-                        playerName={playerName}
-                        trialDate={trialDate}
-                        isUpcoming={isUpcoming}
-                        formatDate={formatDate}
-                        onTrialClick={handleTrialClick}
-                        onEditTrial={handleEditTrial}
-                        onDeleteTrial={handleDeleteTrial}
-                      />
-                    )
-                  })}
+                        onClick={() => handleTrialClick(trial)}
+                        className="cursor-pointer transition-colors duration-200 hover:bg-white/5 min-h-[80px]"
+                      >
+                        {/* Desktop Layout */}
+                        <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 items-center">
+                          <div className="col-span-2 flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-lg flex items-center justify-center">
+                              <User className="w-5 h-5 text-white" />
+                            </div>
                             <div>
                               <p className="font-medium text-white/90">{playerName}</p>
                               <p className="text-xs text-white/60">{trial.player?.position || 'N/A'}</p>
@@ -251,8 +252,8 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
                         {/* Mobile Layout */}
                         <div className="lg:hidden p-4">
                           <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                              {/* TODO: Add avatar implementation here */}
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <User className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between">
@@ -389,6 +390,31 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
           tenantId={tenantId}
         />
       )}
+
+      {/* Trial Detail Drawer */}
+      <TrialDetailDrawer
+        trial={detailTrial}
+        isOpen={showTrialDetail}
+        onClose={() => {
+          setShowTrialDetail(false)
+          setDetailTrial(null)
+        }}
+        onEdit={(trial) => {
+          setShowTrialDetail(false)
+          setDetailTrial(null)
+          handleEditTrial(trial)
+        }}
+        onDelete={(trial) => {
+          setShowTrialDetail(false)
+          setDetailTrial(null)
+          handleDeleteTrial(trial)
+        }}
+        onEvaluate={(trial) => {
+          setShowTrialDetail(false)
+          setDetailTrial(null)
+          handleEvaluateTrial(trial)
+        }}
+      />
     </div>
   )
 }
