@@ -6,72 +6,7 @@ interface TrialsResponse {
   data: Trial[]
 }
 
-// Mock trials for demo/fallback
-const getMockTrials = (): Trial[] => [
-  {
-    id: 'trial-1',
-    tenantId: 'tenant-test-1',
-    playerId: 'mock-1',
-    requestId: null,
-    scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-    location: 'Gamla Ullevi, Göteborg',
-    status: 'SCHEDULED',
-    notes: 'Första provträning. Fokus på teknisk förmåga och fotarbete.',
-    rating: null,
-    feedback: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    player: {
-      id: 'mock-1',
-      firstName: 'Marcus',
-      lastName: 'Lindberg',
-      position: 'CAM',
-      club: 'IFK Göteborg'
-    }
-  },
-  {
-    id: 'trial-2',
-    tenantId: 'tenant-test-1',
-    playerId: 'mock-2',
-    requestId: null,
-    scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-    location: 'Bravida Arena, Göteborg',
-    status: 'SCHEDULED',
-    notes: 'Andra provträning efter starkt första intryck.',
-    rating: null,
-    feedback: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    player: {
-      id: 'mock-2',
-      firstName: 'Erik',
-      lastName: 'Johansson',
-      position: 'CB',
-      club: 'Free Agent'
-    }
-  },
-  {
-    id: 'trial-3',
-    tenantId: 'tenant-test-1',
-    playerId: 'mock-1',
-    requestId: null,
-    scheduledAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    location: 'Gamla Ullevi, Göteborg',
-    status: 'COMPLETED',
-    notes: 'Avslutad trial med mycket positiva intryck.',
-    rating: 8.5,
-    feedback: 'Exceptionell teknisk förmåga och stark spelförståelse. Visade stor potential under hela sessionen. Rekommenderar starkt för fortsatt utveckling.',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    player: {
-      id: 'mock-1',
-      firstName: 'Marcus',
-      lastName: 'Lindberg',
-      position: 'CAM',
-      club: 'IFK Göteborg'
-    }
-  }
-]
+// No mock trials - show empty state instead
 
 const buildQueryString = (tenantId: string, filters?: TrialFilters): string => {
   const params = new URLSearchParams({ tenantId })
@@ -106,18 +41,14 @@ const fetchTrials = async (tenantId: string, filters?: TrialFilters): Promise<Tr
 
     if (!result.success) {
       console.warn('API returned error:', result.error)
-      return getMockTrials()
+      return []
     }
 
-    // If no trials exist, return mock data for demo
-    if (!result.data || result.data.length === 0) {
-      return getMockTrials()
-    }
-
-    return result.data
+    // Return actual data or empty array
+    return result.data || []
   } catch (err) {
     console.error('Error fetching trials:', err)
-    return getMockTrials()
+    return []
   }
 }
 
