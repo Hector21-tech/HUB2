@@ -138,8 +138,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModa
   // Convert players to searchable select options
   const playerOptions = players.map(player => ({
     value: player.id,
-    label: `${player.firstName} ${player.lastName}`,
-    subtitle: `${player.positions?.join(', ') || 'No position'} • ${player.club || 'No club'}`
+    label: `${player.firstName} ${player.lastName} - ${player.positions?.join(', ') || 'No position'} • ${player.club || 'No club'}`
   }))
 
   if (!isOpen) return null
@@ -172,10 +171,9 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModa
             <SearchableSelect
               options={playerOptions}
               value={formData.playerId}
-              onChange={(value) => handleInputChange('playerId', value)}
-              placeholder="Select a player..."
-              isLoading={playersLoading}
-              disabled={isSubmitting || !!trial} // Disable when editing (can't change player)
+              onChange={(value) => handleInputChange('playerId', value || '')}
+              placeholder={playersLoading ? "Loading players..." : "Select a player..."}
+              disabled={isSubmitting || !!trial || playersLoading} // Disable when editing (can't change player)
             />
             {errors.playerId && (
               <p className="text-red-600 text-sm mt-1">{errors.playerId}</p>
