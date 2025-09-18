@@ -110,6 +110,12 @@ export async function getCachedAvatarUrl(avatarPath: string, tenantId: string): 
 
     const result = await response.json()
 
+    // If URL is null (file not found), cache the null result
+    if (result.url === null) {
+      console.log(`Avatar file not found for path: ${avatarPath}`)
+      return null
+    }
+
     // Cache the URL (expires in 60 minutes, we cache for 55 to be safe)
     urlCache.set(cacheKey, {
       url: result.url,

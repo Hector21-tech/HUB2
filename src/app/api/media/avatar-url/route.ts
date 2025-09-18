@@ -43,6 +43,17 @@ export async function GET(request: NextRequest) {
       console.error('Supabase signed URL error:', error)
       console.error('Error details:', JSON.stringify(error, null, 2))
       console.error('Requested path:', path)
+
+      // If file doesn't exist (404), return null instead of error
+      // This allows graceful fallback to initials avatar
+      if (error.status === 400 && error.statusCode === '404') {
+        console.log(`File not found, returning null for path: ${path}`)
+        return NextResponse.json({
+          url: null,
+          error: 'File not found'
+        })
+      }
+
       return NextResponse.json(
         { error: 'Failed to generate download URL' },
         { status: 500 }
