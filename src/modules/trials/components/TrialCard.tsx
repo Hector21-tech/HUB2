@@ -3,7 +3,6 @@
 import { Calendar, MapPin, User, Star, Clock, Edit, Trash2 } from 'lucide-react'
 import { Trial } from '../types/trial'
 import { TrialStatusBadge } from './TrialStatusBadge'
-import { formatPositionsDisplay } from '@/lib/positions'
 
 interface TrialCardProps {
   trial: Trial
@@ -18,9 +17,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
-  const playerPositions = trial.player?.positions
-    ? formatPositionsDisplay(trial.player.positions)
-    : ''
+  const playerPositions = trial.player?.position || ''
 
   const trialDate = new Date(trial.scheduledAt)
   const isUpcoming = trialDate > new Date()
