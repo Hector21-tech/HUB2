@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
 
       // If file doesn't exist (404), return null instead of error
       // This allows graceful fallback to initials avatar
-      if (error.statusCode === '404' || error.message?.includes('Object not found')) {
+      if (error.message?.includes('Object not found') ||
+          (error as any).statusCode === '404' ||
+          (error as any).status === 404) {
         console.log(`File not found, returning null for path: ${path}`)
         return NextResponse.json({
           url: null,
