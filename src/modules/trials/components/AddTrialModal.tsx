@@ -139,7 +139,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModa
   const playerOptions = players.map(player => ({
     value: player.id,
     label: `${player.firstName} ${player.lastName}`,
-    subtitle: `${player.position || 'No position'} • ${player.club || 'No club'}`
+    subtitle: `${player.positions?.join(', ') || 'No position'} • ${player.club || 'No club'}`
   }))
 
   if (!isOpen) return null
