@@ -14,9 +14,10 @@ interface PlayerDetailDrawerProps {
   onClose: () => void
   onEdit: (player: Player) => void
   onDelete: (player: Player) => void
+  onScheduleTrial?: (player: Player) => void
 }
 
-export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }: PlayerDetailDrawerProps) {
+export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete, onScheduleTrial }: PlayerDetailDrawerProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
@@ -690,7 +691,12 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 border-t border-white/20">
-            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl touch-none">
+            <button
+              onClick={() => onScheduleTrial?.(player)}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 sm:py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl touch-none disabled:opacity-50"
+              disabled={!onScheduleTrial}
+            >
+              <Calendar className="w-5 h-5 inline mr-2" />
               Schedule Trial
             </button>
             <button

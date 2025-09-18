@@ -6,6 +6,7 @@ import { PlayersHeader } from './PlayersHeader'
 import { PlayerGrid, PlayerGridSkeleton } from './PlayerGrid'
 import { PlayerDetailDrawer } from './PlayerDetailDrawer'
 import { AddPlayerModal } from './AddPlayerModal'
+import { AddTrialModal } from '../../trials/components/AddTrialModal'
 import { usePlayersQuery } from '../hooks/usePlayersQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
@@ -26,6 +27,8 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
   const [isAddPlayerModalOpen, setIsAddPlayerModalOpen] = useState(false)
   const [isEditPlayerModalOpen, setIsEditPlayerModalOpen] = useState(false)
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
+  const [isScheduleTrialModalOpen, setIsScheduleTrialModalOpen] = useState(false)
+  const [trialPlayer, setTrialPlayer] = useState<Player | null>(null)
 
 
   // Mock players for demo/fallback
@@ -352,6 +355,12 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
     }
   }
 
+  const handleScheduleTrial = (player: Player) => {
+    setTrialPlayer(player)
+    setIsScheduleTrialModalOpen(true)
+    setSelectedPlayer(null) // Close detail drawer
+  }
+
   // Don't show error state since we have fallback data
   // if (error) {
   //   return (
@@ -421,6 +430,7 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         onClose={handleDrawerClose}
         onEdit={handleEditPlayer}
         onDelete={handleDeletePlayer}
+        onScheduleTrial={handleScheduleTrial}
       />
 
       {/* Add Player Modal */}
@@ -441,6 +451,17 @@ export function PlayersPage({ tenantId }: PlayersPageProps) {
         onSave={handleUpdatePlayer}
         tenantId={tenantId}
         editingPlayer={editingPlayer}
+      />
+
+      {/* Schedule Trial Modal */}
+      <AddTrialModal
+        isOpen={isScheduleTrialModalOpen}
+        onClose={() => {
+          setIsScheduleTrialModalOpen(false)
+          setTrialPlayer(null)
+        }}
+        tenantId={tenantId}
+        preSelectedPlayerId={trialPlayer?.id}
       />
     </div>
   )

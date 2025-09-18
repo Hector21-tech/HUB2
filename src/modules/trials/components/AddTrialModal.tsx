@@ -12,9 +12,10 @@ interface AddTrialModalProps {
   onClose: () => void
   tenantId: string
   trial?: Trial | null // For editing existing trials
+  preSelectedPlayerId?: string // For pre-selecting a player when scheduling from player detail
 }
 
-export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModalProps) {
+export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPlayerId }: AddTrialModalProps) {
   const [formData, setFormData] = useState({
     playerId: '',
     requestId: '',
@@ -32,7 +33,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModa
   const createTrial = useCreateTrial(tenantId)
   const updateTrial = useUpdateTrial(tenantId)
 
-  // Populate form when editing a trial
+  // Populate form when editing a trial or pre-selecting a player
   useEffect(() => {
     if (trial) {
       setFormData({
@@ -45,9 +46,9 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModa
         notes: trial.notes || ''
       })
     } else {
-      // Reset form for new trial
+      // Reset form for new trial, but use preSelectedPlayerId if provided
       setFormData({
-        playerId: '',
+        playerId: preSelectedPlayerId || '',
         requestId: '',
         scheduledAt: '',
         location: '',
@@ -55,7 +56,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial }: AddTrialModa
       })
     }
     setErrors({})
-  }, [trial, isOpen])
+  }, [trial, preSelectedPlayerId, isOpen])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
