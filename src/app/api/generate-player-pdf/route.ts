@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
+
+// Initialize Supabase client for avatar URL resolution
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 interface PDFRequest {
   html?: string
@@ -29,6 +36,39 @@ function sanitizeFileName(name: string) {
   return withExt.slice(0, 120)
 }
 
+// Resolve avatar URL from path for PDF generation
+async function resolveAvatarUrl(avatarPath: string, tenantId: string): Promise<string | null> {
+  try {
+    // Validate that the path belongs to the requested tenant
+    if (!avatarPath.startsWith(`${tenantId}/`)) {
+      console.warn('Avatar path does not belong to tenant:', { avatarPath, tenantId })
+      return null
+    }
+
+    // Generate signed download URL (60 minutes TTL)
+    const { data, error } = await supabase.storage
+      .from('player-avatars')
+      .createSignedUrl(avatarPath, 3600) // 60 minutes
+
+    if (error) {
+      console.error('Supabase signed URL error:', error)
+      // If file doesn't exist, return null gracefully
+      if (error.message?.includes('Object not found') ||
+          (error as any).statusCode === '404' ||
+          (error as any).status === 404) {
+        console.log(`Avatar file not found for PDF, returning null: ${avatarPath}`)
+        return null
+      }
+      return null
+    }
+
+    return data.signedUrl
+  } catch (error) {
+    console.error('Error resolving avatar URL for PDF:', error)
+    return null
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { html, url, fileName = 'document.pdf', playerData, aiImprovedNotes, tenantData }: PDFRequest = await request.json()
@@ -40,7 +80,22 @@ export async function POST(request: NextRequest) {
 
     if (playerData) {
       // Legacy support - generate HTML from playerData
-      htmlContent = generatePDFHTML(playerData, aiImprovedNotes || null, tenantData || null)
+      // First resolve avatar URL if player has avatarPath
+      let resolvedAvatarUrl = playerData.avatarUrl // Keep legacy avatarUrl as fallback
+      if (playerData.avatarPath && playerData.tenantId) {
+        const signedUrl = await resolveAvatarUrl(playerData.avatarPath, playerData.tenantId)
+        if (signedUrl) {
+          resolvedAvatarUrl = signedUrl
+        }
+      }
+
+      // Create player data with resolved avatar URL
+      const playerDataWithAvatar = {
+        ...playerData,
+        avatarUrl: resolvedAvatarUrl
+      }
+
+      htmlContent = generatePDFHTML(playerDataWithAvatar, aiImprovedNotes || null, tenantData || null)
       finalFileName = `${playerData.firstName}_${playerData.lastName}_Scout_Report.pdf`
     }
 
