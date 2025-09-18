@@ -32,7 +32,7 @@ export function calculateAge(dateOfBirth?: Date): number | null {
 }
 
 /**
- * Format date in a readable format
+ * Format date in a readable format (English format for compatibility)
  * @param date - Date to format
  * @returns Formatted date string
  */
@@ -43,6 +43,54 @@ export function formatDate(date?: Date): string {
     month: 'short',
     year: 'numeric'
   })
+}
+
+/**
+ * Format date in Swedish format (YYYY-MM-DD)
+ * @param date - Date to format
+ * @returns Formatted Swedish date string
+ */
+export function formatDateSwedish(date?: Date): string {
+  if (!date) return 'Ej angivet'
+  return new Date(date).toLocaleDateString('sv-SE')
+}
+
+/**
+ * Format date and time for Swedish locale
+ * @param date - Date to format
+ * @returns Formatted Swedish date and time string
+ */
+export function formatDateTimeSwedish(date?: Date): string {
+  if (!date) return 'Ej angivet'
+  return new Date(date).toLocaleString('sv-SE', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+/**
+ * Convert Date to datetime-local input format (YYYY-MM-DDTHH:mm)
+ * @param date - Date to convert
+ * @returns ISO datetime string for input field
+ */
+export function toDateTimeLocalString(date?: Date): string {
+  if (!date) return ''
+  const d = new Date(date)
+  // Adjust for timezone offset to get local time
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  return d.toISOString().slice(0, 16)
+}
+
+/**
+ * Parse datetime-local string to Date object
+ * @param dateTimeString - String from datetime-local input
+ * @returns Date object
+ */
+export function fromDateTimeLocalString(dateTimeString: string): Date {
+  return new Date(dateTimeString)
 }
 
 /**
