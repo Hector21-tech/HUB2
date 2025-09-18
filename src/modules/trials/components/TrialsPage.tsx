@@ -5,6 +5,7 @@ import { useTrialsQuery } from '../hooks/useTrialsQuery'
 import { useDeleteTrial } from '../hooks/useTrialMutations'
 import { TrialsHeader } from './TrialsHeader'
 import { TrialCard } from './TrialCard'
+import { AddTrialModal } from './AddTrialModal'
 import { Trial, TrialFilters } from '../types/trial'
 
 interface TrialsPageProps {
@@ -226,9 +227,10 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
         </div>
       )}
 
-      {/* TODO: Add Modals */}
-      {/* {showAddModal && (
+      {/* Add Trial Modal */}
+      {showAddModal && (
         <AddTrialModal
+          isOpen={showAddModal}
           trial={selectedTrial}
           onClose={() => {
             setShowAddModal(false)
@@ -236,7 +238,7 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
           }}
           tenantId={tenantId}
         />
-      )} */}
+      )}
     </div>
   )
 }
