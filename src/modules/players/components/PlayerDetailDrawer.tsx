@@ -339,7 +339,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
         <div class="player-photo-pdf">
             ${avatarUrl ?
                 `<img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" alt="${player.firstName} ${player.lastName}">` :
-                `<div style="width: 100%; height: 100%; background: #e0e0e0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 2.5rem; font-weight: bold;">${getPlayerInitials(player.firstName, player.lastName)}</div>`}
+                `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2563eb, #1d4ed8, #1e40af); border-radius: 10px;"></div>`}
         </div>
         <div class="player-basic-info">
             <h1>${player.firstName} ${player.lastName}</h1>
@@ -451,12 +451,8 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete }
               }}
             />
           ) : (
-            // Fallback background with player initials
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
-              <div className="text-white text-6xl font-bold opacity-20">
-                {getPlayerInitials(player.firstName, player.lastName)}
-              </div>
-            </div>
+            // Fallback background without initials
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800" />
           )}
 
           {/* Enhanced Gradient Overlay for better text readability */}
