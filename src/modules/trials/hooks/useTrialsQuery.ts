@@ -25,7 +25,7 @@ const getMockTrials = (): Trial[] => [
       id: 'mock-1',
       firstName: 'Marcus',
       lastName: 'Lindberg',
-      positions: ['CAM', 'LW'],
+      position: 'CAM',
       club: 'IFK Göteborg'
     }
   },
@@ -46,7 +46,7 @@ const getMockTrials = (): Trial[] => [
       id: 'mock-2',
       firstName: 'Erik',
       lastName: 'Johansson',
-      positions: ['CB', 'DMF'],
+      position: 'CB',
       club: 'Free Agent'
     }
   },
@@ -67,7 +67,7 @@ const getMockTrials = (): Trial[] => [
       id: 'mock-1',
       firstName: 'Marcus',
       lastName: 'Lindberg',
-      positions: ['CAM', 'LW'],
+      position: 'CAM',
       club: 'IFK Göteborg'
     }
   }

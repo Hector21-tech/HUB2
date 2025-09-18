@@ -21,7 +21,7 @@ export interface Trial {
     id: string
     firstName: string
     lastName: string
-    positions: string[]
+    position?: string | null
     club?: string | null
     avatarPath?: string | null
     avatarUrl?: string | null

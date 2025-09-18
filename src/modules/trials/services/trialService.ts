@@ -60,7 +60,7 @@ export class TrialService {
             id: true,
             firstName: true,
             lastName: true,
-            positions: true,
+            position: true,
             club: true,
             avatarPath: true,
             avatarUrl: true
@@ -92,7 +92,7 @@ export class TrialService {
             id: true,
             firstName: true,
             lastName: true,
-            positions: true,
+            position: true,
             club: true,
             avatarPath: true,
             avatarUrl: true
@@ -124,7 +124,7 @@ export class TrialService {
             id: true,
             firstName: true,
             lastName: true,
-            positions: true,
+            position: true,
             club: true,
             avatarPath: true,
             avatarUrl: true
@@ -157,7 +157,7 @@ export class TrialService {
             id: true,
             firstName: true,
             lastName: true,
-            positions: true,
+            position: true,
             club: true,
             avatarPath: true,
             avatarUrl: true
@@ -193,7 +193,7 @@ export class TrialService {
             id: true,
             firstName: true,
             lastName: true,
-            positions: true,
+            position: true,
             club: true,
             avatarPath: true,
             avatarUrl: true
@@ -279,7 +279,7 @@ export class TrialService {
             id: true,
             firstName: true,
             lastName: true,
-            positions: true,
+            position: true,
             club: true,
             avatarPath: true,
             avatarUrl: true
