@@ -7,7 +7,7 @@ import { usePlayersQuery } from '../../players/hooks/usePlayersQuery'
 import { useCreateTrial, useUpdateTrial } from '../hooks/useTrialMutations'
 import { Trial, CreateTrialInput, UpdateTrialInput } from '../types/trial'
 import { searchClubs, getAllClubNames } from '@/lib/football-clubs'
-import { formatDateTimeSwedish, toDateTimeLocalString, fromDateTimeLocalString } from '@/lib/formatters'
+import { toDateTimeLocalString, fromDateTimeLocalString } from '@/lib/formatters'
 
 interface AddTrialModalProps {
   isOpen: boolean
@@ -22,6 +22,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
     playerId: '',
     requestId: '',
     scheduledAt: '',
+    club: '',
     location: '',
     notes: ''
   })
@@ -42,7 +43,8 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
         playerId: trial.playerId || '',
         requestId: trial.requestId || '',
         scheduledAt: toDateTimeLocalString(trial.scheduledAt),
-        location: trial.location || '',
+        club: trial.location || '', // Map existing location to club for backward compatibility
+        location: '',
         notes: trial.notes || ''
       })
     } else {
@@ -51,6 +53,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
         playerId: preSelectedPlayerId || '',
         requestId: '',
         scheduledAt: '',
+        club: '',
         location: '',
         notes: ''
       })
@@ -70,21 +73,25 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
     const newErrors: Record<string, string> = {}
 
     if (!formData.playerId) {
-      newErrors.playerId = 'Vänligen välj en spelare'
+      newErrors.playerId = 'Please select a player'
     }
 
     if (!formData.scheduledAt) {
-      newErrors.scheduledAt = 'Vänligen välj datum och tid'
+      newErrors.scheduledAt = 'Please select a date and time'
     } else {
       const selectedDate = new Date(formData.scheduledAt)
       const now = new Date()
       if (selectedDate < now) {
-        newErrors.scheduledAt = 'Provträningsdatum måste vara i framtiden'
+        newErrors.scheduledAt = 'Trial date must be in the future'
       }
     }
 
+    if (!formData.club?.trim()) {
+      newErrors.club = 'Please select a club'
+    }
+
     if (!formData.location?.trim()) {
-      newErrors.location = 'Vänligen ange en plats'
+      newErrors.location = 'Please enter a location'
     }
 
     setErrors(newErrors)
@@ -103,7 +110,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
         playerId: formData.playerId,
         requestId: formData.requestId || null,
         scheduledAt: fromDateTimeLocalString(formData.scheduledAt),
-        location: formData.location.trim(),
+        location: formData.club.trim(), // Save club as location for backend compatibility
         notes: formData.notes.trim() || null
       }
 
@@ -150,7 +157,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            {trial ? 'Redigera Provträning' : 'Boka Provträning'}
+            {trial ? 'Edit Trial' : 'Schedule Trial'}
           </h2>
           <button
             onClick={handleClose}
@@ -167,14 +174,15 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <User className="w-4 h-4" />
-              Spelare *
+              Player *
             </label>
             <SearchableSelect
               options={playerOptions}
               value={formData.playerId}
               onChange={(value) => handleInputChange('playerId', value || '')}
-              placeholder={playersLoading ? "Laddar spelare..." : "Välj en spelare..."}
+              placeholder={playersLoading ? "Loading players..." : "Select a player..."}
               disabled={isSubmitting || !!trial || playersLoading} // Disable when editing (can't change player)
+              variant="modal"
             />
             {errors.playerId && (
               <p className="text-red-600 text-sm mt-1">{errors.playerId}</p>
@@ -185,7 +193,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <Calendar className="w-4 h-4" />
-              Datum & Tid *
+              Date & Time *
             </label>
             <input
               type="datetime-local"
@@ -199,18 +207,38 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
             )}
           </div>
 
+          {/* Club */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <MapPin className="w-4 h-4" />
+              Club *
+            </label>
+            <SearchableSelect
+              options={getAllClubNames().map(club => ({ value: club, label: club }))}
+              value={formData.club}
+              onChange={(value) => handleInputChange('club', value || '')}
+              placeholder="Select a club..."
+              disabled={isSubmitting}
+              variant="modal"
+            />
+            {errors.club && (
+              <p className="text-red-600 text-sm mt-1">{errors.club}</p>
+            )}
+          </div>
+
           {/* Location */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
-              Plats *
+              Location *
             </label>
-            <SearchableSelect
-              options={getAllClubNames().map(club => ({ value: club, label: club }))}
+            <input
+              type="text"
               value={formData.location}
-              onChange={(value) => handleInputChange('location', value || '')}
-              placeholder="Välj klubb eller ange plats..."
+              onChange={(e) => handleInputChange('location', e.target.value)}
+              placeholder="e.g., Training Ground A, Stadium Name..."
               disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50"
             />
             {errors.location && (
               <p className="text-red-600 text-sm mt-1">{errors.location}</p>
@@ -221,12 +249,12 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <FileText className="w-4 h-4" />
-              Anteckningar
+              Notes
             </label>
             <textarea
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Lägg till anteckningar om denna provträning..."
+              placeholder="Add any notes about this trial session..."
               rows={3}
               disabled={isSubmitting}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none disabled:bg-gray-50"
@@ -241,7 +269,7 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               disabled={isSubmitting}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
             >
-              Avbryt
+              Cancel
             </button>
             <button
               type="submit"
@@ -249,8 +277,8 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
-                ? (trial ? 'Uppdaterar...' : 'Bokar...')
-                : (trial ? 'Uppdatera Provträning' : 'Boka Provträning')
+                ? (trial ? 'Updating...' : 'Scheduling...')
+                : (trial ? 'Update Trial' : 'Schedule Trial')
               }
             </button>
           </div>
