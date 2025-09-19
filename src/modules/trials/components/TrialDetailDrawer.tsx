@@ -24,9 +24,9 @@ export function TrialDetailDrawer({
   onDelete,
   onEvaluate
 }: TrialDetailDrawerProps) {
-  const [imageError, setImageError] = useState(false)
-
   if (!trial) return null
+
+  const [imageError, setImageError] = useState(false)
 
   const playerName = trial.player
     ? `${trial.player.firstName} ${trial.player.lastName}`
