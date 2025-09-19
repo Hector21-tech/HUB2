@@ -22,7 +22,7 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
-  const trialClub = trial.request?.club || 'Unknown Club'
+  const trialClub = trial.request?.club || trial.location || 'Unknown Club'
   const trialTitle = `Trial with → ${trialClub}`
 
   const playerPosition = trial.player?.position

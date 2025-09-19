@@ -23,7 +23,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
-  const trialClub = trial.request?.club || 'Unknown Club'
+  const trialClub = trial.request?.club || trial.location || 'Unknown Club'
   const trialTitle = `Trial with → ${trialClub}`
 
   const playerPosition = trial.player?.position
@@ -155,8 +155,8 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
           )}
         </div>
 
-        {/* Location */}
-        {trial.location && (
+        {/* Location - only show if different from trial club or if there's a specific venue */}
+        {trial.location && trial.request?.club && trial.location !== trial.request.club && (
           <div className="flex items-center gap-2 text-sm text-white/70">
             <MapPin className="w-4 h-4 text-white/40" />
             <span>{trial.location}</span>
