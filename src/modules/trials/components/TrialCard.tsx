@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, MapPin, User, Star, Clock, Edit, Trash2 } from 'lucide-react'
+import { Calendar, MapPin, User, Star, Clock, Edit, Trash2, CheckCircle } from 'lucide-react'
 import { Trial } from '../types/trial'
 import { TrialStatusBadge } from './TrialStatusBadge'
 import { useAvatarUrl } from '../../players/hooks/useAvatarUrl'
 import { getPlayerInitials } from '@/lib/formatters'
 import { getFullPositionName } from '@/lib/positions'
+import { useUpdateTrialStatus } from '../hooks/useTrialMutations'
 
 interface TrialCardProps {
   trial: Trial
@@ -18,6 +19,9 @@ interface TrialCardProps {
 
 export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: TrialCardProps) {
   const [imageError, setImageError] = useState(false)
+
+  // Hook for updating trial status
+  const updateTrialStatus = useUpdateTrialStatus(trial.tenantId)
 
   const playerName = trial.player
     ? `${trial.player.firstName} ${trial.player.lastName}`
@@ -61,6 +65,19 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
   const handleCardClick = () => {
     onClick?.(trial)
+  }
+
+  const handleMarkCompleted = async (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click
+    try {
+      await updateTrialStatus.mutateAsync({
+        trialId: trial.id,
+        status: 'COMPLETED'
+      })
+    } catch (error) {
+      console.error('Failed to mark trial as completed:', error)
+      // TODO: Show error toast
+    }
   }
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -208,6 +225,19 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 p-4 pt-0">
+        {/* Mark as Completed button - only show for non-completed trials */}
+        {trial.status !== 'COMPLETED' && trial.status !== 'CANCELLED' && (
+          <button
+            onClick={handleMarkCompleted}
+            disabled={updateTrialStatus.isPending}
+            className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600/20 text-green-300 rounded-lg hover:bg-green-600/30 transition-colors disabled:opacity-50"
+            title="Mark as completed"
+          >
+            <CheckCircle className="w-3 h-3" />
+            {updateTrialStatus.isPending ? 'Completing...' : 'Complete'}
+          </button>
+        )}
+
         {canEvaluate && (
           <button
             onClick={handleEvaluate}

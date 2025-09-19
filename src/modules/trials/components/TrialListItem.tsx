@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, MapPin, User, Edit, Trash2 } from 'lucide-react'
+import { Calendar, MapPin, User, Edit, Trash2, CheckCircle } from 'lucide-react'
 import { Trial } from '../types/trial'
 import { TrialStatusBadge } from './TrialStatusBadge'
 import { useAvatarUrl } from '../../players/hooks/useAvatarUrl'
 import { getPlayerInitials } from '@/lib/formatters'
 import { getFullPositionName } from '@/lib/positions'
+import { useUpdateTrialStatus } from '../hooks/useTrialMutations'
 
 interface TrialListItemProps {
   trial: Trial
@@ -17,6 +18,9 @@ interface TrialListItemProps {
 
 export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListItemProps) {
   const [imageError, setImageError] = useState(false)
+
+  // Hook for updating trial status
+  const updateTrialStatus = useUpdateTrialStatus(trial.tenantId)
 
   const playerName = trial.player
     ? `${trial.player.firstName} ${trial.player.lastName}`
@@ -54,6 +58,19 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
       hour: '2-digit',
       minute: '2-digit'
     }).format(date)
+  }
+
+  const handleMarkCompleted = async (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click
+    try {
+      await updateTrialStatus.mutateAsync({
+        trialId: trial.id,
+        status: 'COMPLETED'
+      })
+    } catch (error) {
+      console.error('Failed to mark trial as completed:', error)
+      // TODO: Show error toast
+    }
   }
 
   const renderAvatar = () => {
@@ -131,6 +148,17 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
           <span className="text-sm text-white/90 truncate">{trial.player?.club || 'Free Agent'}</span>
         </div>
         <div className="col-span-2 flex items-center gap-2">
+          {/* Mark as Completed button - only show for non-completed trials */}
+          {trial.status !== 'COMPLETED' && trial.status !== 'CANCELLED' && (
+            <button
+              onClick={handleMarkCompleted}
+              disabled={updateTrialStatus.isPending}
+              className="p-1 text-white/40 hover:text-green-400 transition-colors disabled:opacity-50"
+              title="Mark as completed"
+            >
+              <CheckCircle className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation()
