@@ -1,4 +1,5 @@
 export { TrialsPage } from './TrialsPage'
 export { TrialsHeader } from './TrialsHeader'
 export { TrialCard } from './TrialCard'
+export { TrialListItem } from './TrialListItem'
 export { TrialStatusBadge } from './TrialStatusBadge'
