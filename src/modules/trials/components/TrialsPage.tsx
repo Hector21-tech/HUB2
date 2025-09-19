@@ -8,6 +8,7 @@ import { TrialCard } from './TrialCard'
 import { TrialListItem } from './TrialListItem'
 import { AddTrialModal } from './AddTrialModal'
 import { TrialDetailDrawer } from './TrialDetailDrawer'
+import { EvaluateTrialModal } from './EvaluateTrialModal'
 import { TrialStatusBadge } from './TrialStatusBadge'
 import { Trial, TrialFilters } from '../types/trial'
 
@@ -23,6 +24,8 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showTrialDetail, setShowTrialDetail] = useState(false)
   const [detailTrial, setDetailTrial] = useState<Trial | null>(null)
+  const [showEvaluateModal, setShowEvaluateModal] = useState(false)
+  const [evaluateTrial, setEvaluateTrial] = useState<Trial | null>(null)
 
   // Fetch trials with filters
   const { data: trials = [], isLoading, error } = useTrialsQuery(tenantId, filters)
@@ -69,8 +72,8 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
   }
 
   const handleEvaluateTrial = (trial: Trial) => {
-    // TODO: Open evaluation modal
-    console.log('Evaluate trial:', trial.id)
+    setEvaluateTrial(trial)
+    setShowEvaluateModal(true)
   }
 
   const handleTrialClick = (trial: Trial) => {
@@ -308,6 +311,16 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
           setShowTrialDetail(false)
           setDetailTrial(null)
           handleEvaluateTrial(trial)
+        }}
+      />
+
+      {/* Evaluate Trial Modal */}
+      <EvaluateTrialModal
+        trial={evaluateTrial}
+        isOpen={showEvaluateModal}
+        onClose={() => {
+          setShowEvaluateModal(false)
+          setEvaluateTrial(null)
         }}
       />
     </div>
