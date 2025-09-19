@@ -22,8 +22,8 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
-  const clubName = trial.player?.club || trial.request?.club || 'Free Agent'
-  const trialTitle = `Trial with → ${clubName}`
+  const trialClub = trial.request?.club || 'Unknown Club'
+  const trialTitle = `Trial with → ${trialClub}`
 
   const playerPosition = trial.player?.position
     ? getFullPositionName(trial.player.position)

@@ -6,6 +6,7 @@ import { Trial } from '../types/trial'
 import { TrialStatusBadge } from './TrialStatusBadge'
 import { useAvatarUrl } from '../../players/hooks/useAvatarUrl'
 import { getPlayerInitials } from '@/lib/formatters'
+import { getFullPositionName } from '@/lib/positions'
 
 interface TrialCardProps {
   trial: Trial
@@ -22,7 +23,12 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
-  const playerPositions = trial.player?.position || ''
+  const trialClub = trial.request?.club || 'Unknown Club'
+  const trialTitle = `Trial with → ${trialClub}`
+
+  const playerPosition = trial.player?.position
+    ? getFullPositionName(trial.player.position)
+    : 'No position'
 
   // Get player avatar URL
   const { url: avatarUrl, isLoading: avatarLoading } = useAvatarUrl({
@@ -123,7 +129,8 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
             )}
             <div>
               <h3 className="font-semibold text-white">{playerName}</h3>
-              <p className="text-sm text-white/60">{playerPositions}</p>
+              <p className="text-sm text-blue-300 font-medium">{trialTitle}</p>
+              <p className="text-sm text-white/60">{playerPosition}</p>
             </div>
           </div>
           <TrialStatusBadge status={trial.status} size="sm" />
