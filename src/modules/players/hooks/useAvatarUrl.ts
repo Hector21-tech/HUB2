@@ -23,10 +23,13 @@ export function useAvatarUrl({ avatarPath, avatarUrl, tenantId }: UseAvatarUrlPr
 
   // Listen for cache invalidation events
   useEffect(() => {
-    const cleanup = useCacheInvalidationTrigger(() => {
+    const callback = () => {
       setInvalidationTrigger(prev => prev + 1)
-    })
-    return cleanup
+    }
+    cacheInvalidationListeners.add(callback)
+    return () => {
+      cacheInvalidationListeners.delete(callback)
+    }
   }, [])
 
   useEffect(() => {
@@ -148,9 +151,3 @@ export function triggerAvatarCacheInvalidation() {
   cacheInvalidationListeners.forEach(listener => listener())
 }
 
-export function useCacheInvalidationTrigger(callback: () => void): () => void {
-  cacheInvalidationListeners.add(callback)
-  return () => {
-    cacheInvalidationListeners.delete(callback)
-  }
-}
