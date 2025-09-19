@@ -23,7 +23,7 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
     : 'Unknown Player'
 
   // Extract club from notes if it starts with "Club: "
-  const extractClubFromNotes = (notes: string | null): string | null => {
+  const extractClubFromNotes = (notes: string | null | undefined): string | null => {
     if (!notes) return null
     const clubMatch = notes.match(/^Club: (.+?)(?:\n|$)/)
     return clubMatch ? clubMatch[1] : null

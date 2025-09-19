@@ -24,7 +24,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
     : 'Unknown Player'
 
   // Extract club from notes if it starts with "Club: "
-  const extractClubFromNotes = (notes: string | null): string | null => {
+  const extractClubFromNotes = (notes: string | null | undefined): string | null => {
     if (!notes) return null
     const clubMatch = notes.match(/^Club: (.+?)(?:\n|$)/)
     return clubMatch ? clubMatch[1] : null
