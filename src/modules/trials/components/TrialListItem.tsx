@@ -6,6 +6,7 @@ import { Trial } from '../types/trial'
 import { TrialStatusBadge } from './TrialStatusBadge'
 import { useAvatarUrl } from '../../players/hooks/useAvatarUrl'
 import { getPlayerInitials } from '@/lib/formatters'
+import { getFullPositionName } from '@/lib/positions'
 
 interface TrialListItemProps {
   trial: Trial
@@ -20,6 +21,13 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
   const playerName = trial.player
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
+
+  const clubName = trial.player?.club || trial.request?.club || 'Free Agent'
+  const trialTitle = `Trial with → ${clubName}`
+
+  const playerPosition = trial.player?.position
+    ? getFullPositionName(trial.player.position)
+    : 'No position'
 
   const trialDate = new Date(trial.scheduledAt)
   const isUpcoming = trialDate > new Date()
@@ -95,7 +103,8 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
           {renderAvatar()}
           <div>
             <p className="font-medium text-white/90">{playerName}</p>
-            <p className="text-xs text-white/60">{trial.player?.position || 'N/A'}</p>
+            <p className="text-xs text-blue-300 font-medium">{trialTitle}</p>
+            <p className="text-xs text-white/60">{playerPosition}</p>
           </div>
         </div>
         <div className="col-span-2 flex items-center">
@@ -148,7 +157,8 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium text-white/90 truncate">{playerName}</p>
-                <p className="text-sm text-white/60">{trial.player?.position || 'N/A'}</p>
+                <p className="text-sm text-blue-300 font-medium truncate">{trialTitle}</p>
+                <p className="text-sm text-white/60">{playerPosition}</p>
               </div>
               <TrialStatusBadge status={trial.status} size="sm" />
             </div>
