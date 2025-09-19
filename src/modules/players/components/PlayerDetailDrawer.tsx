@@ -18,6 +18,8 @@ interface PlayerDetailDrawerProps {
 }
 
 export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete, onScheduleTrial }: PlayerDetailDrawerProps) {
+  if (!player || !isOpen) return null
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
@@ -29,8 +31,6 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete, 
     avatarUrl: player?.avatarUrl,
     tenantId: player?.tenantId || ''
   })
-
-  if (!player || !isOpen) return null
 
   const calculateAge = (dateOfBirth?: Date) => {
     if (!dateOfBirth) return null
