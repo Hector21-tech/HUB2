@@ -257,7 +257,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
 
         <button
           onClick={handleDelete}
-          className="p-2 text-white/40 hover:text-red-400 transition-colors"
+          className="p-2 text-red-400/70 hover:text-red-400 transition-colors"
           title="Delete trial"
         >
           <Trash2 className="w-4 h-4" />

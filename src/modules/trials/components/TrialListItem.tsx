@@ -174,7 +174,7 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
               e.stopPropagation()
               onDelete(trial)
             }}
-            className="p-1 text-white/40 hover:text-red-400 transition-colors"
+            className="p-1 text-red-400/70 hover:text-red-400 transition-colors"
             title="Delete trial"
           >
             <Trash2 className="w-4 h-4" />
