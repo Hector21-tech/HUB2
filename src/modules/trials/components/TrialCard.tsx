@@ -67,17 +67,21 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
     onClick?.(trial)
   }
 
-  const handleMarkCompleted = async (e: React.MouseEvent) => {
+  const handleMarkCompleted = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
-    try {
-      await updateTrialStatus.mutateAsync({
-        trialId: trial.id,
-        status: 'COMPLETED'
-      })
-    } catch (error) {
-      console.error('Failed to mark trial as completed:', error)
-      // TODO: Show error toast
-    }
+
+    const confirmed = window.confirm('Are you sure you want to mark this trial as completed?')
+    if (!confirmed) return
+
+    updateTrialStatus.mutate({
+      trialId: trial.id,
+      status: 'COMPLETED'
+    }, {
+      onError: (error) => {
+        console.error('Failed to mark trial as completed:', error)
+        // TODO: Show error toast
+      }
+    })
   }
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -230,11 +234,10 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
           <button
             onClick={handleMarkCompleted}
             disabled={updateTrialStatus.isPending}
-            className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600/20 text-green-300 rounded-lg hover:bg-green-600/30 transition-colors disabled:opacity-50"
+            className="p-2 text-green-400/70 hover:text-green-400 transition-colors disabled:opacity-50"
             title="Mark as completed"
           >
-            <CheckCircle className="w-3 h-3" />
-            {updateTrialStatus.isPending ? 'Completing...' : 'Complete'}
+            <CheckCircle className="w-4 h-4" />
           </button>
         )}
 

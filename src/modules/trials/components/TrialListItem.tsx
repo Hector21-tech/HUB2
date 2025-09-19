@@ -60,17 +60,21 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
     }).format(date)
   }
 
-  const handleMarkCompleted = async (e: React.MouseEvent) => {
+  const handleMarkCompleted = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
-    try {
-      await updateTrialStatus.mutateAsync({
-        trialId: trial.id,
-        status: 'COMPLETED'
-      })
-    } catch (error) {
-      console.error('Failed to mark trial as completed:', error)
-      // TODO: Show error toast
-    }
+
+    const confirmed = window.confirm('Are you sure you want to mark this trial as completed?')
+    if (!confirmed) return
+
+    updateTrialStatus.mutate({
+      trialId: trial.id,
+      status: 'COMPLETED'
+    }, {
+      onError: (error) => {
+        console.error('Failed to mark trial as completed:', error)
+        // TODO: Show error toast
+      }
+    })
   }
 
   const renderAvatar = () => {
@@ -153,7 +157,7 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
             <button
               onClick={handleMarkCompleted}
               disabled={updateTrialStatus.isPending}
-              className="p-1 text-white/40 hover:text-green-400 transition-colors disabled:opacity-50"
+              className="p-1 text-green-400/70 hover:text-green-400 transition-colors disabled:opacity-50"
               title="Mark as completed"
             >
               <CheckCircle className="w-4 h-4" />
