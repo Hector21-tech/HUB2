@@ -22,7 +22,14 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
     ? `${trial.player.firstName} ${trial.player.lastName}`
     : 'Unknown Player'
 
-  const trialClub = trial.request?.club || trial.location || 'Unknown Club'
+  // Extract club from notes if it starts with "Club: "
+  const extractClubFromNotes = (notes: string | null): string | null => {
+    if (!notes) return null
+    const clubMatch = notes.match(/^Club: (.+?)(?:\n|$)/)
+    return clubMatch ? clubMatch[1] : null
+  }
+
+  const trialClub = trial.request?.club || extractClubFromNotes(trial.notes) || 'Unknown Club'
   const trialTitle = `Trial with → ${trialClub}`
 
   const playerPosition = trial.player?.position

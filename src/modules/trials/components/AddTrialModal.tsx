@@ -116,8 +116,10 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
         playerId: formData.playerId,
         requestId: formData.requestId || null,
         scheduledAt: fromDateTimeLocalString(formData.scheduledAt),
-        location: formData.club.trim(), // Save club as location for backend compatibility
-        notes: formData.notes.trim() || null
+        location: formData.location.trim() || null, // Save actual location (venue)
+        notes: formData.club.trim() ?
+          `Club: ${formData.club.trim()}${formData.notes.trim() ? '\n' + formData.notes.trim() : ''}` :
+          (formData.notes.trim() || null)
       }
 
       if (trial) {
