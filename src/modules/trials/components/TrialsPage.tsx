@@ -31,10 +31,12 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
   const { data: trials = [], isLoading, error } = useTrialsQuery(tenantId, filters)
   const deleteTrial = useDeleteTrial(tenantId)
 
-  // Calculate stats
-  const stats = useMemo(() => {
+  // Calculate stats and group trials
+  const { stats, groupedTrials } = useMemo(() => {
     const now = new Date()
-    return {
+
+    // Calculate stats
+    const stats = {
       total: trials.length,
       upcoming: trials.filter(t =>
         t.status === 'SCHEDULED' && new Date(t.scheduledAt) > now
@@ -43,6 +45,23 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
       pendingEvaluation: trials.filter(t =>
         t.status === 'COMPLETED' && !t.rating
       ).length
+    }
+
+    // Group trials by active vs completed
+    const activeTrials = trials.filter(t =>
+      t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS'
+    ).sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+
+    const completedTrials = trials.filter(t =>
+      t.status === 'COMPLETED' || t.status === 'CANCELLED' || t.status === 'NO_SHOW'
+    ).sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()) // Most recent first
+
+    return {
+      stats,
+      groupedTrials: {
+        active: activeTrials,
+        completed: completedTrials
+      }
     }
   }, [trials])
 
@@ -149,43 +168,121 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
           {/* Trials Content */}
           {!isLoading && trials.length > 0 && (
             viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {trials.map((trial) => (
-                  <TrialCard
-                    key={trial.id}
-                    trial={trial}
-                    onEdit={handleEditTrial}
-                    onDelete={handleDeleteTrial}
-                    onEvaluate={handleEvaluateTrial}
-                    onClick={handleTrialClick}
-                  />
-                ))}
+              <div className="space-y-8">
+                {/* Active Trials */}
+                {groupedTrials.active.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      Active Trials ({groupedTrials.active.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {groupedTrials.active.map((trial) => (
+                        <TrialCard
+                          key={trial.id}
+                          trial={trial}
+                          onEdit={handleEditTrial}
+                          onDelete={handleDeleteTrial}
+                          onEvaluate={handleEvaluateTrial}
+                          onClick={handleTrialClick}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Completed Trials */}
+                {groupedTrials.completed.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      Completed ({groupedTrials.completed.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {groupedTrials.completed.map((trial) => (
+                        <TrialCard
+                          key={trial.id}
+                          trial={trial}
+                          onEdit={handleEditTrial}
+                          onDelete={handleDeleteTrial}
+                          onEvaluate={handleEvaluateTrial}
+                          onClick={handleTrialClick}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* List View */
-              <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                {/* Desktop List Header */}
-                <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-sm font-medium text-white/60">
-                  <div className="col-span-2">Player</div>
-                  <div className="col-span-2">Date & Time</div>
-                  <div className="col-span-2">Location</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-2">Club</div>
-                  <div className="col-span-2">Actions</div>
-                </div>
+              <div className="space-y-8">
+                {/* Active Trials */}
+                {groupedTrials.active.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      Active Trials ({groupedTrials.active.length})
+                    </h3>
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
+                      {/* Desktop List Header */}
+                      <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-sm font-medium text-white/60">
+                        <div className="col-span-2">Player</div>
+                        <div className="col-span-2">Date & Time</div>
+                        <div className="col-span-2">Location</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-2">Club</div>
+                        <div className="col-span-2">Actions</div>
+                      </div>
 
-                {/* List Items */}
-                <div className="divide-y divide-white/20">
-                  {trials.map((trial) => (
-                    <TrialListItem
-                      key={trial.id}
-                      trial={trial}
-                      onEdit={handleEditTrial}
-                      onDelete={handleDeleteTrial}
-                      onClick={handleTrialClick}
-                    />
-                  ))}
-                </div>
+                      {/* List Items */}
+                      <div className="divide-y divide-white/20">
+                        {groupedTrials.active.map((trial) => (
+                          <TrialListItem
+                            key={trial.id}
+                            trial={trial}
+                            onEdit={handleEditTrial}
+                            onDelete={handleDeleteTrial}
+                            onClick={handleTrialClick}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Completed Trials */}
+                {groupedTrials.completed.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      Completed ({groupedTrials.completed.length})
+                    </h3>
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
+                      {/* Desktop List Header */}
+                      <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-sm font-medium text-white/60">
+                        <div className="col-span-2">Player</div>
+                        <div className="col-span-2">Date & Time</div>
+                        <div className="col-span-2">Location</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-2">Club</div>
+                        <div className="col-span-2">Actions</div>
+                      </div>
+
+                      {/* List Items */}
+                      <div className="divide-y divide-white/20">
+                        {groupedTrials.completed.map((trial) => (
+                          <TrialListItem
+                            key={trial.id}
+                            trial={trial}
+                            onEdit={handleEditTrial}
+                            onDelete={handleDeleteTrial}
+                            onClick={handleTrialClick}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           )}
