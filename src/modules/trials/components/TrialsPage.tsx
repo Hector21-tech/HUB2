@@ -325,22 +325,6 @@ export function TrialsPage({ tenantId }: TrialsPageProps) {
             </div>
           )}
 
-          {/* Pending Evaluation Banner */}
-          {stats.pendingEvaluation > 0 && (
-            <div className="fixed bottom-6 right-6 bg-yellow-500/90 backdrop-blur-sm text-white p-4 rounded-lg shadow-xl border border-yellow-400/30">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-sm font-bold">
-                  {stats.pendingEvaluation}
-                </div>
-                <div>
-                  <p className="font-medium">Evaluations Pending</p>
-                  <p className="text-sm opacity-90">
-                    {stats.pendingEvaluation} completed trial{stats.pendingEvaluation > 1 ? 's' : ''} need evaluation
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
