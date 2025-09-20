@@ -158,11 +158,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
       })
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise])
+      const result = await Promise.race([queryPromise, timeoutPromise])
+      const { data, error } = result
       const queryDuration = Date.now() - queryStart
       console.log('📊 AuthContext: Query completed:', {
         duration: `${queryDuration}ms`,
