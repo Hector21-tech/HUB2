@@ -54,10 +54,19 @@ export function BoardColumn({
   const handleDragStart = (e: React.DragEvent, requestId: string) => {
     setDraggedRequest(requestId)
     e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', JSON.stringify({
+
+    // Find the request to get its current priority
+    const request = requests.find(r => r.id === requestId)
+    const sourcePriority = request?.priority || 'MEDIUM'
+
+    const dragData = {
       requestId,
-      sourceColumn: columnId
-    }))
+      sourceColumn: columnId,
+      sourcePriority
+    }
+
+    console.log('BoardColumn - handleDragStart:', dragData)
+    e.dataTransfer.setData('text/plain', JSON.stringify(dragData))
   }
 
   const handleDragEnd = () => {

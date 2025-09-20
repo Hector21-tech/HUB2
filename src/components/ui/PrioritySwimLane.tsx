@@ -119,13 +119,26 @@ export function PrioritySwimLane({
     e.preventDefault()
     setDragOverColumn(null)
 
+    console.log('PrioritySwimLane - handleDrop:', { columnId, priority })
+
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'))
-      const { requestId, sourceColumn } = data
+      const { requestId, sourceColumn, sourcePriority } = data
 
-      if (requestId && sourceColumn !== columnId) {
-        // Update both status and priority if dropped in different swimlane
-        onRequestUpdate(requestId, columnId, priority)
+      console.log('Drop data:', { requestId, sourceColumn, sourcePriority, targetColumn: columnId, targetPriority: priority })
+
+      if (requestId) {
+        // Check if we're changing status, priority, or both
+        const statusChanged = sourceColumn !== columnId
+        const priorityChanged = sourcePriority !== priority
+
+        if (statusChanged || priorityChanged) {
+          console.log('Updating request:', { statusChanged, priorityChanged })
+          // Always send both status and priority to parent
+          onRequestUpdate(requestId, columnId, priority)
+        } else {
+          console.log('No changes needed - same column and priority')
+        }
       }
     } catch (error) {
       console.error('Error handling drop:', error)

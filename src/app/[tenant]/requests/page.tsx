@@ -637,20 +637,41 @@ export default function RequestsPage() {
             {activeView === 'board' ? (
               <SwimlaneBoardView
                 requests={filteredRequests}
-                onRequestUpdate={async (requestId, newStatus) => {
+                onRequestUpdate={async (requestId, newStatus, newPriority) => {
+                  console.log('Main page - onRequestUpdate:', { requestId, newStatus, newPriority })
+
                   try {
+                    // Prepare update data
+                    const updateData: any = { status: newStatus }
+                    if (newPriority) {
+                      updateData.priority = newPriority
+                    }
+
+                    console.log('Sending API update:', updateData)
+
                     const response = await fetch(`/api/requests/${requestId}`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ status: newStatus })
+                      body: JSON.stringify(updateData)
                     })
+
                     if (response.ok) {
+                      // Update local state with new status and priority
                       setRequests(requests.map(request =>
-                        request.id === requestId ? { ...request, status: newStatus } : request
+                        request.id === requestId
+                          ? {
+                              ...request,
+                              status: newStatus,
+                              ...(newPriority && { priority: newPriority })
+                            }
+                          : request
                       ))
+                      console.log('Local state updated successfully')
+                    } else {
+                      console.error('API update failed:', response.status, response.statusText)
                     }
                   } catch (error) {
-                    console.error('Error updating request status:', error)
+                    console.error('Error updating request:', error)
                   }
                 }}
                 onRequestSelect={toggleRequestSelection}

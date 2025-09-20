@@ -72,19 +72,10 @@ export function SwimlaneBoardView({
   }
 
   const handleRequestUpdate = (requestId: string, newStatus: string, newPriority?: string) => {
-    // If priority is being changed, update both status and priority
-    if (newPriority) {
-      // Find the request to update its priority
-      const request = requests.find(r => r.id === requestId)
-      if (request && request.priority !== newPriority) {
-        // Update priority as well as status
-        onRequestUpdate(requestId, newStatus)
-        // Note: In a real implementation, you'd need a separate handler for priority updates
-        // For now, we'll just update the status and let the parent handle the logic
-      }
-    } else {
-      onRequestUpdate(requestId, newStatus)
-    }
+    console.log('SwimlaneBoardView - handleRequestUpdate:', { requestId, newStatus, newPriority })
+
+    // Always call the parent with all three parameters
+    onRequestUpdate(requestId, newStatus, newPriority)
   }
 
   const totalRequests = requests.length
