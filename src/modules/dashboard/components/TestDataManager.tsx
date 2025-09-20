@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trash2, TestTube, AlertTriangle, Loader2, Plus, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
@@ -93,9 +93,11 @@ export function TestDataManager() {
   }
 
   // Check test data on component mount
-  useState(() => {
-    checkTestData()
-  })
+  useEffect(() => {
+    if (tenantId) {
+      checkTestData()
+    }
+  }, [tenantId]) // Only run when tenantId changes
 
   if (!stats) {
     return (

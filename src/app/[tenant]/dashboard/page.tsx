@@ -4,6 +4,7 @@ import { DashboardShell } from '@/modules/dashboard/components/dashboard-shell'
 import { DashboardHeader } from '@/modules/dashboard/components/dashboard-header'
 import { DashboardContent } from '@/modules/dashboard/components/dashboard-content'
 import { TestDataManager } from '@/modules/dashboard/components/TestDataManager'
+import ErrorBoundary, { DashboardErrorFallback } from '@/components/ErrorBoundary'
 
 interface DashboardPageProps {
   params: { tenant: string }
@@ -20,15 +21,19 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           </div>
         </div>
       </div>
-      
+
       <DashboardShell>
-        <DashboardHeader
-          heading="Dashboard"
-          text="Overview of your scouting activities and key metrics"
-        >
-          <TestDataManager />
-        </DashboardHeader>
-        <DashboardContent tenant={params.tenant} />
+        <ErrorBoundary fallback={DashboardErrorFallback}>
+          <DashboardHeader
+            heading="Dashboard"
+            text="Overview of your scouting activities and key metrics"
+          >
+            <ErrorBoundary>
+              <TestDataManager />
+            </ErrorBoundary>
+          </DashboardHeader>
+          <DashboardContent tenant={params.tenant} />
+        </ErrorBoundary>
       </DashboardShell>
     </div>
   )
