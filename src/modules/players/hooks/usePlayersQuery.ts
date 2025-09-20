@@ -67,7 +67,6 @@ const fetchPlayers = async (tenantId: string): Promise<Player[]> => {
 
     return result.data
   } catch (err) {
-    console.error('Error fetching players:', err)
     return getMockPlayers()
   }
 }

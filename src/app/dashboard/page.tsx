@@ -13,11 +13,6 @@ export default function RootDashboard() {
   const [orgName, setOrgName] = useState('')
   const [orgSlug, setOrgSlug] = useState('')
 
-  // Debug logging for user tenants
-  console.log('🏠 Dashboard: userTenants:', userTenants)
-  console.log('🏠 Dashboard: userTenants length:', userTenants.length)
-  console.log('🏠 Dashboard: loading:', loading)
-  console.log('🏠 Dashboard: user ID:', user?.id)
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
@@ -92,10 +87,6 @@ export default function RootDashboard() {
           <p className="text-xl text-white/70 mb-8">
             Get started by creating your scouting organization or joining an existing one.
           </p>
-          {/* Debug info */}
-          <div className="bg-blue-500/20 text-white/80 text-sm p-4 rounded-lg mb-4">
-            Debug: Loading: {loading ? 'true' : 'false'} | Tenants: {userTenants.length} | User: {user?.id?.slice(0, 8)}...
-          </div>
         </div>
 
         {/* Existing Organizations */}

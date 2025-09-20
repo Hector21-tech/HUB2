@@ -39,20 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session with timeout
     const getInitialSession = async () => {
       try {
-        console.log('🔐 AuthContext: Getting initial session...')
-
-        // Create a race between the session call and timeout
-        const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session timeout')), 8000)
-        )
-
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any
-
-        console.log('🔐 AuthContext: Session retrieved:', !!session, error)
+        const { data: { session }, error } = await supabase.auth.getSession()
 
         if (error) {
           console.error('Error getting session:', error)
@@ -64,23 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         setLoading(false)
       } catch (error) {
-        console.error('🔐 AuthContext: Session timeout or error:', error)
-        // Try to continue with existing session from localStorage if available
-        try {
-          const existingSession = localStorage.getItem('supabase.auth.token')
-          if (existingSession) {
-            console.log('🔐 AuthContext: Found existing session in localStorage')
-            // Parse and use existing session
-            const parsed = JSON.parse(existingSession)
-            if (parsed?.access_token) {
-              console.log('🔐 AuthContext: Using cached session')
-              // We have a token, assume user is authenticated
-              setUser({ id: '7d092ae6-be50-4d74-ba12-991bb120330e' } as any) // Temporary fix
-            }
-          }
-        } catch (storageError) {
-          console.error('🔐 AuthContext: localStorage error:', storageError)
-        }
+        console.error('Fatal auth error:', error)
         setLoading(false)
       }
     }
@@ -129,16 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
-    console.log('🔍 AuthContext: Starting fetchUserTenants for userId:', userId)
-    console.log('🌐 AuthContext: User agent:', navigator.userAgent)
-    console.log('📱 AuthContext: Screen size:', window.innerWidth, 'x', window.innerHeight)
-
     try {
-      console.log('📡 AuthContext: Querying tenant_memberships...')
-      console.log('🔗 AuthContext: Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-
-      // Create a race between the query and timeout
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('tenant_memberships')
         .select(`
           tenantId,
@@ -151,41 +114,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout')), 4000)
-      )
-
-      const { data, error } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
-
-      console.log('📊 AuthContext: Query result - data:', data, 'error:', error)
-      console.log('🔄 AuthContext: Data length:', data?.length || 0)
-
       if (error) {
-        console.error('❌ Error fetching user tenants:', error)
-        console.error('❌ Error details:', {
-          message: error.message,
-          code: error.code,
-          hint: error.hint
-        })
-        // Try fallback approach - hardcode for now to test
-        console.log('🔄 AuthContext: Trying fallback - hardcoded memberships for testing')
-        const fallbackMemberships = [
-          {
-            tenantId: 'test1-tenant-id',
-            role: 'OWNER',
-            tenant: { id: 'test1-tenant-id', name: 'Test1', slug: 'test1' }
-          },
-          {
-            tenantId: 'elite-sports-id',
-            role: 'OWNER',
-            tenant: { id: 'elite-sports-id', name: 'Elite Sports Group', slug: 'elite-sports-group' }
-          }
-        ]
-        setUserTenants(fallbackMemberships)
-        setCurrentTenant(fallbackMemberships[0].tenantId)
+        console.error('Error fetching user tenants:', error)
+        setUserTenants([])
         return
       }
 
@@ -195,43 +126,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         tenant: Array.isArray(item.tenant) ? item.tenant[0] : item.tenant
       })) as TenantMembership[] || []
 
-      console.log('✅ AuthContext: Processed memberships:', memberships)
-      console.log('📋 AuthContext: Membership count:', memberships.length)
-      console.log('🏢 AuthContext: Organization names:', memberships.map(m => m.tenant.name))
-
       setUserTenants(memberships)
 
       // Set current tenant to first available if none set
       if (memberships.length > 0 && !currentTenant) {
-        console.log('🏢 AuthContext: Setting current tenant to:', memberships[0].tenantId)
         setCurrentTenant(memberships[0].tenantId)
-      } else if (memberships.length === 0) {
-        console.log('📭 AuthContext: No tenant memberships found for user')
       }
     } catch (error) {
-      console.error('❌ Error in fetchUserTenants:', error)
-      console.error('❌ Catch block error details:', {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack'
-      })
-
-      // Temporary fallback for desktop - use hardcoded data
-      console.log('🔄 AuthContext: Using fallback memberships due to timeout/error')
-      const fallbackMemberships = [
-        {
-          tenantId: 'test1-tenant-id',
-          role: 'OWNER',
-          tenant: { id: 'test1-tenant-id', name: 'Test1', slug: 'test1' }
-        },
-        {
-          tenantId: 'elite-sports-id',
-          role: 'OWNER',
-          tenant: { id: 'elite-sports-id', name: 'Elite Sports Group', slug: 'elite-sports-group' }
-        }
-      ]
-      setUserTenants(fallbackMemberships)
-      setCurrentTenant(fallbackMemberships[0].tenantId)
+      console.error('Error in fetchUserTenants:', error)
+      setUserTenants([])
     }
   }
 

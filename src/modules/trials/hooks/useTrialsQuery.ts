@@ -47,7 +47,6 @@ const fetchTrials = async (tenantId: string, filters?: TrialFilters): Promise<Tr
     // Return actual data or empty array
     return result.data || []
   } catch (err) {
-    console.error('Error fetching trials:', err)
     return []
   }
 }

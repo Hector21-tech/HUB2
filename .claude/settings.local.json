@@ -25,7 +25,8 @@
       "WebFetch(domain:legacy.reactjs.org)",
       "Bash(npx vercel:*)",
       "Bash(echo:*)",
-      "WebFetch(domain:hub2-seven.vercel.app)"
+      "WebFetch(domain:hub2-seven.vercel.app)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
