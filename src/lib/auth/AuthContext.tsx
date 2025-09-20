@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session with timeout
     const getInitialSession = async () => {
       try {
+        // First try to get session
         const { data: { session }, error } = await supabase.auth.getSession()
 
         if (error) {
@@ -49,6 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setSession(session)
         setUser(session?.user ?? null)
+
+        // If we have a user, fetch their tenants
+        if (session?.user) {
+          await fetchUserTenants(session.user.id)
+        }
+
         setLoading(false)
       } catch (error) {
         console.error('Fatal auth error:', error)
