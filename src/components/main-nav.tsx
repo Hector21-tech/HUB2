@@ -38,9 +38,8 @@ export function MainNav({ tenant }: MainNavProps) {
     },
     {
       href: `/${tenant}/calendar`,
-      label: 'Calendar (Soon)',
-      active: false,
-      disabled: true
+      label: 'Calendar',
+      active: pathname === `/${tenant}/calendar`
     },
   ]
 
