@@ -1,3 +1,4 @@
+import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Simple in-memory rate limiting
@@ -51,7 +52,13 @@ function cleanupRateLimitMap() {
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
   // Clean up old entries periodically
   if (Math.random() < 0.01) { // 1% chance
     cleanupRateLimitMap()
@@ -69,11 +76,111 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next()
+  // Create Supabase client for authentication
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          request.cookies.set({ name, value })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set(name, value, options)
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({ name, value: '' })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set(name, '', options)
+        },
+      },
+    }
+  )
+
+  // Refresh session if expired - required for Server Components
+  const { data: { user } } = await supabase.auth.getUser()
+  const { pathname } = request.nextUrl
+
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
+  const isPublicRoute = publicRoutes.includes(pathname)
+
+  // API routes that don't require authentication
+  const publicApiRoutes = ['/api/hello', '/api/test-db', '/api/setup-rls-auth', '/api/setup-test-auth']
+  const isPublicApiRoute = publicApiRoutes.some(route => pathname.startsWith(route))
+
+  // If user is not authenticated and trying to access protected route
+  if (!user && !isPublicRoute && !isPublicApiRoute) {
+    // If it's an API route, return 401
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    // Redirect to login page with return URL
+    const redirectUrl = new URL('/login', request.url)
+    redirectUrl.searchParams.set('redirectTo', pathname)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // If user is authenticated and trying to access auth pages, redirect to dashboard
+  if (user && isPublicRoute && pathname !== '/') {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  // For tenant routes, validate tenant access
+  const tenantRouteMatch = pathname.match(/^\/([^\/]+)\/(dashboard|players|requests|trials|calendar)/)
+  if (user && tenantRouteMatch) {
+    const [, tenantSlug] = tenantRouteMatch
+
+    try {
+      // Check if user has access to this tenant
+      const { data: membership } = await supabase
+        .from('tenant_memberships')
+        .select(`
+          role,
+          tenant:tenants!inner (
+            id,
+            slug
+          )
+        `)
+        .eq('userId', user.id)
+        .eq('tenant.slug', tenantSlug)
+        .single()
+
+      if (!membership) {
+        // User doesn't have access to this tenant - redirect to dashboard
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } catch (error) {
+      console.error('Error checking tenant access:', error)
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  return response
 }
 
 export const config = {
   matcher: [
-    '/api/generate-player-pdf'
-  ]
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

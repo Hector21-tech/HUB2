@@ -20,7 +20,7 @@ export default function Calendar({ params }: CalendarPageProps) {
         </div>
       </div>
 
-      <CalendarPage tenantId="tenant-test-1" />
+      <CalendarPage />
     </div>
   )
 }

@@ -11,12 +11,25 @@ import { CalendarDayView } from './CalendarDayView'
 import { CalendarListView } from './CalendarListView'
 import { CreateEventModal } from './CreateEventModal'
 import { EventDetailModal } from './EventDetailModal'
+import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
-interface CalendarPageProps {
-  tenantId: string
-}
+export function CalendarPage() {
+  const { tenantId } = useTenantSlug()
 
-export function CalendarPage({ tenantId }: CalendarPageProps) {
+  // Show loading if tenantId is not yet available
+  if (!tenantId) {
+    return (
+      <div className="p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-white/10 rounded w-1/4"></div>
+            <div className="h-4 bg-white/10 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>('month')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)

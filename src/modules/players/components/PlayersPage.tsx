@@ -10,14 +10,17 @@ import { AddTrialModal } from '../../trials/components/AddTrialModal'
 import { usePlayersQuery } from '../hooks/usePlayersQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
+import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
-interface PlayersPageProps {
-  tenantId: string
-}
-
-export function PlayersPage({ tenantId }: PlayersPageProps) {
+export function PlayersPage() {
+  const { tenantId } = useTenantSlug()
   // React Query for data fetching with automatic caching
-  const { data: players = [], isLoading: loading, error } = usePlayersQuery(tenantId)
+  const { data: players = [], isLoading: loading, error } = usePlayersQuery(tenantId || '')
+
+  // Show loading if tenantId is not yet available
+  if (!tenantId) {
+    return <PlayerGridSkeleton />
+  }
   const queryClient = useQueryClient()
 
   // UI State

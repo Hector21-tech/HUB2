@@ -20,7 +20,7 @@ export default function Trials({ params }: TrialsPageProps) {
         </div>
       </div>
 
-      <TrialsPage tenantId="tenant-test-1" />
+      <TrialsPage />
     </div>
   )
 }

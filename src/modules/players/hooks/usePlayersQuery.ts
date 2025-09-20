@@ -27,7 +27,7 @@ const getMockPlayers = (): Player[] => [
     minutesPlayed: 1890,
     marketValue: 2500000,
     contractExpiry: new Date('2025-06-30'),
-    tenantId: 'tenant-test-1',
+    tenantId: 'mock-tenant',
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -49,7 +49,7 @@ const getMockPlayers = (): Player[] => [
     appearances: 18,
     minutesPlayed: 1620,
     marketValue: 1800000,
-    tenantId: 'tenant-test-1',
+    tenantId: 'mock-tenant',
     createdAt: new Date(),
     updatedAt: new Date()
   }

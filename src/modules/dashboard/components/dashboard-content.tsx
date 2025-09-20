@@ -4,13 +4,15 @@ import { Users, FileText, Calendar, TrendingUp, AlertTriangle, Clock, Target, Bu
 import { useDashboardStats } from '../hooks/useDashboardStats'
 import { RecentActivityFeed } from './RecentActivityFeed'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
 interface DashboardContentProps {
   tenant: string
 }
 
 export function DashboardContent({ tenant }: DashboardContentProps) {
-  const { data: stats, isLoading, error } = useDashboardStats('tenant-test-1')
+  const { tenantId } = useTenantSlug()
+  const { data: stats, isLoading, error } = useDashboardStats(tenantId || '')
 
   if (error) {
     return (
@@ -249,7 +251,7 @@ export function DashboardContent({ tenant }: DashboardContentProps) {
       {/* Bottom Section: Recent Activity + Welcome */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Activity Feed */}
-        <RecentActivityFeed tenantId="tenant-test-1" />
+        <RecentActivityFeed tenantId={tenantId || ''} />
 
         {/* Welcome Section */}
         <div className="bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-6">

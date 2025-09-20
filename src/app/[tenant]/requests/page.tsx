@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download, Grid, List, Menu, X, MapPin } from 'lucide-react'
 import { MainNav } from '@/components/main-nav'
 import { WindowBadge } from '@/components/ui/WindowBadge'
@@ -35,6 +36,7 @@ interface Request {
 export default function RequestsPage() {
   const params = useParams()
   const tenant = params.tenant as string
+  const { tenantId } = useTenantSlug()
 
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
@@ -172,7 +174,7 @@ export default function RequestsPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/requests?tenantId=tenant-test-1`)
+      const response = await fetch(`/api/requests?tenantId=${tenantId}`)
       const result = await response.json()
 
       if (result.success) {
@@ -197,7 +199,7 @@ export default function RequestsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          tenantId: 'tenant-test-1',
+          tenantId: tenantId,
           ...formData
         })
       })
