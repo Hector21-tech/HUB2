@@ -268,6 +268,15 @@ export function PlayersPage() {
         body: JSON.stringify(playerData),
       })
 
+      console.log('📡 API Response status:', response.status, response.statusText)
+      console.log('📡 API Response headers:', Object.fromEntries(response.headers.entries()))
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ API Error Response:', errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+
       const result = await response.json()
 
       if (result.success) {

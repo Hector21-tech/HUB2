@@ -118,18 +118,24 @@ export async function middleware(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     const { pathname } = request.nextUrl
 
+    // Log API requests for debugging
+    if (pathname.startsWith('/api/')) {
+      console.log('🔍 Middleware: API request to:', pathname, 'User:', user ? user.id : 'null')
+    }
+
   // Public routes that don't require authentication
   const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
   const isPublicRoute = publicRoutes.includes(pathname)
 
   // API routes that don't require authentication
-  const publicApiRoutes = ['/api/hello', '/api/test-db', '/api/setup-rls-auth', '/api/setup-test-auth']
+  const publicApiRoutes = ['/api/hello', '/api/test-db', '/api/setup-rls-auth', '/api/setup-test-auth', '/api/setup-user-data']
   const isPublicApiRoute = publicApiRoutes.some(route => pathname.startsWith(route))
 
   // If user is not authenticated and trying to access protected route
   if (!user && !isPublicRoute && !isPublicApiRoute) {
     // If it's an API route, return 401
     if (pathname.startsWith('/api/')) {
+      console.warn('🚫 Middleware: Blocking unauthenticated API request to:', pathname)
       return NextResponse.json(
         { error: 'Unauthorized: Authentication required' },
         { status: 401 }
