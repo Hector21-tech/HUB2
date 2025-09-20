@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download, Grid, List } from 'lucide-react'
+import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download, Grid, List, Menu, X } from 'lucide-react'
 import { MainNav } from '@/components/main-nav'
 import { WindowBadge } from '@/components/ui/WindowBadge'
 import { AdvancedFilters } from '@/components/ui/AdvancedFilters'
 import { KanbanBoard } from '@/components/ui/KanbanBoard'
+import { SwimlaneBoardView } from '@/components/ui/SwimlaneBoardView'
+import { SavedViewsSidebar, type SavedView } from '@/components/ui/SavedViewsSidebar'
+import { FilterChipsBar, type FilterChip } from '@/components/ui/FilterChipsBar'
 import { RequestExporter } from '@/lib/export/request-export'
 
 interface Request {
@@ -37,7 +40,9 @@ export default function RequestsPage() {
   const [showBulkActions, setShowBulkActions] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [viewMode, setViewMode] = useState<'list' | 'board'>('list')
+  const [activeView, setActiveView] = useState<SavedView>('board')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [filterChips, setFilterChips] = useState<FilterChip[]>([])
   const [advancedFilters, setAdvancedFilters] = useState({
     search: '',
     status: [] as string[],
@@ -55,17 +60,66 @@ export default function RequestsPage() {
     position: ''
   })
 
-  // Filter requests based on search term
-  const filteredRequests = requests.filter(request => {
-    if (!searchTerm) return true
+  // Calculate request counts for sidebar
+  const requestCounts = {
+    total: requests.length,
+    inbox: requests.filter(r => ['OPEN', 'IN_PROGRESS'].includes(r.status)).length,
+    openNow: requests.filter(r => r.windowOpenAt && new Date(r.windowOpenAt) <= new Date()).length,
+    closesSoon: requests.filter(r => r.windowCloseAt && new Date(r.windowCloseAt) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length,
+    opensSoon: requests.filter(r => r.windowOpenAt && new Date(r.windowOpenAt) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && new Date(r.windowOpenAt) > new Date()).length,
+    expired: requests.filter(r => r.windowCloseAt && new Date(r.windowCloseAt) < new Date()).length,
+    archived: requests.filter(r => ['COMPLETED', 'CANCELLED'].includes(r.status)).length
+  }
 
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      request.title.toLowerCase().includes(searchLower) ||
-      request.description.toLowerCase().includes(searchLower) ||
-      request.club.toLowerCase().includes(searchLower) ||
-      (request.position && request.position.toLowerCase().includes(searchLower))
-    )
+  // Advanced filtering logic
+  const filteredRequests = requests.filter(request => {
+    // Search term filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch = (
+        request.title.toLowerCase().includes(searchLower) ||
+        request.description.toLowerCase().includes(searchLower) ||
+        request.club.toLowerCase().includes(searchLower) ||
+        (request.position && request.position.toLowerCase().includes(searchLower))
+      )
+      if (!matchesSearch) return false
+    }
+
+    // Filter chips
+    for (const chip of filterChips) {
+      switch (chip.type) {
+        case 'position':
+          if (request.position !== chip.value) return false
+          break
+        case 'club':
+          if (request.club.toLowerCase() !== chip.value.toLowerCase()) return false
+          break
+        case 'country':
+          // This would need additional data in the request model
+          break
+        case 'window':
+          // Window status filtering logic would go here
+          break
+      }
+    }
+
+    // View-specific filtering
+    switch (activeView) {
+      case 'inbox':
+        return ['OPEN', 'IN_PROGRESS'].includes(request.status)
+      case 'archive':
+        return ['COMPLETED', 'CANCELLED'].includes(request.status)
+      case 'open-now':
+        return request.windowOpenAt && new Date(request.windowOpenAt) <= new Date()
+      case 'closes-soon':
+        return request.windowCloseAt && new Date(request.windowCloseAt) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      case 'opens-soon':
+        return request.windowOpenAt && new Date(request.windowOpenAt) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && new Date(request.windowOpenAt) > new Date()
+      case 'expired':
+        return request.windowCloseAt && new Date(request.windowCloseAt) < new Date()
+      default:
+        return true
+    }
   })
 
   // Fetch requests
@@ -260,6 +314,22 @@ export default function RequestsPage() {
     }
   }
 
+  // Filter chip management
+  const handleChipAdd = (chip: FilterChip) => {
+    setFilterChips(prev => [...prev, chip])
+  }
+
+  const handleChipRemove = (chipId: string) => {
+    setFilterChips(prev => prev.filter(chip => chip.id !== chipId))
+  }
+
+  // View change handler
+  const handleViewChange = (view: SavedView) => {
+    setActiveView(view)
+    // Clear selection when changing views
+    clearSelection()
+  }
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'open': return 'bg-blue-100 text-blue-800 border-blue-200'
@@ -293,367 +363,254 @@ export default function RequestsPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0c1532] to-[#1e3a8a]">
       {/* Navigation */}
       <div className="border-b border-white/10 bg-white/5 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <MainNav tenant={tenant} />
+        <div className="max-w-full mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <MainNav tenant={tenant} />
+
+            {/* Mobile sidebar toggle */}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              {sidebarCollapsed ? <Menu className="w-5 h-5 text-white" /> : <X className="w-5 h-5 text-white" />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
-        {/* Header - Match Players Design */}
-        <div className="relative z-40 bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
-          <div className="p-4 sm:p-6">
-            {/* Title and Stats */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 sm:gap-0">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Scout Requests</h1>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-white/70">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    <span>{filteredRequests.length} requests</span>
-                    {searchTerm && filteredRequests.length !== requests.length && (
-                      <span className="text-xs text-white/50">of {requests.length}</span>
+      {/* Three-Panel Layout */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Left Sidebar */}
+        <SavedViewsSidebar
+          activeView={activeView}
+          onViewChange={handleViewChange}
+          requestCounts={requestCounts}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className={`${sidebarCollapsed ? 'w-16' : 'w-64'} transition-all duration-300 lg:relative absolute z-50 h-full ${
+            sidebarCollapsed ? 'lg:block hidden' : 'lg:block'
+          }`}
+        />
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header with Search and Actions */}
+          <div className="border-b border-white/10 bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 to-[#1e3a8a]/40 backdrop-blur-xl">
+            <div className="p-4 space-y-4">
+              {/* Title and Stats */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">
+                    {activeView === 'board' ? 'Board (CRM)' :
+                     activeView === 'list' ? 'List View' :
+                     activeView === 'calendar' ? 'Calendar' :
+                     activeView === 'archive' ? 'Archive' :
+                     activeView === 'inbox' ? 'Inbox' :
+                     'Scout Requests'}
+                  </h1>
+                  <div className="flex items-center gap-4 text-sm text-white/70">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      <span>{filteredRequests.length} requests</span>
+                      {(searchTerm || filterChips.length > 0) && filteredRequests.length !== requests.length && (
+                        <span className="text-xs text-white/50">of {requests.length}</span>
+                      )}
+                    </div>
+                    {selectedRequests.size > 0 && (
+                      <div className="flex items-center gap-2 text-blue-400">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{selectedRequests.size} selected</span>
+                      </div>
                     )}
                   </div>
-                  {selectedRequests.size > 0 && (
-                    <div className="flex items-center gap-2 text-blue-400">
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>{selectedRequests.size} selected</span>
-                    </div>
-                  )}
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={createTestData}
-                  disabled={creatingTestData}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
-                >
-                  {creatingTestData ? (
-                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <span className="text-lg">🧪</span>
-                  )}
-                  Test Data
-                </button>
-                <button
-                  onClick={() => setShowAdvancedFilters(true)}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-3 rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg hover:shadow-orange-500/25"
-                >
-                  <Filter className="w-5 h-5" />
-                  Filters
-                  {(advancedFilters.status.length > 0 || advancedFilters.priority.length > 0 || searchTerm) && (
-                    <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
-                      {[...advancedFilters.status, ...advancedFilters.priority, searchTerm ? 'search' : ''].filter(Boolean).length}
-                    </span>
-                  )}
-                </button>
-                <div className="relative group">
-                  <button className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-green-500/25">
-                    <Download className="w-5 h-5" />
-                    Export All
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={createTestData}
+                    disabled={creatingTestData}
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm"
+                  >
+                    {creatingTestData ? (
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <span>🧪</span>
+                    )}
+                    Test Data
                   </button>
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
-                    <button
-                      onClick={() => exportAll('csv')}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg whitespace-nowrap"
-                    >
-                      CSV File ({requests.length} requests)
+
+                  <div className="relative group">
+                    <button className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-3 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 text-sm">
+                      <Download className="w-4 h-4" />
+                      Export
                     </button>
-                    <button
-                      onClick={() => exportAll('json')}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                    >
-                      JSON File ({requests.length} requests)
-                    </button>
-                    <button
-                      onClick={() => exportAll('summary')}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg whitespace-nowrap"
-                    >
-                      Summary Report ({requests.length} requests)
-                    </button>
+                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+                      <button
+                        onClick={() => exportAll('csv')}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg whitespace-nowrap text-sm"
+                      >
+                        CSV File ({requests.length} requests)
+                      </button>
+                      <button
+                        onClick={() => exportAll('json')}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap text-sm"
+                      >
+                        JSON File ({requests.length} requests)
+                      </button>
+                      <button
+                        onClick={() => exportAll('summary')}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg whitespace-nowrap text-sm"
+                      >
+                        Summary Report ({requests.length} requests)
+                      </button>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={() => setShowForm(!showForm)}
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {showForm ? 'Cancel' : 'Add'}
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowForm(!showForm)}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-                >
-                  <Plus className="w-5 h-5" />
-                  {showForm ? 'Cancel' : 'Add Request'}
-                </button>
-              </div>
-            </div>
-
-            {/* Search Bar and View Toggle */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search requests by title, club, position..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="
-                    w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 text-base
-                    bg-white/5 backdrop-blur-sm
-                    border border-white/20 rounded-lg
-                    text-white placeholder-white/50
-                    focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
-                    hover:border-white/30
-                    transition-all duration-200
-                  "
-                />
               </div>
 
-              {/* View Toggle */}
-              <div className="flex bg-white/5 border border-white/20 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                    viewMode === 'list'
-                      ? 'bg-white/10 text-white shadow-sm'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                  List
-                </button>
-                <button
-                  onClick={() => setViewMode('board')}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                    viewMode === 'board'
-                      ? 'bg-white/10 text-white shadow-sm'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Grid className="w-4 h-4" />
-                  Board
-                </button>
-              </div>
+              {/* Filter Chips Bar */}
+              <FilterChipsBar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                activeChips={filterChips}
+                onChipAdd={handleChipAdd}
+                onChipRemove={handleChipRemove}
+                onAdvancedFilters={() => setShowAdvancedFilters(true)}
+                suggestions={{
+                  countries: [],
+                  positions: Array.from(new Set(requests.map(r => r.position).filter((p): p is string => Boolean(p)))),
+                  clubs: Array.from(new Set(requests.map(r => r.club))),
+                  windowStatuses: []
+                }}
+              />
             </div>
           </div>
-        </div>
 
-        {/* Add Request Form */}
-        {showForm && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 mb-8">
-            <h2 className="text-xl font-semibold text-white mb-6">Create New Request</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
-                    placeholder="e.g., Young striker for academy"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Club *
-                  </label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-3 w-5 h-5 text-white/60" />
-                    <input
-                      type="text"
-                      value={formData.club}
-                      onChange={(e) => setFormData({ ...formData, club: e.target.value })}
-                      className="w-full bg-white/10 border border-white/20 rounded-lg pl-11 pr-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
-                      placeholder="e.g., Arsenal FC"
-                      required
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-auto p-6">
+            {/* Add Request Form */}
+            {showForm && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 mb-6">
+                <h2 className="text-xl font-semibold text-white mb-6">Create New Request</h2>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">Title *</label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                        placeholder="e.g., Young striker for academy"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">Club *</label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-3 w-5 h-5 text-white/60" />
+                        <input
+                          type="text"
+                          value={formData.club}
+                          onChange={(e) => setFormData({ ...formData, club: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg pl-11 pr-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                          placeholder="e.g., Arsenal FC"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                      rows={3}
+                      placeholder="Detailed requirements and preferences..."
                     />
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
-                  rows={3}
-                  placeholder="Detailed requirements and preferences..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Position
-                </label>
-                <div className="relative">
-                  <Target className="absolute left-3 top-3 w-5 h-5 text-white/60" />
-                  <select
-                    value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    className="w-full bg-white/10 border border-white/20 rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
-                  >
-                    <option value="" className="bg-gray-800">Select position</option>
-                    <option value="GK" className="bg-gray-800">Goalkeeper</option>
-                    <option value="LB" className="bg-gray-800">Left Back</option>
-                    <option value="LCB" className="bg-gray-800">Left Center Back</option>
-                    <option value="CB" className="bg-gray-800">Center Back</option>
-                    <option value="RCB" className="bg-gray-800">Right Center Back</option>
-                    <option value="RB" className="bg-gray-800">Right Back</option>
-                    <option value="LM" className="bg-gray-800">Left Midfielder</option>
-                    <option value="LCM" className="bg-gray-800">Left Center Mid</option>
-                    <option value="CM" className="bg-gray-800">Center Midfielder</option>
-                    <option value="RCM" className="bg-gray-800">Right Center Mid</option>
-                    <option value="RM" className="bg-gray-800">Right Midfielder</option>
-                    <option value="LW" className="bg-gray-800">Left Winger</option>
-                    <option value="CAM" className="bg-gray-800">Attacking Midfielder</option>
-                    <option value="RW" className="bg-gray-800">Right Winger</option>
-                    <option value="ST" className="bg-gray-800">Striker</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Create Request
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="inline-flex items-center gap-2 bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 transition-all duration-200 border border-white/20"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Bulk Actions Toolbar */}
-        {showBulkActions && (
-          <div className="bg-blue-600/20 backdrop-blur-sm rounded-xl border border-blue-400/30 p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-white font-medium">
-                  {selectedRequests.size} request{selectedRequests.size !== 1 ? 's' : ''} selected
-                </span>
-                <button
-                  onClick={clearSelection}
-                  className="text-blue-300 hover:text-white text-sm transition-colors"
-                >
-                  Clear selection
-                </button>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-200 text-sm">Change status:</span>
-                  <select
-                    onChange={(e) => e.target.value && bulkUpdateStatus(e.target.value)}
-                    className="bg-blue-700/50 border border-blue-400/30 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    defaultValue=""
-                  >
-                    <option value="">Select status...</option>
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                    <option value="EXPIRED">Expired</option>
-                  </select>
-                </div>
-
-                <div className="relative group">
-                  <button className="bg-green-600/80 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Export Selected
-                  </button>
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+                  <div className="flex gap-3 pt-4">
                     <button
-                      onClick={() => exportSelected('csv')}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                      type="submit"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg"
                     >
-                      CSV File
+                      <CheckCircle2 className="w-4 h-4" />
+                      Create Request
                     </button>
                     <button
-                      onClick={() => exportSelected('json')}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      type="button"
+                      onClick={() => setShowForm(false)}
+                      className="inline-flex items-center gap-2 bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 transition-all duration-200 border border-white/20"
                     >
-                      JSON File
+                      Cancel
                     </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Bulk Actions Toolbar */}
+            {showBulkActions && (
+              <div className="bg-blue-600/20 backdrop-blur-sm rounded-xl border border-blue-400/30 p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="text-white font-medium">
+                      {selectedRequests.size} request{selectedRequests.size !== 1 ? 's' : ''} selected
+                    </span>
                     <button
-                      onClick={() => exportSelected('summary')}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg"
+                      onClick={clearSelection}
+                      className="text-blue-300 hover:text-white text-sm transition-colors"
                     >
-                      Summary Report
+                      Clear selection
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <select
+                      onChange={(e) => e.target.value && bulkUpdateStatus(e.target.value)}
+                      className="bg-blue-700/50 border border-blue-400/30 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      defaultValue=""
+                    >
+                      <option value="">Change status...</option>
+                      <option value="OPEN">Open</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                    </select>
+                    <button
+                      onClick={bulkDelete}
+                      className="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      Delete Selected
                     </button>
                   </div>
                 </div>
+              </div>
+            )}
 
-                <button
-                  onClick={bulkDelete}
-                  className="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                >
-                  Delete Selected
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Requests Content */}
-        {viewMode === 'board' ? (
-          /* Board View */
-          <div className="space-y-4">
-            {filteredRequests.length === 0 && requests.length > 0 ? (
-              <div className="text-center py-16">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
-                  <Search className="w-16 h-16 text-white/40 mx-auto mb-4" />
-                  <p className="text-white/80 text-lg mb-2">No requests match your search</p>
-                  <p className="text-white/60">Try different search terms or clear the search</p>
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Clear Search
-                  </button>
-                </div>
-              </div>
-            ) : filteredRequests.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
-                  <AlertCircle className="w-16 h-16 text-white/40 mx-auto mb-4" />
-                  <p className="text-white/80 text-lg mb-2">No requests found</p>
-                  <p className="text-white/60">Create your first scout request to get started!</p>
-                </div>
-              </div>
-            ) : (
-              <KanbanBoard
+            {/* Main Content Based on Active View */}
+            {activeView === 'board' ? (
+              <SwimlaneBoardView
                 requests={filteredRequests}
                 onRequestUpdate={async (requestId, newStatus) => {
-                  // Update request status
                   try {
                     const response = await fetch(`/api/requests/${requestId}`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ status: newStatus })
                     })
-
                     if (response.ok) {
-                      // Update local state
                       setRequests(requests.map(request =>
-                        request.id === requestId
-                          ? { ...request, status: newStatus }
-                          : request
+                        request.id === requestId ? { ...request, status: newStatus } : request
                       ))
                     }
                   } catch (error) {
@@ -663,146 +620,52 @@ export default function RequestsPage() {
                 onRequestSelect={toggleRequestSelection}
                 selectedRequests={selectedRequests}
               />
+            ) : activeView === 'list' ? (
+              <KanbanBoard
+                requests={filteredRequests}
+                onRequestUpdate={async (requestId, newStatus) => {
+                  try {
+                    const response = await fetch(`/api/requests/${requestId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: newStatus })
+                    })
+                    if (response.ok) {
+                      setRequests(requests.map(request =>
+                        request.id === requestId ? { ...request, status: newStatus } : request
+                      ))
+                    }
+                  } catch (error) {
+                    console.error('Error updating request status:', error)
+                  }
+                }}
+                onRequestSelect={toggleRequestSelection}
+                selectedRequests={selectedRequests}
+              />
+            ) : activeView === 'calendar' ? (
+              <div className="flex items-center justify-center h-96 text-white/60">
+                <div className="text-center">
+                  <Calendar className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg font-medium mb-2">Calendar View</p>
+                  <p className="text-sm text-white/40">Coming soon - Timeline view of requests</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-96 text-white/60">
+                <div className="text-center">
+                  <Target className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg font-medium mb-2">
+                    {activeView === 'archive' ? 'Archive' :
+                     activeView === 'inbox' ? 'Inbox' :
+                     'Scout Requests'}
+                  </p>
+                  <p className="text-sm text-white/40">
+                    {filteredRequests.length === 0 ? 'No requests found' : `${filteredRequests.length} requests`}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
-        ) : (
-          /* List View */
-          <div className="space-y-4">
-            {/* Select All Header */}
-            {filteredRequests.length > 0 && (
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedRequests.size === filteredRequests.length && filteredRequests.length > 0}
-                    onChange={(e) => e.target.checked ? selectAllRequests() : clearSelection()}
-                    className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-2"
-                  />
-                  <span className="text-white/80 text-sm">
-                    Select all ({filteredRequests.length} visible requests)
-                  </span>
-                </label>
-                {selectedRequests.size > 0 && (
-                  <span className="text-blue-300 text-sm">
-                    • {selectedRequests.size} selected
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {filteredRequests.length === 0 && requests.length > 0 ? (
-            <div className="text-center py-16">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
-                <Search className="w-16 h-16 text-white/40 mx-auto mb-4" />
-                <p className="text-white/80 text-lg mb-2">No requests match your search</p>
-                <p className="text-white/60">Try different search terms or clear the search</p>
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Clear Search
-                </button>
-              </div>
-            </div>
-          ) : filteredRequests.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
-                <AlertCircle className="w-16 h-16 text-white/40 mx-auto mb-4" />
-                <p className="text-white/80 text-lg mb-2">No requests found</p>
-                <p className="text-white/60">Create your first scout request to get started!</p>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredRequests.map((request) => (
-                <div key={request.id} className="group">
-                  <div className={`bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-200 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/10 ${
-                    selectedRequests.has(request.id) ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
-                  }`}>
-                    {/* Checkbox */}
-                    <div className="flex items-start gap-4">
-                      <label className="flex items-center mt-1 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedRequests.has(request.id)}
-                          onChange={() => toggleRequestSelection(request.id)}
-                          className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-2"
-                        />
-                      </label>
-
-                      <div className="flex-1">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-semibold text-white group-hover:text-blue-200 transition-colors">
-                            {request.title}
-                          </h3>
-                          <WindowBadge
-                            windowOpenAt={request.windowOpenAt}
-                            windowCloseAt={request.windowCloseAt}
-                            graceDays={request.graceDays}
-                            size="sm"
-                          />
-                        </div>
-                        {request.description && (
-                          <p className="text-white/70 mb-4 line-clamp-2">{request.description}</p>
-                        )}
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white/80 group-hover:translate-x-1 transition-all duration-200" />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Building2 className="w-4 h-4 text-white/60" />
-                        <span className="text-white/80 font-medium">{request.club}</span>
-                      </div>
-
-                      {request.position && (
-                        <div className="flex items-center gap-3">
-                          <Target className="w-4 h-4 text-white/60" />
-                          <span className="text-white/80">{request.position}</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-4 h-4 text-white/60" />
-                        <span className="text-white/80">
-                          {new Date(request.createdAt).toLocaleDateString('sv-SE', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
-                      <div className="flex gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
-                          {request.status}
-                        </span>
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityColor(request.priority)}`}>
-                          {request.priority}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-white/40">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-xs">
-                          {new Date(request.updatedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          </div>
-        )}
         </div>
       </div>
 
