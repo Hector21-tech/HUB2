@@ -42,26 +42,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
-        console.warn('⏰ AuthContext: Session timeout, setting loading to false')
+        console.warn('⏰ AuthContext: Session timeout after 10 seconds, setting loading to false')
         setLoading(false)
-      }, 8000) // 8 second timeout
+      }, 10000) // 10 second timeout
 
       try {
         console.log('🔐 AuthContext: Getting session from Supabase...')
 
         // First try to get session
+        const sessionStart = Date.now()
         const { data: { session }, error } = await supabase.auth.getSession()
+        const sessionDuration = Date.now() - sessionStart
 
         clearTimeout(timeoutId) // Clear timeout if we get a response
 
         console.log('🔐 AuthContext: Session result:', {
           hasSession: !!session,
           hasUser: !!session?.user,
-          error: error?.message
+          error: error?.message,
+          duration: `${sessionDuration}ms`,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email
         })
 
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('❌ AuthContext: Error getting session:', error)
           setLoading(false)
           return
         }
@@ -72,16 +77,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If we have a user, fetch their tenants
         if (session?.user) {
           console.log('🔐 AuthContext: User found, fetching tenants...')
+          const tenantsStart = Date.now()
           await fetchUserTenants(session.user.id)
+          const tenantsDuration = Date.now() - tenantsStart
+          console.log(`🔐 AuthContext: Tenant fetch completed in ${tenantsDuration}ms`)
         } else {
           console.log('🔐 AuthContext: No user found in session')
         }
 
         setLoading(false)
-        console.log('🔐 AuthContext: Session initialization complete')
+        console.log('✅ AuthContext: Session initialization complete')
       } catch (error) {
         clearTimeout(timeoutId)
-        console.error('Fatal auth error:', error)
+        console.error('❌ AuthContext: Fatal auth error:', error)
         setLoading(false)
       }
     }
@@ -131,7 +139,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
     console.log('🔍 AuthContext: fetchUserTenants started for user:', userId)
+
     try {
+      console.log('🔍 AuthContext: Executing Supabase query for tenant memberships...')
+      const queryStart = Date.now()
+
       const { data, error } = await supabase
         .from('tenant_memberships')
         .select(`
@@ -145,7 +157,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
-      console.log('📊 AuthContext: Query result:', { data, error, dataLength: data?.length })
+      const queryDuration = Date.now() - queryStart
+      console.log('📊 AuthContext: Query completed:', {
+        duration: `${queryDuration}ms`,
+        hasData: !!data,
+        dataLength: data?.length,
+        hasError: !!error,
+        errorMessage: error?.message
+      })
 
       if (error) {
         console.error('❌ AuthContext: Error fetching user tenants:', error)
@@ -155,15 +174,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           hint: error.hint,
           details: error.details
         })
+
+        // Check if this is an RLS issue
+        if (error.message?.includes('RLS') || error.code === '42501') {
+          console.warn('🔒 AuthContext: RLS policy issue detected - user may not have access')
+        }
+
         setUserTenants([])
         return
       }
 
       if (!data || data.length === 0) {
-        console.warn('⚠️ AuthContext: No tenant memberships found for user')
+        console.warn('⚠️ AuthContext: No tenant memberships found for user:', userId)
+        console.warn('⚠️ AuthContext: This could mean:')
+        console.warn('   1. User has no tenant memberships')
+        console.warn('   2. RLS policy is blocking the query')
+        console.warn('   3. Database connection issue')
         setUserTenants([])
         return
       }
+
+      console.log('📝 AuthContext: Raw data from query:', JSON.stringify(data, null, 2))
 
       const memberships = data?.map((item: any) => ({
         tenantId: item.tenantId,
@@ -181,6 +212,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('❌ AuthContext: Catch error in fetchUserTenants:', error)
+      console.error('❌ AuthContext: Error type:', typeof error)
+      console.error('❌ AuthContext: Error constructor:', error?.constructor?.name)
+      if (error instanceof Error) {
+        console.error('❌ AuthContext: Error stack:', error.stack)
+      }
       setUserTenants([])
     }
   }

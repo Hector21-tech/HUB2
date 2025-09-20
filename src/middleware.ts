@@ -178,11 +178,10 @@ export async function middleware(request: NextRequest) {
   }
 
   return response
-  } catch (error) {
-    console.error('Middleware error:', error)
-    // Return a simple response on error, don't block the request
-    return NextResponse.next()
-  }
+} catch (error) {
+  console.error('Middleware error:', error)
+  // Return a simple response on error, don't block the request
+  return NextResponse.next()
 }
 
 export const config = {
