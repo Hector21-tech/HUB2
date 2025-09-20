@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCountryByClub, getLeagueByClub } from '@/lib/club-country-mapping'
 
 const prisma = new PrismaClient()
 
@@ -23,6 +24,8 @@ export async function GET(request: NextRequest) {
         title: true,
         description: true,
         club: true,
+        country: true,
+        league: true,
         position: true,
         status: true,
         priority: true,
@@ -53,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tenantId, title, description, club, position } = body
+    const { tenantId, title, description, club, position, country, league } = body
 
     // Basic validation
     if (!tenantId || !title || !club) {
@@ -63,6 +66,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Auto-populate country and league if not provided
+    const autoCountry = country || getCountryByClub(club) || ''
+    const autoLeague = league || getLeagueByClub(club) || ''
+
+    console.log('Creating request with auto-populated data:', {
+      club,
+      autoCountry,
+      autoLeague,
+      providedCountry: country,
+      providedLeague: league
+    })
+
     const newRequest = await prisma.request.create({
       data: {
         id: `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -70,9 +85,10 @@ export async function POST(request: NextRequest) {
         title,
         description: description || '',
         club,
+        country: autoCountry,
+        league: autoLeague,
         position: position || null,
         // Set basic required fields with defaults
-        country: '',
         ownerId: 'dev-user-id', // TODO: Get from auth
         priority: 'MEDIUM',
         status: 'OPEN'
@@ -82,6 +98,8 @@ export async function POST(request: NextRequest) {
         title: true,
         description: true,
         club: true,
+        country: true,
+        league: true,
         position: true,
         status: true,
         priority: true,

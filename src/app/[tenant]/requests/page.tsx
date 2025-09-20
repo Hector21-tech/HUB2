@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download, Grid, List, Menu, X } from 'lucide-react'
+import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download, Grid, List, Menu, X, MapPin } from 'lucide-react'
 import { MainNav } from '@/components/main-nav'
 import { WindowBadge } from '@/components/ui/WindowBadge'
 import { AdvancedFilters } from '@/components/ui/AdvancedFilters'
 import { KanbanBoard } from '@/components/ui/KanbanBoard'
 import { SwimlaneBoardView } from '@/components/ui/SwimlaneBoardView'
+import { CompactListView } from '@/components/ui/CompactListView'
+import { SmartClubSelector } from '@/components/ui/SmartClubSelector'
 import { SavedViewsSidebar, type SavedView } from '@/components/ui/SavedViewsSidebar'
 import { FilterChipsBar, type FilterChip } from '@/components/ui/FilterChipsBar'
 import { RequestExporter } from '@/lib/export/request-export'
@@ -17,6 +19,8 @@ interface Request {
   title: string
   description: string
   club: string
+  country?: string
+  league?: string
   position: string | null
   status: string
   priority: string
@@ -57,6 +61,8 @@ export default function RequestsPage() {
     title: '',
     description: '',
     club: '',
+    country: '',
+    league: '',
     position: ''
   })
 
@@ -200,7 +206,7 @@ export default function RequestsPage() {
 
       if (result.success) {
         setRequests([result.data, ...requests])
-        setFormData({ title: '', description: '', club: '', position: '' })
+        setFormData({ title: '', description: '', club: '', country: '', league: '', position: '' })
         setShowForm(false)
         alert('Request created successfully!')
       } else {
@@ -552,17 +558,28 @@ export default function RequestsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-white mb-2">Club *</label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-3 w-5 h-5 text-white/60" />
-                        <input
-                          type="text"
-                          value={formData.club}
-                          onChange={(e) => setFormData({ ...formData, club: e.target.value })}
-                          className="w-full bg-white/10 border border-white/20 rounded-lg pl-11 pr-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
-                          placeholder="e.g., Arsenal FC"
-                          required
-                        />
-                      </div>
+                      <SmartClubSelector
+                        value={formData.club}
+                        onChange={(club, country, league) => {
+                          console.log('Club selected:', { club, country, league })
+                          setFormData({
+                            ...formData,
+                            club,
+                            country: country || '',
+                            league: league || ''
+                          })
+                        }}
+                        placeholder="Search for club..."
+                        required
+                      />
+                      {/* Show auto-populated country */}
+                      {formData.country && (
+                        <div className="mt-2 text-xs text-white/60 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          <span>Country: {formData.country}</span>
+                          {formData.league && <span>• League: {formData.league}</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -678,24 +695,8 @@ export default function RequestsPage() {
                 selectedRequests={selectedRequests}
               />
             ) : activeView === 'list' ? (
-              <KanbanBoard
+              <CompactListView
                 requests={filteredRequests}
-                onRequestUpdate={async (requestId, newStatus) => {
-                  try {
-                    const response = await fetch(`/api/requests/${requestId}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ status: newStatus })
-                    })
-                    if (response.ok) {
-                      setRequests(requests.map(request =>
-                        request.id === requestId ? { ...request, status: newStatus } : request
-                      ))
-                    }
-                  } catch (error) {
-                    console.error('Error updating request status:', error)
-                  }
-                }}
                 onRequestSelect={toggleRequestSelection}
                 selectedRequests={selectedRequests}
               />
