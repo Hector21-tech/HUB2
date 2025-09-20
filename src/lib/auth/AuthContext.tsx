@@ -43,9 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
-        console.warn('⏰ AuthContext: Session timeout after 10 seconds, setting loading to false')
+        console.warn('⏰ AuthContext: Session timeout after 5 seconds, setting loading to false')
         setLoading(false)
-      }, 10000) // 10 second timeout
+      }, 5000) // 5 second timeout
 
       try {
         console.log('🔐 AuthContext: Getting session from Supabase...')
@@ -148,8 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔍 AuthContext: Executing Supabase query for tenant memberships...')
       const queryStart = Date.now()
 
-      // Simple query without timeout - let Supabase handle it
-      const { data, error } = await supabase
+      // Query with timeout and automatic fallback to setup
+      const queryPromise = supabase
         .from('tenant_memberships')
         .select(`
           tenantId,
@@ -161,6 +161,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           )
         `)
         .eq('userId', userId)
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout - will auto-setup')), 3000)
+      })
+
+      let data, error
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise])
+        data = result.data
+        error = result.error
+      } catch (timeoutError) {
+        console.warn('🕐 AuthContext: Query timed out after 3 seconds, triggering auto-setup')
+        // Trigger automatic setup immediately
+        setIsFetchingTenants(false)
+        setTimeout(async () => {
+          try {
+            const response = await fetch('/api/setup-user-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            })
+            const result = await response.json()
+            if (result.success) {
+              console.log('✅ AuthContext: Auto-setup completed, retrying...')
+              setTimeout(() => fetchUserTenants(userId), 1000)
+            }
+          } catch (e) {
+            console.error('❌ AuthContext: Auto-setup failed:', e)
+          }
+        }, 100)
+        return
+      }
       const queryDuration = Date.now() - queryStart
       console.log('📊 AuthContext: Query completed:', {
         duration: `${queryDuration}ms`,
