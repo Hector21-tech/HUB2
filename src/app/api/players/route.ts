@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { transformDatabasePlayer } from '@/lib/player-utils'
+import { validateTenantAccess } from '@/lib/supabase/server'
 
 // Use global Prisma instance in production to avoid connection issues
 // Updated to support avatarUrl field - regenerating Prisma client
@@ -17,13 +18,22 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 // GET - Fetch players for a tenant
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const tenantId = searchParams.get('tenantId')
+    const tenantId = request.nextUrl.searchParams.get('tenantId')
 
     if (!tenantId) {
       return NextResponse.json(
         { success: false, error: 'Tenant ID is required' },
         { status: 400 }
+      )
+    }
+
+    // Validate user has access to this tenant
+    try {
+      await validateTenantAccess(tenantId)
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, error: error instanceof Error ? error.message : 'Unauthorized' },
+        { status: 401 }
       )
     }
 

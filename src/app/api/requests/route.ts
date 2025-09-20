@@ -1,19 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { getCountryByClub, getLeagueByClub } from '@/lib/club-country-mapping'
+import { validateTenantAccess } from '@/lib/supabase/server'
 
 const prisma = new PrismaClient()
 
 // GET - List all requests for a tenant
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const tenantId = searchParams.get('tenantId')
+    const tenantId = request.nextUrl.searchParams.get('tenantId')
 
     if (!tenantId) {
       return NextResponse.json(
         { error: 'tenantId is required' },
         { status: 400 }
+      )
+    }
+
+    // Validate user has access to this tenant
+    try {
+      await validateTenantAccess(tenantId)
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Unauthorized' },
+        { status: 401 }
       )
     }
 
@@ -63,6 +73,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'tenantId, title, and club are required' },
         { status: 400 }
+      )
+    }
+
+    // Validate user has access to this tenant
+    try {
+      await validateTenantAccess(tenantId)
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Unauthorized' },
+        { status: 401 }
       )
     }
 
