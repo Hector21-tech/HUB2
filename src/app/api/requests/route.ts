@@ -76,9 +76,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate user has access to this tenant
+    // Validate user has access to this tenant and get user info
+    let user
     try {
-      await validateTenantAccess(tenantId)
+      const validation = await validateTenantAccess(tenantId)
+      user = validation.user
     } catch (error) {
       return NextResponse.json(
         { error: error instanceof Error ? error.message : 'Unauthorized' },
@@ -108,8 +110,8 @@ export async function POST(request: NextRequest) {
         country: autoCountry,
         league: autoLeague,
         position: position || null,
-        // Set basic required fields with defaults
-        ownerId: 'dev-user-id', // TODO: Get from auth
+        // Set owner to authenticated user
+        ownerId: user.id,
         priority: 'MEDIUM',
         status: 'OPEN'
       },

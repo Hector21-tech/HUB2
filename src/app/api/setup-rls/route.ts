@@ -16,42 +16,94 @@ export async function POST() {
     await prisma.$executeRaw`ALTER TABLE "trials" ENABLE ROW LEVEL SECURITY`
     await prisma.$executeRaw`ALTER TABLE "calendar_events" ENABLE ROW LEVEL SECURITY`
 
-    // Create basic policies (we'll use permissive policies for now since we don't have auth context in serverless)
+    // Create secure tenant-based policies
 
-    // Tenants policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for tenants" ON "tenants"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for tenants" ON "tenants" FOR ALL USING (true)`
+    // Tenants policies - users can only access tenants they're members of
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "Tenant access via membership" ON "tenants"`
+    await prisma.$executeRaw`CREATE POLICY "Tenant access via membership" ON "tenants" FOR ALL
+      USING (
+        EXISTS (
+          SELECT 1 FROM tenant_memberships
+          WHERE tenant_memberships."tenantId" = tenants.id
+          AND tenant_memberships."userId" = auth.uid()
+        )
+      )`
 
-    // Users policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for users" ON "users"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for users" ON "users" FOR ALL USING (true)`
+    // Users policies - users can access their own record and users in their tenants
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "User access policy" ON "users"`
+    await prisma.$executeRaw`CREATE POLICY "User access policy" ON "users" FOR ALL
+      USING (
+        id = auth.uid() OR
+        EXISTS (
+          SELECT 1 FROM tenant_memberships tm1, tenant_memberships tm2
+          WHERE tm1."userId" = auth.uid()
+          AND tm2."userId" = users.id
+          AND tm1."tenantId" = tm2."tenantId"
+        )
+      )`
 
-    // Tenant memberships policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for memberships" ON "tenant_memberships"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for memberships" ON "tenant_memberships" FOR ALL USING (true)`
+    // Tenant memberships policies - users can see memberships for their tenants
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "Membership access policy" ON "tenant_memberships"`
+    await prisma.$executeRaw`CREATE POLICY "Membership access policy" ON "tenant_memberships" FOR ALL
+      USING (
+        "userId" = auth.uid() OR
+        EXISTS (
+          SELECT 1 FROM tenant_memberships tm
+          WHERE tm."userId" = auth.uid()
+          AND tm."tenantId" = tenant_memberships."tenantId"
+        )
+      )`
 
-    // Players policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for players" ON "players"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for players" ON "players" FOR ALL USING (true)`
+    // Players policies - users can only access players in their tenants
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "Player tenant isolation" ON "players"`
+    await prisma.$executeRaw`CREATE POLICY "Player tenant isolation" ON "players" FOR ALL
+      USING (
+        EXISTS (
+          SELECT 1 FROM tenant_memberships
+          WHERE tenant_memberships."tenantId" = players."tenantId"
+          AND tenant_memberships."userId" = auth.uid()
+        )
+      )`
 
-    // Requests policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for requests" ON "requests"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for requests" ON "requests" FOR ALL USING (true)`
+    // Requests policies - users can only access requests in their tenants
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "Request tenant isolation" ON "requests"`
+    await prisma.$executeRaw`CREATE POLICY "Request tenant isolation" ON "requests" FOR ALL
+      USING (
+        EXISTS (
+          SELECT 1 FROM tenant_memberships
+          WHERE tenant_memberships."tenantId" = requests."tenantId"
+          AND tenant_memberships."userId" = auth.uid()
+        )
+      )`
 
-    // Trials policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for trials" ON "trials"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for trials" ON "trials" FOR ALL USING (true)`
+    // Trials policies - users can only access trials in their tenants
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "Trial tenant isolation" ON "trials"`
+    await prisma.$executeRaw`CREATE POLICY "Trial tenant isolation" ON "trials" FOR ALL
+      USING (
+        EXISTS (
+          SELECT 1 FROM tenant_memberships
+          WHERE tenant_memberships."tenantId" = trials."tenantId"
+          AND tenant_memberships."userId" = auth.uid()
+        )
+      )`
 
-    // Calendar events policies
-    await prisma.$executeRaw`DROP POLICY IF EXISTS "Enable all access for events" ON "calendar_events"`
-    await prisma.$executeRaw`CREATE POLICY "Enable all access for events" ON "calendar_events" FOR ALL USING (true)`
+    // Calendar events policies - users can only access events in their tenants
+    await prisma.$executeRaw`DROP POLICY IF EXISTS "Event tenant isolation" ON "calendar_events"`
+    await prisma.$executeRaw`CREATE POLICY "Event tenant isolation" ON "calendar_events" FOR ALL
+      USING (
+        EXISTS (
+          SELECT 1 FROM tenant_memberships
+          WHERE tenant_memberships."tenantId" = calendar_events."tenantId"
+          AND tenant_memberships."userId" = auth.uid()
+        )
+      )`
 
     console.log('RLS policies created successfully')
 
     return Response.json({
       success: true,
-      message: 'Row Level Security enabled with basic policies. Tenant isolation will be enforced at the application level.',
-      note: 'For production, implement proper auth-based policies using Supabase Auth context'
+      message: 'Row Level Security enabled with secure tenant isolation policies.',
+      note: 'Production-ready RLS policies implemented using Supabase Auth context for proper multi-tenant security'
     })
   } catch (error) {
     console.error('RLS setup error:', error)

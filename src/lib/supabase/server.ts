@@ -66,19 +66,16 @@ export async function validateTenantAccess(tenantId: string) {
       .single()
 
     if (error || !membership) {
-      // For development: allow access if RLS is blocking the query
-      console.warn('Tenant access validation failed, allowing for development:', error?.message)
-      return { user, role: 'OWNER' }
+      console.error('Tenant access validation failed:', error?.message)
+      throw new Error(`Unauthorized: User does not have access to tenant ${tenantId}`)
     }
 
     return { user, role: membership.role }
   } catch (error) {
-    // For development: allow access on any error
-    console.warn('Tenant validation error, allowing for development:', error)
-    const user = await getUser()
-    if (user) {
-      return { user, role: 'OWNER' }
+    console.error('Tenant validation error:', error)
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      throw error
     }
-    throw new Error('Unauthorized: No user session')
+    throw new Error('Unauthorized: Tenant access validation failed')
   }
 }
