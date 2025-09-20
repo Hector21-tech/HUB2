@@ -144,7 +144,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔍 AuthContext: Executing Supabase query for tenant memberships...')
       const queryStart = Date.now()
 
-      const { data, error } = await supabase
+      // Add timeout to the query to prevent hanging
+      const queryPromise = supabase
         .from('tenant_memberships')
         .select(`
           tenantId,
@@ -157,6 +158,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
+      })
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise])
       const queryDuration = Date.now() - queryStart
       console.log('📊 AuthContext: Query completed:', {
         duration: `${queryDuration}ms`,
@@ -175,9 +181,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           details: error.details
         })
 
-        // Check if this is an RLS issue
-        if (error.message?.includes('RLS') || error.code === '42501') {
-          console.warn('🔒 AuthContext: RLS policy issue detected - user may not have access')
+        // Check if this is an RLS issue or timeout
+        if (error.message?.includes('RLS') || error.code === '42501' || error.message?.includes('timeout')) {
+          console.warn('🔒 AuthContext: RLS policy issue or timeout detected - attempting fallback setup')
+
+          // Try to call setup API to create tenant memberships
+          try {
+            console.log('🔧 AuthContext: Attempting automatic tenant setup...')
+            const response = await fetch('/api/setup-user-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            })
+            const result = await response.json()
+
+            if (result.success) {
+              console.log('✅ AuthContext: Automatic setup successful, retrying query...')
+              // Retry the query after setup
+              setTimeout(() => fetchUserTenants(userId), 1000)
+              return
+            } else {
+              console.error('❌ AuthContext: Automatic setup failed:', result.error)
+            }
+          } catch (setupError) {
+            console.error('❌ AuthContext: Setup API call failed:', setupError)
+          }
         }
 
         setUserTenants([])
@@ -190,6 +217,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('   1. User has no tenant memberships')
         console.warn('   2. RLS policy is blocking the query')
         console.warn('   3. Database connection issue')
+
+        // Try automatic setup for users with no memberships
+        try {
+          console.log('🔧 AuthContext: No memberships found, attempting automatic setup...')
+          const response = await fetch('/api/setup-user-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          const result = await response.json()
+
+          if (result.success) {
+            console.log('✅ AuthContext: Automatic setup successful, retrying query...')
+            // Retry the query after setup
+            setTimeout(() => fetchUserTenants(userId), 1000)
+            return
+          } else {
+            console.error('❌ AuthContext: Automatic setup failed:', result.error)
+          }
+        } catch (setupError) {
+          console.error('❌ AuthContext: Setup API call failed:', setupError)
+        }
+
         setUserTenants([])
         return
       }
