@@ -56,14 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         clearTimeout(timeoutId) // Clear timeout if we get a response
 
-        console.log('🔐 AuthContext: Session result:', {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          error: error?.message,
-          duration: `${sessionDuration}ms`,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email
-        })
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔐 AuthContext: Session result:', {
+            hasSession: !!session,
+            hasUser: !!session?.user,
+            error: error?.message,
+            duration: `${sessionDuration}ms`
+          })
+        }
 
         if (error) {
           console.error('❌ AuthContext: Error getting session:', error)
@@ -244,7 +244,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      console.log('📝 AuthContext: Raw data from query:', JSON.stringify(data, null, 2))
+      // Log raw data only in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📝 AuthContext: Raw data from query:', data)
+      }
 
       const memberships = data?.map((item: any) => ({
         tenantId: item.tenantId,

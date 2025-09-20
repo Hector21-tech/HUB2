@@ -18,13 +18,15 @@ export function useTenantSlug() {
     membership => membership.tenant.slug === tenantSlug
   )
 
-  // Debug logging
-  console.log('🔍 useTenantSlug Debug:', {
-    tenantSlug,
-    userTenants: userTenants.map(t => ({ slug: t.tenant.slug, id: t.tenantId })),
-    found: !!tenantData,
-    tenantId: tenantData?.tenantId
-  })
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 useTenantSlug Debug:', {
+      tenantSlug,
+      userTenants: userTenants.map(t => ({ slug: t.tenant.slug, id: t.tenantId })),
+      found: !!tenantData,
+      tenantId: tenantData?.tenantId
+    })
+  }
 
   // Auto-set current tenant if it matches the URL and is different
   if (tenantData && currentTenant !== tenantData.tenantId) {

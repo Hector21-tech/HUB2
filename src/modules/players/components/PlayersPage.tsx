@@ -257,12 +257,8 @@ export function PlayersPage() {
 
   const handleSavePlayer = async (playerData: any) => {
     try {
-      console.log('💾 Saving player with tenant ID:', tenantId)
-      console.log('📋 Player data:', playerData)
-
-      // Ensure absolute URL to prevent routing issues
-      const apiUrl = new URL('/api/players-sql', window.location.origin).toString()
-      console.log('🔗 API URL:', apiUrl)
+      // Try the regular players endpoint instead of players-sql
+      const apiUrl = new URL('/api/players', window.location.origin).toString()
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -272,8 +268,6 @@ export function PlayersPage() {
         body: JSON.stringify(playerData),
       })
 
-      console.log('📡 API Response status:', response.status, response.statusText)
-      console.log('📡 API Response headers:', Object.fromEntries(response.headers.entries()))
 
       if (!response.ok) {
         const errorText = await response.text()
