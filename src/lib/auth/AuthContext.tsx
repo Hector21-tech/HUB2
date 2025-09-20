@@ -59,6 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
 
         if (session?.user) {
+          // Ensure user exists in database
+          await ensureUserInDatabase(session.user)
           // Fetch user's tenant memberships
           await fetchUserTenants(session.user.id)
         } else {
@@ -70,6 +72,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Ensure user exists in our database
+  const ensureUserInDatabase = async (user: User) => {
+    try {
+      await fetch('/api/users/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: user.id,
+          email: user.email,
+          firstName: user.user_metadata?.firstName || user.user_metadata?.first_name,
+          lastName: user.user_metadata?.lastName || user.user_metadata?.last_name,
+          avatarUrl: user.user_metadata?.avatarUrl || user.user_metadata?.avatar_url
+        })
+      })
+    } catch (error) {
+      console.error('Error syncing user to database:', error)
+    }
+  }
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {

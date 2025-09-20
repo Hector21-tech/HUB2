@@ -53,63 +53,70 @@ function cleanupRateLimitMap() {
 }
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  // Clean up old entries periodically
-  if (Math.random() < 0.01) { // 1% chance
-    cleanupRateLimitMap()
-  }
-
-  // Apply rate limiting to PDF generation endpoint
-  if (request.nextUrl.pathname === '/api/generate-player-pdf') {
-    const key = getRateLimitKey(request)
-
-    if (isRateLimited(key)) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { status: 429 }
-      )
-    }
-  }
-
-  // Create Supabase client for authentication
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          request.cookies.set({ name, value })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set(name, value, options)
-        },
-        remove(name: string, options: any) {
-          request.cookies.set({ name, value: '' })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set(name, '', options)
-        },
+  try {
+    let response = NextResponse.next({
+      request: {
+        headers: request.headers,
       },
-    }
-  )
+    })
 
-  // Refresh session if expired - required for Server Components
-  const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
+    // Clean up old entries periodically
+    if (Math.random() < 0.01) { // 1% chance
+      cleanupRateLimitMap()
+    }
+
+    // Apply rate limiting to PDF generation endpoint
+    if (request.nextUrl.pathname === '/api/generate-player-pdf') {
+      const key = getRateLimitKey(request)
+
+      if (isRateLimited(key)) {
+        return NextResponse.json(
+          { error: 'Rate limit exceeded. Please try again later.' },
+          { status: 429 }
+        )
+      }
+    }
+
+    // Skip auth check if environment variables are missing
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.warn('Supabase environment variables missing, skipping auth check')
+      return response
+    }
+
+    // Create Supabase client for authentication
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            request.cookies.set({ name, value })
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            })
+            response.cookies.set(name, value, options)
+          },
+          remove(name: string, options: any) {
+            request.cookies.set({ name, value: '' })
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            })
+            response.cookies.set(name, '', options)
+          },
+        },
+      }
+    )
+
+    // Refresh session if expired - required for Server Components
+    const { data: { user } } = await supabase.auth.getUser()
+    const { pathname } = request.nextUrl
 
   // Public routes that don't require authentication
   const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
@@ -171,6 +178,11 @@ export async function middleware(request: NextRequest) {
   }
 
   return response
+  } catch (error) {
+    console.error('Middleware error:', error)
+    // Return a simple response on error, don't block the request
+    return NextResponse.next()
+  }
 }
 
 export const config = {
