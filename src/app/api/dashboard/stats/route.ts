@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { validateTenantAccess } from '@/lib/supabase/server'
 
 const prisma = new PrismaClient()
 
@@ -12,6 +13,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'tenantId is required' },
         { status: 400 }
+      )
+    }
+
+    // Validate user has access to this tenant
+    try {
+      await validateTenantAccess(tenantId)
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Unauthorized' },
+        { status: 401 }
       )
     }
 
