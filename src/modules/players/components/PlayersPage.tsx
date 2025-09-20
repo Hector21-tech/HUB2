@@ -260,7 +260,11 @@ export function PlayersPage() {
       console.log('💾 Saving player with tenant ID:', tenantId)
       console.log('📋 Player data:', playerData)
 
-      const response = await fetch('/api/players-sql', {
+      // Ensure absolute URL to prevent routing issues
+      const apiUrl = new URL('/api/players-sql', window.location.origin).toString()
+      console.log('🔗 API URL:', apiUrl)
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -309,7 +313,8 @@ export function PlayersPage() {
       console.log('✏️ Updating player:', editingPlayer?.id)
       console.log('📋 Updated data:', playerData)
 
-      const response = await fetch('/api/players-sql', {
+      const apiUrl = new URL('/api/players-sql', window.location.origin).toString()
+      const response = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -346,7 +351,8 @@ export function PlayersPage() {
     try {
       console.log('🗑️ Deleting player:', player.id)
 
-      const response = await fetch(`/api/players-sql?id=${player.id}&tenantId=${tenantId}`, {
+      const apiUrl = new URL(`/api/players-sql?id=${player.id}&tenantId=${tenantId}`, window.location.origin).toString()
+      const response = await fetch(apiUrl, {
         method: 'DELETE'
       })
 
