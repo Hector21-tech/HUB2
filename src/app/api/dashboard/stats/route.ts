@@ -6,10 +6,13 @@ const prisma = new PrismaClient()
 
 // GET - Dashboard analytics and stats
 export async function GET(request: NextRequest) {
+  console.log('🔍 Dashboard Stats API: Incoming request')
   try {
     const tenantId = request.nextUrl.searchParams.get('tenantId')
+    console.log('🔍 Dashboard Stats API: tenantId:', tenantId)
 
     if (!tenantId) {
+      console.log('❌ Dashboard Stats API: Missing tenantId')
       return NextResponse.json(
         { error: 'tenantId is required' },
         { status: 400 }
@@ -17,9 +20,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate user has access to this tenant
+    console.log('🔍 Dashboard Stats API: Validating tenant access...')
     try {
       await validateTenantAccess(tenantId)
+      console.log('✅ Dashboard Stats API: Tenant access validated')
     } catch (error) {
+      console.log('❌ Dashboard Stats API: Tenant access denied:', error)
       return NextResponse.json(
         { error: error instanceof Error ? error.message : 'Unauthorized' },
         { status: 401 }

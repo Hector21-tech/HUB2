@@ -118,11 +118,17 @@ function getMockDashboardStats(): DashboardStats {
 }
 
 async function fetchDashboardStats(tenantId: string): Promise<DashboardStats> {
+  console.log('🔍 Dashboard API: Fetching stats for tenant:', tenantId)
   try {
-    const response = await fetch(`/api/dashboard/stats?tenantId=${tenantId}`)
+    const url = `/api/dashboard/stats?tenantId=${tenantId}`
+    console.log('🔍 Dashboard API: Request URL:', url)
+
+    const response = await fetch(url)
+    console.log('🔍 Dashboard API: Response status:', response.status, response.statusText)
 
     if (!response.ok) {
-      console.warn('Dashboard API failed, using fallback data')
+      const errorText = await response.text()
+      console.warn('🚨 Dashboard API failed:', response.status, errorText)
       return getMockDashboardStats()
     }
 
