@@ -73,6 +73,9 @@ export default function RequestsPage() {
 
   // Advanced filtering logic
   const filteredRequests = requests.filter(request => {
+    // Debug logging
+    console.log('Filtering request:', request.title, 'Status:', request.status, 'Priority:', request.priority, 'Active View:', activeView)
+
     // Search term filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -82,17 +85,26 @@ export default function RequestsPage() {
         request.club.toLowerCase().includes(searchLower) ||
         (request.position && request.position.toLowerCase().includes(searchLower))
       )
-      if (!matchesSearch) return false
+      if (!matchesSearch) {
+        console.log('Filtered out by search:', request.title)
+        return false
+      }
     }
 
     // Filter chips
     for (const chip of filterChips) {
       switch (chip.type) {
         case 'position':
-          if (request.position !== chip.value) return false
+          if (request.position !== chip.value) {
+            console.log('Filtered out by position chip:', request.title)
+            return false
+          }
           break
         case 'club':
-          if (request.club.toLowerCase() !== chip.value.toLowerCase()) return false
+          if (request.club.toLowerCase() !== chip.value.toLowerCase()) {
+            console.log('Filtered out by club chip:', request.title)
+            return false
+          }
           break
         case 'country':
           // This would need additional data in the request model
@@ -103,24 +115,48 @@ export default function RequestsPage() {
       }
     }
 
-    // View-specific filtering
+    // View-specific filtering - FIXED: Board and List views show all requests
     switch (activeView) {
+      case 'board':
+      case 'list':
+        console.log('Board/List view - showing all requests:', request.title)
+        return true
       case 'inbox':
-        return ['OPEN', 'IN_PROGRESS'].includes(request.status)
+        const isInbox = ['OPEN', 'IN_PROGRESS'].includes(request.status)
+        if (!isInbox) console.log('Filtered out by inbox view:', request.title, request.status)
+        return isInbox
       case 'archive':
-        return ['COMPLETED', 'CANCELLED'].includes(request.status)
+        const isArchive = ['COMPLETED', 'CANCELLED'].includes(request.status)
+        if (!isArchive) console.log('Filtered out by archive view:', request.title, request.status)
+        return isArchive
       case 'open-now':
-        return request.windowOpenAt && new Date(request.windowOpenAt) <= new Date()
+        const isOpenNow = request.windowOpenAt && new Date(request.windowOpenAt) <= new Date()
+        if (!isOpenNow) console.log('Filtered out by open-now view:', request.title)
+        return isOpenNow
       case 'closes-soon':
-        return request.windowCloseAt && new Date(request.windowCloseAt) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        const isClosesSoon = request.windowCloseAt && new Date(request.windowCloseAt) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        if (!isClosesSoon) console.log('Filtered out by closes-soon view:', request.title)
+        return isClosesSoon
       case 'opens-soon':
-        return request.windowOpenAt && new Date(request.windowOpenAt) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && new Date(request.windowOpenAt) > new Date()
+        const isOpensSoon = request.windowOpenAt && new Date(request.windowOpenAt) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && new Date(request.windowOpenAt) > new Date()
+        if (!isOpensSoon) console.log('Filtered out by opens-soon view:', request.title)
+        return isOpensSoon
       case 'expired':
-        return request.windowCloseAt && new Date(request.windowCloseAt) < new Date()
+        const isExpired = request.windowCloseAt && new Date(request.windowCloseAt) < new Date()
+        if (!isExpired) console.log('Filtered out by expired view:', request.title)
+        return isExpired
       default:
+        console.log('Default view - showing request:', request.title)
         return true
     }
   })
+
+  // Debug: Log final results
+  console.log('Total requests:', requests.length)
+  console.log('Filtered requests:', filteredRequests.length)
+  console.log('Active view:', activeView)
+  console.log('Search term:', searchTerm)
+  console.log('Filter chips:', filterChips)
 
   // Fetch requests
   useEffect(() => {
