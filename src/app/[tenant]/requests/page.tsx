@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter } from 'lucide-react'
+import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download } from 'lucide-react'
 import { MainNav } from '@/components/main-nav'
 import { WindowBadge } from '@/components/ui/WindowBadge'
+import { AdvancedFilters } from '@/components/ui/AdvancedFilters'
+import { RequestExporter } from '@/lib/export/request-export'
 
 interface Request {
   id: string
@@ -30,6 +32,19 @@ export default function RequestsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [creatingTestData, setCreatingTestData] = useState(false)
+  const [selectedRequests, setSelectedRequests] = useState<Set<string>>(new Set())
+  const [showBulkActions, setShowBulkActions] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [advancedFilters, setAdvancedFilters] = useState({
+    search: '',
+    status: [] as string[],
+    priority: [] as string[],
+    positions: [] as string[],
+    clubs: [] as string[],
+    countries: [] as string[],
+    dateRange: { from: '', to: '' },
+    windowStatus: [] as string[]
+  })
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -118,6 +133,117 @@ export default function RequestsPage() {
     }
   }
 
+  // Bulk selection functions
+  const toggleRequestSelection = (requestId: string) => {
+    const newSelected = new Set(selectedRequests)
+    if (newSelected.has(requestId)) {
+      newSelected.delete(requestId)
+    } else {
+      newSelected.add(requestId)
+    }
+    setSelectedRequests(newSelected)
+    setShowBulkActions(newSelected.size > 0)
+  }
+
+  const selectAllRequests = () => {
+    const allIds = new Set(requests.map(r => r.id))
+    setSelectedRequests(allIds)
+    setShowBulkActions(true)
+  }
+
+  const clearSelection = () => {
+    setSelectedRequests(new Set())
+    setShowBulkActions(false)
+  }
+
+  const bulkUpdateStatus = async (newStatus: string) => {
+    if (selectedRequests.size === 0) return
+
+    try {
+      const updatePromises = Array.from(selectedRequests).map(requestId =>
+        fetch(`/api/requests/${requestId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        })
+      )
+
+      await Promise.all(updatePromises)
+
+      // Update local state
+      setRequests(requests.map(request =>
+        selectedRequests.has(request.id)
+          ? { ...request, status: newStatus }
+          : request
+      ))
+
+      clearSelection()
+      alert(`Updated ${selectedRequests.size} requests to ${newStatus}`)
+    } catch (error) {
+      console.error('Error updating requests:', error)
+      alert('Failed to update requests')
+    }
+  }
+
+  const bulkDelete = async () => {
+    if (selectedRequests.size === 0) return
+
+    const confirmed = confirm(`Delete ${selectedRequests.size} selected requests? This cannot be undone.`)
+    if (!confirmed) return
+
+    try {
+      const deletePromises = Array.from(selectedRequests).map(requestId =>
+        fetch(`/api/requests/${requestId}`, { method: 'DELETE' })
+      )
+
+      await Promise.all(deletePromises)
+
+      // Update local state
+      setRequests(requests.filter(request => !selectedRequests.has(request.id)))
+      clearSelection()
+      alert(`Deleted ${selectedRequests.size} requests`)
+    } catch (error) {
+      console.error('Error deleting requests:', error)
+      alert('Failed to delete requests')
+    }
+  }
+
+  // Export functions
+  const exportSelected = (format: 'csv' | 'json' | 'summary') => {
+    const selectedRequestsData = requests.filter(r => selectedRequests.has(r.id))
+    const timestamp = new Date().toISOString().split('T')[0]
+
+    switch (format) {
+      case 'csv':
+        RequestExporter.exportToCSV(selectedRequestsData, `scout-requests-${timestamp}.csv`)
+        break
+      case 'json':
+        RequestExporter.exportToJSON(selectedRequestsData, `scout-requests-${timestamp}.json`)
+        break
+      case 'summary':
+        RequestExporter.exportSummaryReport(selectedRequestsData, `scout-requests-summary-${timestamp}.txt`)
+        break
+    }
+
+    clearSelection()
+  }
+
+  const exportAll = (format: 'csv' | 'json' | 'summary') => {
+    const timestamp = new Date().toISOString().split('T')[0]
+
+    switch (format) {
+      case 'csv':
+        RequestExporter.exportToCSV(requests, `all-scout-requests-${timestamp}.csv`)
+        break
+      case 'json':
+        RequestExporter.exportToJSON(requests, `all-scout-requests-${timestamp}.json`)
+        break
+      case 'summary':
+        RequestExporter.exportSummaryReport(requests, `all-scout-requests-summary-${timestamp}.txt`)
+        break
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'open': return 'bg-blue-100 text-blue-800 border-blue-200'
@@ -178,6 +304,44 @@ export default function RequestsPage() {
               )}
               Test Data
             </button>
+            <button
+              onClick={() => setShowAdvancedFilters(true)}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-3 rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg hover:shadow-orange-500/25"
+            >
+              <Filter className="w-5 h-5" />
+              Filters
+              {(advancedFilters.status.length > 0 || advancedFilters.priority.length > 0 || advancedFilters.search) && (
+                <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
+                  {[...advancedFilters.status, ...advancedFilters.priority, advancedFilters.search ? 'search' : ''].filter(Boolean).length}
+                </span>
+              )}
+            </button>
+            <div className="relative group">
+              <button className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-green-500/25">
+                <Download className="w-5 h-5" />
+                Export All
+              </button>
+              <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+                <button
+                  onClick={() => exportAll('csv')}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg whitespace-nowrap"
+                >
+                  CSV File ({requests.length} requests)
+                </button>
+                <button
+                  onClick={() => exportAll('json')}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                >
+                  JSON File ({requests.length} requests)
+                </button>
+                <button
+                  onClick={() => exportAll('summary')}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg whitespace-nowrap"
+                >
+                  Summary Report ({requests.length} requests)
+                </button>
+              </div>
+            </div>
             <button
               onClick={() => setShowForm(!showForm)}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
@@ -290,8 +454,103 @@ export default function RequestsPage() {
           </div>
         )}
 
+        {/* Bulk Actions Toolbar */}
+        {showBulkActions && (
+          <div className="bg-blue-600/20 backdrop-blur-sm rounded-xl border border-blue-400/30 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-white font-medium">
+                  {selectedRequests.size} request{selectedRequests.size !== 1 ? 's' : ''} selected
+                </span>
+                <button
+                  onClick={clearSelection}
+                  className="text-blue-300 hover:text-white text-sm transition-colors"
+                >
+                  Clear selection
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-200 text-sm">Change status:</span>
+                  <select
+                    onChange={(e) => e.target.value && bulkUpdateStatus(e.target.value)}
+                    className="bg-blue-700/50 border border-blue-400/30 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    defaultValue=""
+                  >
+                    <option value="">Select status...</option>
+                    <option value="OPEN">Open</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="EXPIRED">Expired</option>
+                  </select>
+                </div>
+
+                <div className="relative group">
+                  <button className="bg-green-600/80 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
+                    <Download className="w-4 h-4" />
+                    Export Selected
+                  </button>
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+                    <button
+                      onClick={() => exportSelected('csv')}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                    >
+                      CSV File
+                    </button>
+                    <button
+                      onClick={() => exportSelected('json')}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      JSON File
+                    </button>
+                    <button
+                      onClick={() => exportSelected('summary')}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg"
+                    >
+                      Summary Report
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={bulkDelete}
+                  className="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                >
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Requests List */}
         <div className="space-y-4">
+          {/* Select All Header */}
+          {requests.length > 0 && (
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedRequests.size === requests.length && requests.length > 0}
+                    onChange={(e) => e.target.checked ? selectAllRequests() : clearSelection()}
+                    className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                  />
+                  <span className="text-white/80 text-sm">
+                    Select all ({requests.length} requests)
+                  </span>
+                </label>
+                {selectedRequests.size > 0 && (
+                  <span className="text-blue-300 text-sm">
+                    • {selectedRequests.size} selected
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {requests.length === 0 ? (
             <div className="text-center py-16">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
@@ -304,7 +563,21 @@ export default function RequestsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {requests.map((request) => (
                 <div key={request.id} className="group">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-200 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/10">
+                  <div className={`bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-200 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/10 ${
+                    selectedRequests.has(request.id) ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
+                  }`}>
+                    {/* Checkbox */}
+                    <div className="flex items-start gap-4">
+                      <label className="flex items-center mt-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedRequests.has(request.id)}
+                          onChange={() => toggleRequestSelection(request.id)}
+                          className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                        />
+                      </label>
+
+                      <div className="flex-1">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -366,6 +639,8 @@ export default function RequestsPage() {
                         </span>
                       </div>
                     </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -374,6 +649,20 @@ export default function RequestsPage() {
         </div>
         </div>
       </div>
+
+      {/* Advanced Filters Modal */}
+      {showAdvancedFilters && (
+        <AdvancedFilters
+          filters={advancedFilters}
+          onFiltersChange={(newFilters) => {
+            setAdvancedFilters(newFilters)
+            // TODO: Apply filters to requests
+          }}
+          onClose={() => setShowAdvancedFilters(false)}
+          availableClubs={[...new Set(requests.map(r => r.club).filter(Boolean))]}
+          availableCountries={[]}
+        />
+      )}
     </div>
   )
 }
