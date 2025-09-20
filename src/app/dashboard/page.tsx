@@ -12,6 +12,7 @@ export default function RootDashboard() {
   const [creatingOrg, setCreatingOrg] = useState(false)
   const [orgName, setOrgName] = useState('')
   const [orgSlug, setOrgSlug] = useState('')
+  const [setupStatus, setSetupStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
 
   // Auto-generate slug from name
@@ -22,6 +23,30 @@ export default function RootDashboard() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
     setOrgSlug(slug)
+  }
+
+  const handleSetupUserData = async () => {
+    setSetupStatus('loading')
+    try {
+      const response = await fetch('/api/setup-user-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        setSetupStatus('success')
+        // Refresh the page to load new tenant data
+        window.location.reload()
+      } else {
+        setSetupStatus('error')
+        alert('Error setting up user data: ' + result.error)
+      }
+    } catch (error) {
+      setSetupStatus('error')
+      console.error('Setup error:', error)
+      alert('Failed to setup user data')
+    }
   }
 
   const handleCreateOrganization = async () => {
@@ -114,6 +139,28 @@ export default function RootDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Setup User Data (only show if no tenants) */}
+        {userTenants.length === 0 && (
+          <div className="bg-gradient-to-br from-green-500/10 via-green-500/5 to-green-500/10 backdrop-blur-xl border border-green-500/20 rounded-xl p-6 mb-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Setup Your Organizations</h3>
+              <p className="text-white/70 mb-4 text-sm">
+                Click below to create your Test1 and Elite Sports Group organizations in the database.
+              </p>
+              <button
+                onClick={handleSetupUserData}
+                disabled={setupStatus === 'loading'}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 text-white px-6 py-2 rounded-lg font-medium transition-colors text-sm"
+              >
+                {setupStatus === 'loading' ? 'Setting up...' : 'Setup Organizations'}
+              </button>
             </div>
           </div>
         )}
