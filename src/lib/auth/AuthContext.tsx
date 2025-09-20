@@ -107,11 +107,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
+    console.log('🔍 AuthContext: Starting fetchUserTenants for userId:', userId)
+    console.log('🌐 AuthContext: User agent:', navigator.userAgent)
+    console.log('📱 AuthContext: Screen size:', window.innerWidth, 'x', window.innerHeight)
+
     try {
       // Add timeout for tenant fetching
       const timeoutId = setTimeout(() => {
-        console.warn('Tenant fetch timeout, continuing without tenants')
+        console.warn('⏰ Tenant fetch timeout, continuing without tenants')
       }, 5000) // 5 second timeout
+
+      console.log('📡 AuthContext: Querying tenant_memberships...')
+      console.log('🔗 AuthContext: Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
 
       const { data, error } = await supabase
         .from('tenant_memberships')
@@ -127,9 +134,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('userId', userId)
 
       clearTimeout(timeoutId)
+      console.log('📊 AuthContext: Query result - data:', data, 'error:', error)
+      console.log('🔄 AuthContext: Data length:', data?.length || 0)
 
       if (error) {
-        console.error('Error fetching user tenants:', error)
+        console.error('❌ Error fetching user tenants:', error)
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          hint: error.hint
+        })
         // Don't return - continue with empty tenants
         setUserTenants([])
         return
@@ -140,14 +154,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: item.role,
         tenant: Array.isArray(item.tenant) ? item.tenant[0] : item.tenant
       })) as TenantMembership[] || []
+
+      console.log('✅ AuthContext: Processed memberships:', memberships)
+      console.log('📋 AuthContext: Membership count:', memberships.length)
+      console.log('🏢 AuthContext: Organization names:', memberships.map(m => m.tenant.name))
+
       setUserTenants(memberships)
 
       // Set current tenant to first available if none set
       if (memberships.length > 0 && !currentTenant) {
+        console.log('🏢 AuthContext: Setting current tenant to:', memberships[0].tenantId)
         setCurrentTenant(memberships[0].tenantId)
+      } else if (memberships.length === 0) {
+        console.log('📭 AuthContext: No tenant memberships found for user')
       }
     } catch (error) {
-      console.error('Error in fetchUserTenants:', error)
+      console.error('❌ Error in fetchUserTenants:', error)
+      console.error('❌ Catch block error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack'
+      })
       // Continue with empty tenants on error
       setUserTenants([])
     }
