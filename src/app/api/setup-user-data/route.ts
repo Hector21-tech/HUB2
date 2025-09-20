@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
       }
     ]
 
+    console.log('🏢 Creating tenants with slugs:', tenants.map(t => `${t.name} -> ${t.slug}`))
+
     for (const tenant of tenants) {
       // Upsert tenant
       const { error: tenantError } = await supabase
