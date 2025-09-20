@@ -29,6 +29,7 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [creatingTestData, setCreatingTestData] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -90,6 +91,33 @@ export default function RequestsPage() {
     }
   }
 
+  const createTestData = async () => {
+    try {
+      setCreatingTestData(true)
+
+      const response = await fetch('/api/test-window-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(`Test data created! ${result.data.requestsCreated} requests with different window scenarios added.`)
+        fetchRequests() // Refresh the list
+      } else {
+        alert('Failed to create test data: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error creating test data:', error)
+      alert('Error creating test data')
+    } finally {
+      setCreatingTestData(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'open': return 'bg-blue-100 text-blue-800 border-blue-200'
@@ -137,13 +165,27 @@ export default function RequestsPage() {
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Scout Requests</h1>
             <p className="text-blue-200">Manage club requests and opportunities</p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-          >
-            <Plus className="w-5 h-5" />
-            {showForm ? 'Cancel' : 'Add Request'}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={createTestData}
+              disabled={creatingTestData}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
+            >
+              {creatingTestData ? (
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <span className="text-lg">🧪</span>
+              )}
+              Test Data
+            </button>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+            >
+              <Plus className="w-5 h-5" />
+              {showForm ? 'Cancel' : 'Add Request'}
+            </button>
+          </div>
         </div>
 
         {/* Add Request Form */}
