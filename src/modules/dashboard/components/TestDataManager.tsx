@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, TestTube, AlertTriangle, Loader2, Plus } from 'lucide-react'
+import { Trash2, TestTube, AlertTriangle, Loader2, Plus, ChevronDown } from 'lucide-react'
+import { useAuth } from '@/lib/auth/AuthContext'
+import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
 interface TestDataStats {
   testRequests: number
@@ -15,10 +17,14 @@ export function TestDataManager() {
   const [isLoading, setIsLoading] = useState(false)
   const [stats, setStats] = useState<TestDataStats | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
+  const { userTenants } = useAuth()
+  const { tenantId } = useTenantSlug()
 
   const checkTestData = async () => {
+    if (!tenantId) return
+
     try {
-      const response = await fetch('/api/clear-test-data')
+      const response = await fetch(`/api/clear-test-data?tenantId=${tenantId}`)
       const result = await response.json()
       if (result.success) {
         setStats(result.data)
@@ -29,10 +35,14 @@ export function TestDataManager() {
   }
 
   const createTestData = async () => {
+    if (!tenantId) return
+
     setIsLoading(true)
     try {
       const response = await fetch('/api/test-window-data', {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId })
       })
       const result = await response.json()
 
@@ -53,12 +63,16 @@ export function TestDataManager() {
   }
 
   const clearTestData = async () => {
+    if (!tenantId) return
+
     setIsLoading(true)
     setShowConfirm(false)
 
     try {
       const response = await fetch('/api/clear-test-data', {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId })
       })
       const result = await response.json()
 

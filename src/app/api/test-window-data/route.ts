@@ -7,9 +7,19 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🧪 Creating comprehensive test data with window scenarios...')
 
+    const body = await request.json()
+    const { tenantId } = body
+
+    if (!tenantId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Tenant ID is required'
+      }, { status: 400 })
+    }
+
+    console.log('🎯 Creating test data for tenant:', tenantId)
+
     const now = new Date()
-    // Use the actual tenant ID from production logs
-    const tenantId = 'cmfsiuhqx0000cjc7aztz3oin'
     const userId = '7d092ae6-be50-4d74-ba12-991bb120330e' // From production logs
 
     // Clear existing test data

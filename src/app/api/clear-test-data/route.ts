@@ -17,7 +17,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const tenantId = 'cmfsiuhqx0000cjc7aztz3oin' // Production tenant ID
+    const body = await request.json()
+    const { tenantId } = body
+
+    if (!tenantId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Tenant ID is required'
+      }, { status: 400 })
+    }
+
+    console.log('🎯 Clearing test data for tenant:', tenantId)
 
     // Count test data before deletion
     const [testRequests, testPlayers, testTrials] = await Promise.all([
@@ -106,7 +116,15 @@ export async function POST(request: NextRequest) {
 // GET endpoint to check how much test data exists
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = 'cmfsiuhqx0000cjc7aztz3oin'
+    const { searchParams } = new URL(request.url)
+    const tenantId = searchParams.get('tenantId')
+
+    if (!tenantId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Tenant ID is required'
+      }, { status: 400 })
+    }
 
     const [testRequests, testPlayers, testTrials] = await Promise.all([
       prisma.request.count({
