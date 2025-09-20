@@ -107,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
+    console.log('🔍 AuthContext: fetchUserTenants started for user:', userId)
     try {
       const { data, error } = await supabase
         .from('tenant_memberships')
@@ -121,8 +122,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
+      console.log('📊 AuthContext: Query result:', { data, error, dataLength: data?.length })
+
       if (error) {
-        console.error('Error fetching user tenants:', error)
+        console.error('❌ AuthContext: Error fetching user tenants:', error)
+        console.error('❌ AuthContext: Error details:', {
+          message: error.message,
+          code: error.code,
+          hint: error.hint,
+          details: error.details
+        })
+        setUserTenants([])
+        return
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ AuthContext: No tenant memberships found for user')
         setUserTenants([])
         return
       }
@@ -133,14 +148,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         tenant: Array.isArray(item.tenant) ? item.tenant[0] : item.tenant
       })) as TenantMembership[] || []
 
+      console.log('✅ AuthContext: Processed memberships:', memberships)
       setUserTenants(memberships)
 
       // Set current tenant to first available if none set
       if (memberships.length > 0 && !currentTenant) {
+        console.log('🏢 AuthContext: Setting current tenant:', memberships[0].tenantId)
         setCurrentTenant(memberships[0].tenantId)
       }
     } catch (error) {
-      console.error('Error in fetchUserTenants:', error)
+      console.error('❌ AuthContext: Catch error in fetchUserTenants:', error)
       setUserTenants([])
     }
   }
