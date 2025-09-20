@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { validateTenantAccess } from '@/lib/supabase/server'
+import { cache, CacheKeys, CacheTTL, withCache } from '@/lib/cache'
+import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-headers'
 
 const prisma = new PrismaClient()
 
@@ -13,10 +15,7 @@ export async function GET(request: NextRequest) {
 
     if (!tenantId) {
       console.log('❌ Dashboard Stats API: Missing tenantId')
-      return NextResponse.json(
-        { error: 'tenantId is required' },
-        { status: 400 }
-      )
+      return createSecureErrorResponse('tenantId is required', 400)
     }
 
     // Validate user has access to this tenant
@@ -26,11 +25,25 @@ export async function GET(request: NextRequest) {
       console.log('✅ Dashboard Stats API: Tenant access validated')
     } catch (error) {
       console.log('❌ Dashboard Stats API: Tenant access denied:', error)
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Unauthorized' },
-        { status: 401 }
+      return createSecureErrorResponse(
+        error instanceof Error ? error.message : 'Unauthorized',
+        401
       )
     }
+
+    // Check cache first
+    const cacheKey = CacheKeys.dashboardStats(tenantId)
+    const cachedStats = cache.get(cacheKey)
+    if (cachedStats) {
+      console.log('✅ Dashboard Stats API: Returning cached data')
+      return createSecureResponse({
+        success: true,
+        data: cachedStats,
+        cached: true
+      })
+    }
+
+    console.log('🔍 Dashboard Stats API: Fetching fresh data...')
 
     // Date ranges for calculations
     const now = new Date()
@@ -300,19 +313,20 @@ export async function GET(request: NextRequest) {
       lastUpdated: now.toISOString()
     }
 
-    return NextResponse.json({
+    // Cache the results
+    cache.set(cacheKey, stats, CacheTTL.DASHBOARD_STATS)
+    console.log('✅ Dashboard Stats API: Data cached for 2 minutes')
+
+    return createSecureResponse({
       success: true,
       data: stats
     })
 
   } catch (error) {
     console.error('Failed to fetch dashboard stats:', error)
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch dashboard stats',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    return createSecureErrorResponse(
+      'Failed to fetch dashboard stats',
+      500
     )
   }
 }

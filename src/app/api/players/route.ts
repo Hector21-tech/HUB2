@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { transformDatabasePlayer } from '@/lib/player-utils'
 import { validateTenantAccess } from '@/lib/supabase/server'
+import { cache, CacheKeys, CacheTTL, CacheInvalidation } from '@/lib/cache'
+import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-headers'
+import { monitoredPrisma, createTenantOperations } from '@/lib/db-monitor/monitored-prisma'
 
-// Use global Prisma instance in production to avoid connection issues
-// Updated to support avatarUrl field - regenerating Prisma client
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: ['query', 'error'],
-})
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// 🛡️ SECURITY UPGRADE: Using monitored Prisma client with automatic tenant isolation
+const prisma = monitoredPrisma
 
 // GET - Fetch players for a tenant
 export async function GET(request: NextRequest) {
@@ -21,10 +14,7 @@ export async function GET(request: NextRequest) {
     const tenantId = request.nextUrl.searchParams.get('tenantId')
 
     if (!tenantId) {
-      return NextResponse.json(
-        { success: false, error: 'Tenant ID is required' },
-        { status: 400 }
-      )
+      return createSecureErrorResponse('Tenant ID is required', 400)
     }
 
     // Validate user has access to this tenant
@@ -37,10 +27,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const players = await prisma.player.findMany({
-      where: { tenantId },
-      orderBy: { lastName: 'asc' }
-    })
+    // 🛡️ MONITORED QUERY: Using safe tenant-scoped operation
+    const tenantOps = createTenantOperations(tenantId)
+    const players = await tenantOps.getPlayers({ orderBy: { lastName: 'asc' } })
 
     // Transform players to include positions array and avatar URL
     const transformedPlayers = players.map(transformDatabasePlayer)
@@ -151,14 +140,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create player with detailed error handling
-    console.log('🚀 Attempting Prisma player.create...')
+    // 🛡️ MONITORED CREATE: Using safe tenant-scoped operation
+    console.log('🚀 Attempting monitored player.create...')
     let player
     try {
-      player = await prisma.player.create({
-        data: playerData
-      })
-      console.log('✅ Player created successfully:', player.id)
+      const tenantOps = createTenantOperations(tenantId)
+      player = await tenantOps.createPlayer(playerData)
+      console.log('✅ Player created successfully with monitoring:', player.id)
     } catch (prismaError) {
       console.error('❌ Prisma create error:', prismaError)
       console.error('❌ Error details:', {
@@ -238,22 +226,20 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Check if player exists and belongs to tenant
-    const existingPlayer = await prisma.player.findFirst({
-      where: { id, tenantId }
-    })
+    // 🛡️ MONITORED UPDATE: Using safe tenant-scoped operation
+    const tenantOps = createTenantOperations(tenantId)
 
-    if (!existingPlayer) {
+    // First check if player exists (this will be tenant-scoped automatically)
+    const existingPlayers = await tenantOps.getPlayers({ id })
+    if (!existingPlayers || existingPlayers.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Player not found or access denied' },
         { status: 404 }
       )
     }
 
-    // Update player
-    const player = await prisma.player.update({
-      where: { id },
-      data: {
+    // Update player with monitored operation
+    const updateData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
@@ -266,7 +252,8 @@ export async function PUT(request: NextRequest) {
         tags: tags, // Store tags normally
         avatarUrl: avatarUrl?.trim() || null // Store avatar URL in proper field
       }
-    })
+
+    const player = await tenantOps.updatePlayer(id, updateData)
 
     return NextResponse.json({
       success: true,
@@ -297,22 +284,20 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Check if player exists and belongs to tenant
-    const existingPlayer = await prisma.player.findFirst({
-      where: { id, tenantId }
-    })
+    // 🛡️ MONITORED DELETE: Using safe tenant-scoped operation
+    const tenantOps = createTenantOperations(tenantId)
 
-    if (!existingPlayer) {
+    // First check if player exists (tenant-scoped automatically)
+    const existingPlayers = await tenantOps.getPlayers({ id })
+    if (!existingPlayers || existingPlayers.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Player not found or access denied' },
         { status: 404 }
       )
     }
 
-    // Delete player
-    await prisma.player.delete({
-      where: { id }
-    })
+    // Delete player with monitored operation
+    await tenantOps.deletePlayer(id)
 
     return NextResponse.json({
       success: true,

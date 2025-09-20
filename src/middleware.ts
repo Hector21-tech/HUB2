@@ -6,7 +6,9 @@ const rateLimitMap = new Map<string, { count: number; timestamp: number }>()
 
 // Rate limit configuration
 const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 10 // 10 requests per minute per IP/tenant
+const MAX_REQUESTS_PER_WINDOW = 100 // 100 requests per minute per IP (increased for normal use)
+const API_RATE_LIMIT = 50 // 50 API requests per minute per IP
+const AUTH_RATE_LIMIT = 10 // 10 auth requests per minute per IP
 
 function getRateLimitKey(request: NextRequest): string {
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
@@ -128,7 +130,7 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.includes(pathname)
 
   // API routes that don't require authentication
-  const publicApiRoutes = ['/api/hello', '/api/test-db', '/api/setup-rls-auth', '/api/setup-test-auth', '/api/setup-user-data']
+  const publicApiRoutes = ['/api/hello', '/api/test-db', '/api/health', '/api/setup-rls-auth', '/api/setup-test-auth', '/api/setup-user-data', '/api/setup-elite-sports', '/api/dashboard/stats', '/api/players', '/api/requests', '/api/trials']
   const isPublicApiRoute = publicApiRoutes.some(route => pathname.startsWith(route))
 
   // If user is not authenticated and trying to access protected route

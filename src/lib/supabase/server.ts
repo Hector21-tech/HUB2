@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getDevUser, isDevAuthAvailable } from '@/lib/auth/dev-auth'
 
 export function createClient() {
   const cookieStore = cookies()
@@ -51,6 +52,15 @@ export async function getUser() {
 export async function validateTenantAccess(tenantId: string) {
   try {
     const user = await getUser()
+
+    // Handle development authentication with explicit security checks
+    if (!user && isDevAuthAvailable()) {
+      const devUser = getDevUser(tenantId)
+      if (devUser) {
+        console.warn('🚧 DEVELOPMENT AUTH: Using development user authentication')
+        return { user: devUser, role: devUser.role }
+      }
+    }
 
     if (!user) {
       throw new Error('Unauthorized: No user session')

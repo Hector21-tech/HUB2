@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { trialService } from '@/modules/trials/services/trialService'
 import { TrialEvaluationInput } from '@/modules/trials/types/trial'
+import { validateTenantAccess } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,16 @@ export async function POST(
       return NextResponse.json(
         { success: false, error: 'Tenant ID is required' },
         { status: 400 }
+      )
+    }
+
+    // 🛡️ SECURITY: Validate user has access to this tenant
+    try {
+      await validateTenantAccess(tenantId)
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, error: error instanceof Error ? error.message : 'Unauthorized' },
+        { status: 401 }
       )
     }
 
