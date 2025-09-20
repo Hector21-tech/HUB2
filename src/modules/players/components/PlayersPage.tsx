@@ -16,12 +16,12 @@ export function PlayersPage() {
   const { tenantId } = useTenantSlug()
   // React Query for data fetching with automatic caching
   const { data: players = [], isLoading: loading, error } = usePlayersQuery(tenantId || '')
+  const queryClient = useQueryClient()
 
   // Show loading if tenantId is not yet available
   if (!tenantId) {
     return <PlayerGridSkeleton />
   }
-  const queryClient = useQueryClient()
 
   // UI State
   const [filters, setFilters] = useState<PlayerFilters>({})
