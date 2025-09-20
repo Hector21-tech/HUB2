@@ -134,16 +134,11 @@ export function AdvancedFilters({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Search */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-2">Search</label>
-            <input
-              type="text"
-              value={localFilters.search}
-              onChange={(e) => updateFilter('search', e.target.value)}
-              placeholder="Search in title, description, club..."
-              className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
+          {/* Note: Search moved to main header */}
+          <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-3 mb-4">
+            <p className="text-blue-200 text-sm">
+              💡 Search functionality is now available in the main header above
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

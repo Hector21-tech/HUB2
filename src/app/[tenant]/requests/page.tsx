@@ -35,6 +35,7 @@ export default function RequestsPage() {
   const [selectedRequests, setSelectedRequests] = useState<Set<string>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const [advancedFilters, setAdvancedFilters] = useState({
     search: '',
     status: [] as string[],
@@ -50,6 +51,19 @@ export default function RequestsPage() {
     description: '',
     club: '',
     position: ''
+  })
+
+  // Filter requests based on search term
+  const filteredRequests = requests.filter(request => {
+    if (!searchTerm) return true
+
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      request.title.toLowerCase().includes(searchLower) ||
+      request.description.toLowerCase().includes(searchLower) ||
+      request.club.toLowerCase().includes(searchLower) ||
+      (request.position && request.position.toLowerCase().includes(searchLower))
+    )
   })
 
   // Fetch requests
@@ -285,70 +299,113 @@ export default function RequestsPage() {
       {/* Main Content */}
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-          <div className="mb-4 md:mb-0">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Scout Requests</h1>
-            <p className="text-blue-200">Manage club requests and opportunities</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={createTestData}
-              disabled={creatingTestData}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
-            >
-              {creatingTestData ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <span className="text-lg">🧪</span>
-              )}
-              Test Data
-            </button>
-            <button
-              onClick={() => setShowAdvancedFilters(true)}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-3 rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg hover:shadow-orange-500/25"
-            >
-              <Filter className="w-5 h-5" />
-              Filters
-              {(advancedFilters.status.length > 0 || advancedFilters.priority.length > 0 || advancedFilters.search) && (
-                <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
-                  {[...advancedFilters.status, ...advancedFilters.priority, advancedFilters.search ? 'search' : ''].filter(Boolean).length}
-                </span>
-              )}
-            </button>
-            <div className="relative group">
-              <button className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-green-500/25">
-                <Download className="w-5 h-5" />
-                Export All
-              </button>
-              <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+        {/* Header - Match Players Design */}
+        <div className="relative z-40 bg-gradient-to-r from-[#020617]/60 via-[#0c1532]/50 via-[#1e3a8a]/40 to-[#0f1b3e]/60 border-b border-[#3B82F6]/40 backdrop-blur-xl">
+          <div className="p-4 sm:p-6">
+            {/* Title and Stats */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 sm:gap-0">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Scout Requests</h1>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-white/70">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>{filteredRequests.length} requests</span>
+                    {searchTerm && filteredRequests.length !== requests.length && (
+                      <span className="text-xs text-white/50">of {requests.length}</span>
+                    )}
+                  </div>
+                  {selectedRequests.size > 0 && (
+                    <div className="flex items-center gap-2 text-blue-400">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{selectedRequests.size} selected</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
                 <button
-                  onClick={() => exportAll('csv')}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg whitespace-nowrap"
+                  onClick={createTestData}
+                  disabled={creatingTestData}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
                 >
-                  CSV File ({requests.length} requests)
+                  {creatingTestData ? (
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <span className="text-lg">🧪</span>
+                  )}
+                  Test Data
                 </button>
                 <button
-                  onClick={() => exportAll('json')}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                  onClick={() => setShowAdvancedFilters(true)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-3 rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg hover:shadow-orange-500/25"
                 >
-                  JSON File ({requests.length} requests)
+                  <Filter className="w-5 h-5" />
+                  Filters
+                  {(advancedFilters.status.length > 0 || advancedFilters.priority.length > 0 || searchTerm) && (
+                    <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
+                      {[...advancedFilters.status, ...advancedFilters.priority, searchTerm ? 'search' : ''].filter(Boolean).length}
+                    </span>
+                  )}
                 </button>
+                <div className="relative group">
+                  <button className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-green-500/25">
+                    <Download className="w-5 h-5" />
+                    Export All
+                  </button>
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+                    <button
+                      onClick={() => exportAll('csv')}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg whitespace-nowrap"
+                    >
+                      CSV File ({requests.length} requests)
+                    </button>
+                    <button
+                      onClick={() => exportAll('json')}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                    >
+                      JSON File ({requests.length} requests)
+                    </button>
+                    <button
+                      onClick={() => exportAll('summary')}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg whitespace-nowrap"
+                    >
+                      Summary Report ({requests.length} requests)
+                    </button>
+                  </div>
+                </div>
                 <button
-                  onClick={() => exportAll('summary')}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg whitespace-nowrap"
+                  onClick={() => setShowForm(!showForm)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
                 >
-                  Summary Report ({requests.length} requests)
+                  <Plus className="w-5 h-5" />
+                  {showForm ? 'Cancel' : 'Add Request'}
                 </button>
               </div>
             </div>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-            >
-              <Plus className="w-5 h-5" />
-              {showForm ? 'Cancel' : 'Add Request'}
-            </button>
+
+            {/* Search Bar - Match Players Design */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search requests by title, club, position..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="
+                    w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 text-base
+                    bg-white/5 backdrop-blur-sm
+                    border border-white/20 rounded-lg
+                    text-white placeholder-white/50
+                    focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400
+                    hover:border-white/30
+                    transition-all duration-200
+                  "
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -528,18 +585,18 @@ export default function RequestsPage() {
         {/* Requests List */}
         <div className="space-y-4">
           {/* Select All Header */}
-          {requests.length > 0 && (
+          {filteredRequests.length > 0 && (
             <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={selectedRequests.size === requests.length && requests.length > 0}
+                    checked={selectedRequests.size === filteredRequests.length && filteredRequests.length > 0}
                     onChange={(e) => e.target.checked ? selectAllRequests() : clearSelection()}
                     className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-2"
                   />
                   <span className="text-white/80 text-sm">
-                    Select all ({requests.length} requests)
+                    Select all ({filteredRequests.length} visible requests)
                   </span>
                 </label>
                 {selectedRequests.size > 0 && (
@@ -551,7 +608,21 @@ export default function RequestsPage() {
             </div>
           )}
 
-          {requests.length === 0 ? (
+          {filteredRequests.length === 0 && requests.length > 0 ? (
+            <div className="text-center py-16">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
+                <Search className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                <p className="text-white/80 text-lg mb-2">No requests match your search</p>
+                <p className="text-white/60">Try different search terms or clear the search</p>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Clear Search
+                </button>
+              </div>
+            </div>
+          ) : filteredRequests.length === 0 ? (
             <div className="text-center py-16">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
                 <AlertCircle className="w-16 h-16 text-white/40 mx-auto mb-4" />
@@ -561,7 +632,7 @@ export default function RequestsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {requests.map((request) => (
+              {filteredRequests.map((request) => (
                 <div key={request.id} className="group">
                   <div className={`bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-200 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/10 ${
                     selectedRequests.has(request.id) ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''

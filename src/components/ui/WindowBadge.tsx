@@ -84,9 +84,8 @@ export function WindowBadge({
   }
 
   const getAnimationClasses = () => {
-    if (windowStatus.urgencyLevel === 'critical') {
-      return 'animate-pulse'
-    }
+    // Removed animate-pulse as it was distracting
+    // Keep urgency indication through colors and icons only
     return ''
   }
 
