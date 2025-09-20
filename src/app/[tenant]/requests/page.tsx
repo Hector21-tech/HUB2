@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter } from 'lucide-react'
 import { MainNav } from '@/components/main-nav'
+import { WindowBadge } from '@/components/ui/WindowBadge'
 
 interface Request {
   id: string
@@ -15,6 +16,10 @@ interface Request {
   priority: string
   createdAt: string
   updatedAt: string
+  windowOpenAt?: string | null
+  windowCloseAt?: string | null
+  deadline?: string | null
+  graceDays?: number
 }
 
 export default function RequestsPage() {
@@ -260,9 +265,17 @@ export default function RequestsPage() {
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-200 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/10">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-200 transition-colors">
-                          {request.title}
-                        </h3>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-semibold text-white group-hover:text-blue-200 transition-colors">
+                            {request.title}
+                          </h3>
+                          <WindowBadge
+                            windowOpenAt={request.windowOpenAt}
+                            windowCloseAt={request.windowCloseAt}
+                            graceDays={request.graceDays}
+                            size="sm"
+                          />
+                        </div>
                         {request.description && (
                           <p className="text-white/70 mb-4 line-clamp-2">{request.description}</p>
                         )}

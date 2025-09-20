@@ -26,6 +26,10 @@ export async function GET(request: NextRequest) {
         position: true,
         status: true,
         priority: true,
+        windowOpenAt: true,
+        windowCloseAt: true,
+        deadline: true,
+        graceDays: true,
         createdAt: true,
         updatedAt: true
       },
