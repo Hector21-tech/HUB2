@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [userTenants, setUserTenants] = useState<TenantMembership[]>([])
   const [currentTenant, setCurrentTenant] = useState<string | null>(null)
+  const [isFetchingTenants, setIsFetchingTenants] = useState(false)
 
   const supabase = createClient()
 
@@ -138,7 +139,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
+    // Prevent duplicate calls
+    if (isFetchingTenants) {
+      console.log('🔍 AuthContext: Already fetching tenants, skipping...')
+      return
+    }
+
     console.log('🔍 AuthContext: fetchUserTenants started for user:', userId)
+    setIsFetchingTenants(true)
 
     try {
       console.log('🔍 AuthContext: Executing Supabase query for tenant memberships...')
@@ -197,7 +205,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (result.success) {
               console.log('✅ AuthContext: Automatic setup successful, retrying query...')
-              // Retry the query after setup
+              // Reset flag and retry immediately
+              setIsFetchingTenants(false)
               setTimeout(() => fetchUserTenants(userId), 1000)
               return
             } else {
@@ -209,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUserTenants([])
+        setIsFetchingTenants(false)
         return
       }
 
@@ -230,7 +240,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (result.success) {
             console.log('✅ AuthContext: Automatic setup successful, retrying query...')
-            // Retry the query after setup
+            // Reset flag and retry
+            setIsFetchingTenants(false)
             setTimeout(() => fetchUserTenants(userId), 1000)
             return
           } else {
@@ -241,6 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUserTenants([])
+        setIsFetchingTenants(false)
         return
       }
 
@@ -271,6 +283,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ AuthContext: Error stack:', error.stack)
       }
       setUserTenants([])
+    } finally {
+      setIsFetchingTenants(false)
     }
   }
 
