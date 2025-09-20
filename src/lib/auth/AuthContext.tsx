@@ -38,9 +38,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session with timeout
     const getInitialSession = async () => {
+      console.log('🔐 AuthContext: Starting session initialization...')
+
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn('⏰ AuthContext: Session timeout, setting loading to false')
+        setLoading(false)
+      }, 8000) // 8 second timeout
+
       try {
+        console.log('🔐 AuthContext: Getting session from Supabase...')
+
         // First try to get session
         const { data: { session }, error } = await supabase.auth.getSession()
+
+        clearTimeout(timeoutId) // Clear timeout if we get a response
+
+        console.log('🔐 AuthContext: Session result:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          error: error?.message
+        })
 
         if (error) {
           console.error('Error getting session:', error)
@@ -53,11 +71,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // If we have a user, fetch their tenants
         if (session?.user) {
+          console.log('🔐 AuthContext: User found, fetching tenants...')
           await fetchUserTenants(session.user.id)
+        } else {
+          console.log('🔐 AuthContext: No user found in session')
         }
 
         setLoading(false)
+        console.log('🔐 AuthContext: Session initialization complete')
       } catch (error) {
+        clearTimeout(timeoutId)
         console.error('Fatal auth error:', error)
         setLoading(false)
       }
