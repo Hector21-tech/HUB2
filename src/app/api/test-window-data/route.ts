@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
         requestId: testRequests[0].id,
         scheduledAt: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
         location: 'TEST: Arsenal Training Ground',
-        status: 'SCHEDULED',
+        status: 'SCHEDULED' as const,
         notes: 'Initial assessment for Premier League position'
       },
       {
@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
         requestId: testRequests[1].id,
         scheduledAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
         location: 'TEST: Bayern Munich Training Facility',
-        status: 'COMPLETED',
+        status: 'COMPLETED' as const,
         notes: 'Excellent performance in trial',
         rating: 9.0,
         feedback: 'Outstanding goalscoring ability demonstrated'
@@ -271,7 +271,7 @@ export async function POST(request: NextRequest) {
         requestId: testRequests[2].id,
         scheduledAt: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000), // Tomorrow
         location: 'TEST: AC Milan Milanello',
-        status: 'SCHEDULED',
+        status: 'SCHEDULED' as const,
         notes: 'Technical evaluation for midfield role'
       },
       {
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
         requestId: testRequests[3].id,
         scheduledAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
         location: 'TEST: Real Madrid Valdebebas',
-        status: 'COMPLETED',
+        status: 'COMPLETED' as const,
         notes: 'Solid defensive display',
         rating: 8.5,
         feedback: 'Strong aerial presence and leadership'
