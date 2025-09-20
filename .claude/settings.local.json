@@ -22,7 +22,8 @@
       "Bash(set DIRECT_URL=postgresql://postgres.wjwgwzxdgjtwwrnvsltp:YazerLazer1337@db.wjwgwzxdgjtwwrnvsltp.supabase.co:5432/postgres?sslmode=require)",
       "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
       "WebFetch(domain:reactjs.org)",
-      "WebFetch(domain:legacy.reactjs.org)"
+      "WebFetch(domain:legacy.reactjs.org)",
+      "Bash(npx vercel:*)"
     ],
     "deny": [],
     "ask": []
