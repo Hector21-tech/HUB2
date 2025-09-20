@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🚀 POST /api/players - Starting...')
     const body = await request.json()
-    console.log('📦 Request body:', JSON.stringify(body, null, 2))
 
     const {
       tenantId,
@@ -90,7 +89,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('✅ Validation passed, creating player...')
+    console.log('✅ Validation passed, checking tenant access...')
+
+    // Validate user has access to this tenant
+    try {
+      await validateTenantAccess(tenantId)
+    } catch (error) {
+      console.log('❌ Tenant access denied:', error)
+      return NextResponse.json(
+        { success: false, error: error instanceof Error ? error.message : 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    console.log('✅ Tenant access validated, creating player...')
 
     // Create player data object
     const playerData = {
@@ -108,7 +120,7 @@ export async function POST(request: NextRequest) {
       avatarUrl: avatarUrl?.trim() || null // Store avatar URL in proper field
     }
 
-    console.log('🗄️ Creating player with data:', JSON.stringify(playerData, null, 2))
+    console.log('🗄️ Creating player...')
 
     // Create player
     const player = await prisma.player.create({

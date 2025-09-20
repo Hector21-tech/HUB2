@@ -75,13 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
-        // If we have a user, fetch their tenants
+        // Don't fetch tenants here - let onAuthStateChange handle it
         if (session?.user) {
-          console.log('🔐 AuthContext: User found, fetching tenants...')
-          const tenantsStart = Date.now()
-          await fetchUserTenants(session.user.id)
-          const tenantsDuration = Date.now() - tenantsStart
-          console.log(`🔐 AuthContext: Tenant fetch completed in ${tenantsDuration}ms`)
+          console.log('🔐 AuthContext: User found in initial session')
         } else {
           console.log('🔐 AuthContext: No user found in session')
         }
@@ -152,8 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔍 AuthContext: Executing Supabase query for tenant memberships...')
       const queryStart = Date.now()
 
-      // Add timeout to the query to prevent hanging
-      const queryPromise = supabase
+      // Simple query without timeout - let Supabase handle it
+      const { data, error } = await supabase
         .from('tenant_memberships')
         .select(`
           tenantId,
@@ -165,13 +161,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           )
         `)
         .eq('userId', userId)
-
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
-      })
-
-      const result = await Promise.race([queryPromise, timeoutPromise])
-      const { data, error } = result
       const queryDuration = Date.now() - queryStart
       console.log('📊 AuthContext: Query completed:', {
         duration: `${queryDuration}ms`,
