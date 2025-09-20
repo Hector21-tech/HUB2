@@ -659,7 +659,7 @@ export default function RequestsPage() {
             // TODO: Apply filters to requests
           }}
           onClose={() => setShowAdvancedFilters(false)}
-          availableClubs={[...new Set(requests.map(r => r.club).filter(Boolean))]}
+          availableClubs={Array.from(new Set(requests.map(r => r.club).filter(Boolean)))}
           availableCountries={[]}
         />
       )}
