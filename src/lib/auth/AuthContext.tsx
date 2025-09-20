@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const memberships = data?.map(item => ({
+      const memberships = data?.map((item: any) => ({
         tenantId: item.tenantId,
         role: item.role,
         tenant: Array.isArray(item.tenant) ? item.tenant[0] : item.tenant
