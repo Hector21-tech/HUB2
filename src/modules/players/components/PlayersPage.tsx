@@ -257,10 +257,13 @@ export function PlayersPage() {
 
   const handleSavePlayer = async (playerData: any) => {
     try {
-      // Try the regular players endpoint instead of players-sql
-      const apiUrl = new URL('/api/players', window.location.origin).toString()
+      // Validate tenant context before making API call
+      if (!tenantId) {
+        throw new Error('No tenant context available')
+      }
 
-      const response = await fetch(apiUrl, {
+      // Use simple absolute path instead of window.location.origin to avoid routing conflicts
+      const response = await fetch('/api/players', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -304,11 +307,16 @@ export function PlayersPage() {
 
   const handleUpdatePlayer = async (playerData: any) => {
     try {
+      // Validate tenant context before making API call
+      if (!tenantId) {
+        throw new Error('No tenant context available')
+      }
+
       console.log('✏️ Updating player:', editingPlayer?.id)
       console.log('📋 Updated data:', playerData)
 
-      const apiUrl = new URL('/api/players-sql', window.location.origin).toString()
-      const response = await fetch(apiUrl, {
+      // Use consistent API endpoint and simple absolute path
+      const response = await fetch('/api/players', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -343,10 +351,15 @@ export function PlayersPage() {
 
   const handleDeletePlayer = async (player: Player) => {
     try {
+      // Validate tenant context before making API call
+      if (!tenantId) {
+        throw new Error('No tenant context available')
+      }
+
       console.log('🗑️ Deleting player:', player.id)
 
-      const apiUrl = new URL(`/api/players-sql?id=${player.id}&tenantId=${tenantId}`, window.location.origin).toString()
-      const response = await fetch(apiUrl, {
+      // Use consistent API endpoint and simple absolute path
+      const response = await fetch(`/api/players?id=${player.id}&tenantId=${tenantId}`, {
         method: 'DELETE'
       })
 
