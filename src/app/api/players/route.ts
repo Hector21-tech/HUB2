@@ -104,7 +104,23 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Tenant access validated, creating player...')
 
-    // Create player data object
+    // Log received data for debugging
+    console.log('📦 Raw request data:', {
+      tenantId,
+      firstName,
+      lastName,
+      dateOfBirth,
+      nationality,
+      positions,
+      club,
+      height,
+      rating,
+      notes,
+      tags,
+      avatarUrl
+    })
+
+    // Create player data object with validation
     const playerData = {
       tenantId,
       firstName: firstName.trim(),
@@ -116,18 +132,51 @@ export async function POST(request: NextRequest) {
       height: height ? parseInt(height) : 180, // Default height if not provided
       rating: rating ? parseFloat(rating) : null,
       notes: notes?.trim() || null,
-      tags: tags, // Store tags normally
+      tags: tags || [], // Ensure tags is always an array
       avatarUrl: avatarUrl?.trim() || null // Store avatar URL in proper field
     }
 
-    console.log('🗄️ Creating player...')
+    console.log('🗄️ Final player data for Prisma:', JSON.stringify(playerData, null, 2))
 
-    // Create player
-    const player = await prisma.player.create({
-      data: playerData
-    })
+    // Validate critical fields
+    if (!playerData.tenantId || !playerData.firstName || !playerData.lastName) {
+      console.error('❌ Critical validation failed:', {
+        hasTenantId: !!playerData.tenantId,
+        hasFirstName: !!playerData.firstName,
+        hasLastName: !!playerData.lastName
+      })
+      return NextResponse.json(
+        { success: false, error: 'Missing critical player data' },
+        { status: 400 }
+      )
+    }
 
-    console.log('✅ Player created successfully:', player.id)
+    // Create player with detailed error handling
+    console.log('🚀 Attempting Prisma player.create...')
+    let player
+    try {
+      player = await prisma.player.create({
+        data: playerData
+      })
+      console.log('✅ Player created successfully:', player.id)
+    } catch (prismaError) {
+      console.error('❌ Prisma create error:', prismaError)
+      console.error('❌ Error details:', {
+        message: prismaError instanceof Error ? prismaError.message : String(prismaError),
+        code: (prismaError as any)?.code,
+        meta: (prismaError as any)?.meta
+      })
+
+      // Return detailed error information
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Database error creating player',
+          details: prismaError instanceof Error ? prismaError.message : String(prismaError)
+        },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,

@@ -35,6 +35,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [uploadError, setUploadError] = useState<string>('')
+  const [submitError, setSubmitError] = useState<string>('')
 
   // Get current avatar URL for preview
   const { url: currentAvatarUrl } = useAvatarUrl({
@@ -91,6 +92,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
       })
     }
     setErrors({})
+    setSubmitError('')
   }, [editingPlayer, isOpen])
 
   const handleInputChange = (field: string, value: string) => {
@@ -211,8 +213,8 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
         height: Number(formData.height),
         rating: formData.rating ? Number(formData.rating) : undefined,
         tags: [], // Default empty tags
-        // Clear club if Free Agent is selected
-        club: formData.club === 'Free Agent' ? undefined : formData.club
+        // Clear club if Free Agent is selected (use null for consistency)
+        club: formData.club === 'Free Agent' ? null : formData.club
       }
 
       await onSave(playerData)
@@ -236,6 +238,7 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
       onClose()
     } catch (error) {
       console.error('Error saving player:', error)
+      setSubmitError(error instanceof Error ? error.message : 'Failed to save player')
     } finally {
       setIsSubmitting(false)
     }
@@ -616,6 +619,13 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
                 placeholder="Add any scouting notes or observations..."
               />
             </div>
+
+            {/* Submit Error */}
+            {submitError && (
+              <div className="p-4 bg-red-500/20 rounded-lg border border-red-400/30">
+                <p className="text-red-300 text-sm">{submitError}</p>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-white/20">
