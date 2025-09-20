@@ -24,7 +24,8 @@
       "WebFetch(domain:reactjs.org)",
       "WebFetch(domain:legacy.reactjs.org)",
       "Bash(npx vercel:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "WebFetch(domain:hub2-seven.vercel.app)"
     ],
     "deny": [],
     "ask": []
