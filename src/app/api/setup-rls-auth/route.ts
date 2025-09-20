@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       // Tenants - users can see tenants they're members of
       `CREATE POLICY "authenticated_tenants_policy" ON tenants
        FOR ALL USING (
-         auth.uid() IN (
+         auth.uid()::text IN (
            SELECT "userId" FROM tenant_memberships
            WHERE "tenantId" = tenants.id
          )
@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
       // Users - users can see themselves and other users in same tenants
       `CREATE POLICY "authenticated_users_policy" ON users
        FOR ALL USING (
-         auth.uid() = id OR
-         auth.uid() IN (
+         auth.uid()::text = id OR
+         auth.uid()::text IN (
            SELECT tm1."userId" FROM tenant_memberships tm1
            JOIN tenant_memberships tm2 ON tm1."tenantId" = tm2."tenantId"
            WHERE tm2."userId" = users.id
@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
       // Tenant memberships - users can see memberships for tenants they belong to
       `CREATE POLICY "authenticated_memberships_policy" ON tenant_memberships
        FOR ALL USING (
-         auth.uid() = "userId" OR
-         auth.uid() IN (
+         auth.uid()::text = "userId" OR
+         auth.uid()::text IN (
            SELECT "userId" FROM tenant_memberships tm
            WHERE tm."tenantId" = tenant_memberships."tenantId"
          )
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       // Players - users can see players in tenants they're members of
       `CREATE POLICY "authenticated_players_policy" ON players
        FOR ALL USING (
-         auth.uid() IN (
+         auth.uid()::text IN (
            SELECT "userId" FROM tenant_memberships
            WHERE "tenantId" = players."tenantId"
          )
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       // Requests - users can see requests in tenants they're members of
       `CREATE POLICY "authenticated_requests_policy" ON requests
        FOR ALL USING (
-         auth.uid() IN (
+         auth.uid()::text IN (
            SELECT "userId" FROM tenant_memberships
            WHERE "tenantId" = requests."tenantId"
          )
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       // Trials - users can see trials in tenants they're members of
       `CREATE POLICY "authenticated_trials_policy" ON trials
        FOR ALL USING (
-         auth.uid() IN (
+         auth.uid()::text IN (
            SELECT "userId" FROM tenant_memberships
            WHERE "tenantId" = trials."tenantId"
          )
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       // Calendar events - users can see events in tenants they're members of
       `CREATE POLICY "authenticated_events_policy" ON calendar_events
        FOR ALL USING (
-         auth.uid() IN (
+         auth.uid()::text IN (
            SELECT "userId" FROM tenant_memberships
            WHERE "tenantId" = calendar_events."tenantId"
          )

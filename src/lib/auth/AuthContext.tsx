@@ -36,18 +36,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with timeout
     const getInitialSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      try {
+        // Add timeout to prevent hanging
+        const timeoutId = setTimeout(() => {
+          console.warn('Auth session timeout, continuing without auth')
+          setLoading(false)
+        }, 10000) // 10 second timeout
 
-      if (error) {
-        console.error('Error getting session:', error)
-      } else {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        clearTimeout(timeoutId)
+
+        if (error) {
+          console.error('Error getting session:', error)
+          setLoading(false)
+          return
+        }
+
         setSession(session)
         setUser(session?.user ?? null)
+        setLoading(false)
+      } catch (error) {
+        console.error('Fatal auth error:', error)
+        setLoading(false)
       }
-
-      setLoading(false)
     }
 
     getInitialSession()
@@ -95,6 +108,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
     try {
+      // Add timeout for tenant fetching
+      const timeoutId = setTimeout(() => {
+        console.warn('Tenant fetch timeout, continuing without tenants')
+      }, 5000) // 5 second timeout
+
       const { data, error } = await supabase
         .from('tenant_memberships')
         .select(`
@@ -108,8 +126,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
+      clearTimeout(timeoutId)
+
       if (error) {
         console.error('Error fetching user tenants:', error)
+        // Don't return - continue with empty tenants
+        setUserTenants([])
         return
       }
 
@@ -126,6 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Error in fetchUserTenants:', error)
+      // Continue with empty tenants on error
+      setUserTenants([])
     }
   }
 
