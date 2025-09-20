@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download } from 'lucide-react'
+import { Plus, Building2, Target, Calendar, ChevronRight, Clock, AlertCircle, CheckCircle2, Search, Filter, Download, Grid, List } from 'lucide-react'
 import { MainNav } from '@/components/main-nav'
 import { WindowBadge } from '@/components/ui/WindowBadge'
 import { AdvancedFilters } from '@/components/ui/AdvancedFilters'
+import { KanbanBoard } from '@/components/ui/KanbanBoard'
 import { RequestExporter } from '@/lib/export/request-export'
 
 interface Request {
@@ -36,6 +37,7 @@ export default function RequestsPage() {
   const [showBulkActions, setShowBulkActions] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list')
   const [advancedFilters, setAdvancedFilters] = useState({
     search: '',
     status: [] as string[],
@@ -385,7 +387,7 @@ export default function RequestsPage() {
               </div>
             </div>
 
-            {/* Search Bar - Match Players Design */}
+            {/* Search Bar and View Toggle */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
@@ -404,6 +406,32 @@ export default function RequestsPage() {
                     transition-all duration-200
                   "
                 />
+              </div>
+
+              {/* View Toggle */}
+              <div className="flex bg-white/5 border border-white/20 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                    viewMode === 'list'
+                      ? 'bg-white/10 text-white shadow-sm'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                  List
+                </button>
+                <button
+                  onClick={() => setViewMode('board')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                    viewMode === 'board'
+                      ? 'bg-white/10 text-white shadow-sm'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Grid className="w-4 h-4" />
+                  Board
+                </button>
               </div>
             </div>
           </div>
@@ -582,10 +610,66 @@ export default function RequestsPage() {
           </div>
         )}
 
-        {/* Requests List */}
-        <div className="space-y-4">
-          {/* Select All Header */}
-          {filteredRequests.length > 0 && (
+        {/* Requests Content */}
+        {viewMode === 'board' ? (
+          /* Board View */
+          <div className="space-y-4">
+            {filteredRequests.length === 0 && requests.length > 0 ? (
+              <div className="text-center py-16">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
+                  <Search className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                  <p className="text-white/80 text-lg mb-2">No requests match your search</p>
+                  <p className="text-white/60">Try different search terms or clear the search</p>
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Clear Search
+                  </button>
+                </div>
+              </div>
+            ) : filteredRequests.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12">
+                  <AlertCircle className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                  <p className="text-white/80 text-lg mb-2">No requests found</p>
+                  <p className="text-white/60">Create your first scout request to get started!</p>
+                </div>
+              </div>
+            ) : (
+              <KanbanBoard
+                requests={filteredRequests}
+                onRequestUpdate={async (requestId, newStatus) => {
+                  // Update request status
+                  try {
+                    const response = await fetch(`/api/requests/${requestId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: newStatus })
+                    })
+
+                    if (response.ok) {
+                      // Update local state
+                      setRequests(requests.map(request =>
+                        request.id === requestId
+                          ? { ...request, status: newStatus }
+                          : request
+                      ))
+                    }
+                  } catch (error) {
+                    console.error('Error updating request status:', error)
+                  }
+                }}
+                onRequestSelect={toggleRequestSelection}
+                selectedRequests={selectedRequests}
+              />
+            )}
+          </div>
+        ) : (
+          /* List View */
+          <div className="space-y-4">
+            {/* Select All Header */}
+            {filteredRequests.length > 0 && (
             <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -717,7 +801,8 @@ export default function RequestsPage() {
               ))}
             </div>
           )}
-        </div>
+          </div>
+        )}
         </div>
       </div>
 
