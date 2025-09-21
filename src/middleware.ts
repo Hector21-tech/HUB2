@@ -43,9 +43,18 @@ export function middleware(req: NextRequest) {
 
   // 3) Supabase auth handling for tenant routes
   try {
-    // Skip auth check if environment variables are missing
+    // Skip auth check if environment variables are missing or for public routes
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.warn('Supabase environment variables missing, skipping auth check')
+      return res
+    }
+
+    // Allow all public routes without authentication
+    const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
+    const isPublicRoute = publicRoutes.includes(pathname)
+
+    if (isPublicRoute) {
+      console.log('Public route accessed:', pathname)
       return res
     }
 
@@ -72,23 +81,9 @@ export function middleware(req: NextRequest) {
       }
     )
 
-    // Public routes that don't require authentication
-    const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
-    const isPublicRoute = publicRoutes.includes(pathname)
-
-    // API routes that don't require authentication (production-safe only)
-    const publicApiRoutes = ['/api/health', '/api/dashboard/stats']
-    const isPublicApiRoute = publicApiRoutes.some(route => pathname.startsWith(route))
-
     // For API routes, we'll handle auth in individual route handlers for better control
     if (pathname.startsWith('/api/')) {
       return res
-    }
-
-    // For page routes, check authentication
-    if (!isPublicRoute) {
-      // This will be handled by individual page components
-      // We keep the middleware simple and focused on CSRF
     }
 
     return res

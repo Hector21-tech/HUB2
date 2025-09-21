@@ -38,7 +38,9 @@
       "Bash(npm run lint)",
       "Bash(vercel:*)",
       "WebFetch(domain:hub2-jxocnzl49-hector-bataks-projects.vercel.app)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "WebFetch(domain:hub2-k18cch8uo-hector-bataks-projects.vercel.app)",
+      "WebFetch(domain:hub2-5qj6eao1k-hector-bataks-projects.vercel.app)"
     ],
     "deny": [],
     "ask": []
