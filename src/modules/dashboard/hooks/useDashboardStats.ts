@@ -118,13 +118,17 @@ function getMockDashboardStats(): DashboardStats {
 }
 
 async function fetchDashboardStats(tenantId: string): Promise<DashboardStats> {
-  console.log('🔍 Dashboard API: Fetching stats for tenant:', tenantId)
+  if (process.env.NODE_ENV === 'development' && process.env.DEBUG_DASHBOARD === '1') {
+    console.log('🔍 Dashboard API: Fetching stats for tenant:', tenantId)
+  }
   try {
     const url = `/api/dashboard/stats?tenantId=${tenantId}`
-    console.log('🔍 Dashboard API: Request URL:', url)
 
     const response = await fetch(url)
-    console.log('🔍 Dashboard API: Response status:', response.status, response.statusText)
+
+    if (process.env.NODE_ENV === 'development' && process.env.DEBUG_DASHBOARD === '1') {
+      console.log('🔍 Dashboard API: Response status:', response.status, response.statusText)
+    }
 
     if (!response.ok) {
       const errorText = await response.text()

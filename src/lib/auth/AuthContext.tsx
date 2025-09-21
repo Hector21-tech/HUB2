@@ -75,6 +75,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
+        // Development mode: Set tenant immediately
+        if (session?.user && process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_ENABLED === 'true') {
+          console.log('🚧 AuthContext: Setting development tenant immediately')
+          setCurrentTenant('test-tenant-demo')
+          const mockTenants: TenantMembership[] = [{
+            tenantId: 'test-tenant-demo',
+            role: 'OWNER',
+            tenant: {
+              id: 'test-tenant-demo',
+              name: 'Test Scout Hub',
+              slug: 'test-scout-hub'
+            }
+          }]
+          setUserTenants(mockTenants)
+        }
+
         // Don't fetch tenants here - let onAuthStateChange handle it
         if (session?.user) {
           console.log('🔐 AuthContext: User found in initial session')
@@ -135,9 +151,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
-    // Prevent duplicate calls
+    // Development mode: Use test tenant directly
+    if (process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_ENABLED === 'true') {
+      console.log('🚧 AuthContext: Development mode - using test-tenant-demo')
+      const mockTenants: TenantMembership[] = [{
+        tenantId: 'test-tenant-demo',
+        role: 'OWNER',
+        tenant: {
+          id: 'test-tenant-demo',
+          name: 'Test Scout Hub',
+          slug: 'test-scout-hub'
+        }
+      }]
+      setUserTenants(mockTenants)
+      setCurrentTenant('test-tenant-demo')
+      return
+    }
+
+    // Prevent duplicate calls and skip if already have data
     if (isFetchingTenants) {
       console.log('🔍 AuthContext: Already fetching tenants, skipping...')
+      return
+    }
+
+    if (userTenants.length > 0) {
+      console.log('🔍 AuthContext: Already have tenant data, skipping fetch')
       return
     }
 
@@ -162,17 +200,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
+      let timeoutId: NodeJS.Timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout - will auto-setup')), 3000)
+        timeoutId = setTimeout(() => reject(new Error('Query timeout - will auto-setup')), 10000)
       })
 
       let data, error
       try {
         const result = await Promise.race([queryPromise, timeoutPromise])
+        clearTimeout(timeoutId) // Clear timeout when query succeeds
         data = result.data
         error = result.error
       } catch (timeoutError) {
-        console.warn('🕐 AuthContext: Query timed out after 3 seconds, triggering auto-setup')
+        console.warn('🕐 AuthContext: Query timed out after 10 seconds, triggering auto-setup')
         // Trigger automatic setup immediately
         setIsFetchingTenants(false)
         setTimeout(async () => {
@@ -276,24 +316,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Log raw data only in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('📝 AuthContext: Raw data from query:', data)
-      }
+      // Process successful data response
+      if (data && data.length > 0) {
+        // Log raw data only in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📝 AuthContext: Raw data from query:', data)
+        }
 
-      const memberships = data?.map((item: any) => ({
-        tenantId: item.tenantId,
-        role: item.role,
-        tenant: Array.isArray(item.tenant) ? item.tenant[0] : item.tenant
-      })) as TenantMembership[] || []
+        const memberships = data.map((item: any) => ({
+          tenantId: item.tenantId,
+          role: item.role,
+          tenant: Array.isArray(item.tenant) ? item.tenant[0] : item.tenant
+        })) as TenantMembership[]
 
-      console.log('✅ AuthContext: Processed memberships:', memberships)
-      setUserTenants(memberships)
+        console.log('✅ AuthContext: Processed memberships:', `${memberships.length} found`)
+        setUserTenants(memberships)
 
-      // Set current tenant to first available if none set
-      if (memberships.length > 0 && !currentTenant) {
-        console.log('🏢 AuthContext: Setting current tenant:', memberships[0].tenantId)
-        setCurrentTenant(memberships[0].tenantId)
+        // Set current tenant to first available if none set
+        if (memberships.length > 0 && !currentTenant) {
+          console.log('🏢 AuthContext: Setting current tenant:', memberships[0].tenantId)
+          setCurrentTenant(memberships[0].tenantId)
+        }
+
+        // Success! Exit early - no need for auto-setup
+        setIsFetchingTenants(false)
+        return
       }
     } catch (error) {
       console.error('❌ AuthContext: Catch error in fetchUserTenants:', error)

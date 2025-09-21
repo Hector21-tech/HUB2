@@ -13,13 +13,26 @@ export function useTenantSlug() {
 
   const tenantSlug = params?.tenant as string
 
+  // Development mode: Return current tenant directly
+  if (process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_ENABLED === 'true') {
+    console.log('🚧 useTenantSlug: Development mode - using currentTenant:', currentTenant)
+    const devTenant = userTenants.find(t => t.tenantId === currentTenant)
+    return {
+      tenantSlug,
+      tenantId: currentTenant,
+      tenant: devTenant?.tenant || null,
+      role: devTenant?.role || 'OWNER',
+      hasAccess: !!currentTenant
+    }
+  }
+
   // Find tenant by slug from user's memberships
   const tenantData = userTenants.find(
     membership => membership.tenant.slug === tenantSlug
   )
 
-  // Debug logging (only in development)
-  if (process.env.NODE_ENV === 'development') {
+  // Debug logging (only when needed for debugging)
+  if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TENANT_SLUG === '1') {
     console.log('🔍 useTenantSlug Debug:', {
       tenantSlug,
       userTenants: userTenants.map(t => ({ slug: t.tenant.slug, id: t.tenantId })),
