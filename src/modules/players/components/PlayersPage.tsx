@@ -38,7 +38,7 @@ export function PlayersPage() {
   const getMockPlayers = (): Player[] => [
     {
       id: 'mock-1',
-      tenantId: tenantId,
+      tenantId: tenantId || 'mock-tenant',
       firstName: 'Marcus',
       lastName: 'Rashford',
       dateOfBirth: new Date('1997-10-31'),
@@ -65,7 +65,7 @@ export function PlayersPage() {
     },
     {
       id: 'mock-2',
-      tenantId: tenantId,
+      tenantId: tenantId || 'mock-tenant',
       firstName: 'Erling',
       lastName: 'Haaland',
       dateOfBirth: new Date('2000-07-21'),
@@ -92,7 +92,7 @@ export function PlayersPage() {
     },
     {
       id: 'mock-3',
-      tenantId: tenantId,
+      tenantId: tenantId || 'mock-tenant',
       firstName: 'Bukayo',
       lastName: 'Saka',
       dateOfBirth: new Date('2001-09-05'),
@@ -463,7 +463,7 @@ export function PlayersPage() {
         isOpen={isAddPlayerModalOpen}
         onClose={handleAddPlayerClose}
         onSave={handleSavePlayer}
-        tenantId={tenantId}
+        tenantId={tenantId || 'unknown'}
       />
 
       {/* Edit Player Modal */}
@@ -474,7 +474,7 @@ export function PlayersPage() {
           setEditingPlayer(null)
         }}
         onSave={handleUpdatePlayer}
-        tenantId={tenantId}
+        tenantId={tenantId || 'unknown'}
         editingPlayer={editingPlayer}
       />
 
