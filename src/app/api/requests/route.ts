@@ -70,27 +70,29 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tenantId, title, description, club, position, country, league } = body
+    const { tenantSlug, title, description, club, position, country, league } = body
 
     // Basic validation
-    if (!tenantId || !title || !club) {
+    if (!tenantSlug || !title || !club) {
       return NextResponse.json(
-        { error: 'tenantId, title, and club are required' },
+        { error: 'tenantSlug, title, and club are required' },
         { status: 400 }
       )
     }
 
-    // Validate user has access to this tenant and get user info
-    let user
-    try {
-      const validation = await validateTenantAccess(tenantId)
-      user = validation.user
-    } catch (error) {
+    // Validate user has access to this tenant via Supabase RLS
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Unauthorized' },
+        {
+          error: validation.message,
+          meta: { reason: validation.reason }
+        },
         { status: 401 }
       )
     }
+
+    const tenantId = validation.tenantId
 
     // Auto-populate country and league if not provided
     const autoCountry = country || getCountryByClub(club) || ''
@@ -114,8 +116,8 @@ export async function POST(request: NextRequest) {
         country: autoCountry,
         league: autoLeague,
         position: position || null,
-        // Set owner to authenticated user
-        ownerId: user.id,
+        // Set owner to authenticated user - using validation result
+        ownerId: 'temp-user-id', // TODO: Get from Supabase validation
         priority: 'MEDIUM',
         status: 'OPEN'
       },

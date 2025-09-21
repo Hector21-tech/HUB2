@@ -251,7 +251,7 @@ export function DashboardContent({ tenant }: DashboardContentProps) {
       {/* Bottom Section: Recent Activity + Welcome */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Activity Feed */}
-        <RecentActivityFeed tenantId={tenantId || ''} />
+        <RecentActivityFeed tenantSlug={tenantSlug || tenant || ''} />
 
         {/* Welcome Section */}
         <div className="bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-6">

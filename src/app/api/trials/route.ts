@@ -87,24 +87,29 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const tenantId = searchParams.get('tenantId')
+    const tenantSlug = searchParams.get('tenant')
 
-    if (!tenantId) {
+    if (!tenantSlug) {
       return NextResponse.json(
-        { success: false, error: 'Tenant ID is required' },
+        { success: false, error: 'Tenant parameter is required' },
         { status: 400 }
       )
     }
 
-    // 🛡️ SECURITY: Validate user has access to this tenant
-    try {
-      await validateTenantAccess(tenantId)
-    } catch (error) {
+    // 🛡️ SECURITY: Validate user has access to this tenant via Supabase RLS
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: error instanceof Error ? error.message : 'Unauthorized' },
+        {
+          success: false,
+          error: validation.message,
+          meta: { reason: validation.reason }
+        },
         { status: 401 }
       )
     }
+
+    const tenantId = validation.tenantId
 
     const body = await request.json()
     const trialData: CreateTrialInput = {
