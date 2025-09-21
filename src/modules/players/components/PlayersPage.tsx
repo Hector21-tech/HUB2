@@ -13,13 +13,13 @@ import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
 import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
 export function PlayersPage() {
-  const { tenantId } = useTenantSlug()
+  const { tenantSlug, tenantId } = useTenantSlug()
   // React Query for data fetching with automatic caching
-  const { data: players = [], isLoading: loading, error } = usePlayersQuery(tenantId || '')
+  const { data: players = [], isLoading: loading, error } = usePlayersQuery(tenantSlug || '')
   const queryClient = useQueryClient()
 
-  // Show loading if tenantId is not yet available
-  if (!tenantId) {
+  // Show loading if tenantSlug is not yet available
+  if (!tenantSlug) {
     return <PlayerGridSkeleton />
   }
 
@@ -485,7 +485,6 @@ export function PlayersPage() {
           setIsScheduleTrialModalOpen(false)
           setTrialPlayer(null)
         }}
-        tenantId={tenantId}
         preSelectedPlayerId={trialPlayer?.id}
       />
     </div>

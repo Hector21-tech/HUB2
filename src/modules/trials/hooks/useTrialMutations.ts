@@ -8,12 +8,12 @@ interface TrialResponse {
 }
 
 // Create trial mutation
-export function useCreateTrial(tenantId: string) {
+export function useCreateTrial(tenantSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (trialData: CreateTrialInput): Promise<Trial> => {
-      const response = await fetch(`/api/trials?tenantId=${tenantId}`, {
+      const response = await fetch(`/api/trials?tenant=${tenantSlug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(trialData)
@@ -29,18 +29,18 @@ export function useCreateTrial(tenantId: string) {
     },
     onSuccess: () => {
       // Invalidate and refetch trials
-      queryClient.invalidateQueries({ queryKey: ['trials', tenantId] })
+      queryClient.invalidateQueries({ queryKey: ['trials', tenantSlug] })
     }
   })
 }
 
 // Update trial mutation
-export function useUpdateTrial(tenantId: string) {
+export function useUpdateTrial(tenantSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ trialId, data }: { trialId: string; data: UpdateTrialInput }): Promise<Trial> => {
-      const response = await fetch(`/api/trials/${trialId}?tenantId=${tenantId}`, {
+      const response = await fetch(`/api/trials/${trialId}?tenant=${tenantSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -56,20 +56,20 @@ export function useUpdateTrial(tenantId: string) {
     },
     onSuccess: (updatedTrial) => {
       // Invalidate trials list
-      queryClient.invalidateQueries({ queryKey: ['trials', tenantId] })
+      queryClient.invalidateQueries({ queryKey: ['trials', tenantSlug] })
       // Update single trial cache
-      queryClient.setQueryData(['trial', updatedTrial.id, tenantId], updatedTrial)
+      queryClient.setQueryData(['trial', updatedTrial.id, tenantSlug], updatedTrial)
     }
   })
 }
 
 // Delete trial mutation
-export function useDeleteTrial(tenantId: string) {
+export function useDeleteTrial(tenantSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (trialId: string): Promise<void> => {
-      const response = await fetch(`/api/trials/${trialId}?tenantId=${tenantId}`, {
+      const response = await fetch(`/api/trials/${trialId}?tenant=${tenantSlug}`, {
         method: 'DELETE'
       })
 
@@ -81,20 +81,20 @@ export function useDeleteTrial(tenantId: string) {
     },
     onSuccess: (_, trialId) => {
       // Invalidate trials list
-      queryClient.invalidateQueries({ queryKey: ['trials', tenantId] })
+      queryClient.invalidateQueries({ queryKey: ['trials', tenantSlug] })
       // Remove single trial from cache
-      queryClient.removeQueries({ queryKey: ['trial', trialId, tenantId] })
+      queryClient.removeQueries({ queryKey: ['trial', trialId, tenantSlug] })
     }
   })
 }
 
 // Evaluate trial mutation
-export function useEvaluateTrial(tenantId: string) {
+export function useEvaluateTrial(tenantSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ trialId, evaluation }: { trialId: string; evaluation: TrialEvaluationInput }): Promise<Trial> => {
-      const response = await fetch(`/api/trials/${trialId}/evaluate?tenantId=${tenantId}`, {
+      const response = await fetch(`/api/trials/${trialId}/evaluate?tenant=${tenantSlug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(evaluation)
@@ -110,20 +110,20 @@ export function useEvaluateTrial(tenantId: string) {
     },
     onSuccess: (updatedTrial) => {
       // Invalidate trials list
-      queryClient.invalidateQueries({ queryKey: ['trials', tenantId] })
+      queryClient.invalidateQueries({ queryKey: ['trials', tenantSlug] })
       // Update single trial cache
-      queryClient.setQueryData(['trial', updatedTrial.id, tenantId], updatedTrial)
+      queryClient.setQueryData(['trial', updatedTrial.id, tenantSlug], updatedTrial)
     }
   })
 }
 
 // Bulk update trial status (useful for batch operations)
-export function useUpdateTrialStatus(tenantId: string) {
+export function useUpdateTrialStatus(tenantSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ trialId, status }: { trialId: string; status: Trial['status'] }): Promise<Trial> => {
-      const response = await fetch(`/api/trials/${trialId}?tenantId=${tenantId}`, {
+      const response = await fetch(`/api/trials/${trialId}?tenant=${tenantSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -139,9 +139,9 @@ export function useUpdateTrialStatus(tenantId: string) {
     },
     onSuccess: (updatedTrial) => {
       // Invalidate trials list
-      queryClient.invalidateQueries({ queryKey: ['trials', tenantId] })
+      queryClient.invalidateQueries({ queryKey: ['trials', tenantSlug] })
       // Update single trial cache
-      queryClient.setQueryData(['trial', updatedTrial.id, tenantId], updatedTrial)
+      queryClient.setQueryData(['trial', updatedTrial.id, tenantSlug], updatedTrial)
     }
   })
 }

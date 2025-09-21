@@ -8,8 +8,8 @@ interface TrialsResponse {
 
 // No mock trials - show empty state instead
 
-const buildQueryString = (tenantId: string, filters?: TrialFilters): string => {
-  const params = new URLSearchParams({ tenantId })
+const buildQueryString = (tenantSlug: string, filters?: TrialFilters): string => {
+  const params = new URLSearchParams({ tenant: tenantSlug })
 
   if (filters?.status && filters.status.length > 0) {
     params.append('status', filters.status.join(','))
@@ -33,9 +33,9 @@ const buildQueryString = (tenantId: string, filters?: TrialFilters): string => {
   return params.toString()
 }
 
-const fetchTrials = async (tenantId: string, filters?: TrialFilters): Promise<Trial[]> => {
+const fetchTrials = async (tenantSlug: string, filters?: TrialFilters): Promise<Trial[]> => {
   try {
-    const queryString = buildQueryString(tenantId, filters)
+    const queryString = buildQueryString(tenantSlug, filters)
     const response = await fetch(`/api/trials?${queryString}`)
     const result = await response.json()
 
@@ -51,10 +51,10 @@ const fetchTrials = async (tenantId: string, filters?: TrialFilters): Promise<Tr
   }
 }
 
-export function useTrialsQuery(tenantId: string, filters?: TrialFilters) {
+export function useTrialsQuery(tenantSlug: string, filters?: TrialFilters) {
   return useQuery({
-    queryKey: ['trials', tenantId, filters],
-    queryFn: () => fetchTrials(tenantId, filters),
+    queryKey: ['trials', tenantSlug, filters],
+    queryFn: () => fetchTrials(tenantSlug, filters),
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter than players since trials change more frequently)
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
@@ -63,11 +63,11 @@ export function useTrialsQuery(tenantId: string, filters?: TrialFilters) {
 }
 
 // Hook for fetching a single trial
-export function useTrialQuery(trialId: string, tenantId: string) {
+export function useTrialQuery(trialId: string, tenantSlug: string) {
   return useQuery({
-    queryKey: ['trial', trialId, tenantId],
+    queryKey: ['trial', trialId, tenantSlug],
     queryFn: async () => {
-      const response = await fetch(`/api/trials/${trialId}?tenantId=${tenantId}`)
+      const response = await fetch(`/api/trials/${trialId}?tenant=${tenantSlug}`)
       const result = await response.json()
 
       if (!result.success) {
@@ -80,6 +80,6 @@ export function useTrialQuery(trialId: string, tenantId: string) {
     gcTime: 3 * 60 * 1000, // 3 minutes
     refetchOnWindowFocus: false,
     retry: 1,
-    enabled: !!trialId && !!tenantId
+    enabled: !!trialId && !!tenantSlug
   })
 }

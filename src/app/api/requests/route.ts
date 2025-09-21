@@ -69,13 +69,15 @@ export async function GET(request: NextRequest) {
 // POST - Create a new request
 export async function POST(request: NextRequest) {
   try {
+    // Get tenant from query parameter
+    const tenantSlug = request.nextUrl.searchParams.get('tenant')
     const body = await request.json()
-    const { tenantSlug, title, description, club, position, country, league } = body
+    const { title, description, club, position, country, league } = body
 
     // Basic validation
     if (!tenantSlug || !title || !club) {
       return NextResponse.json(
-        { error: 'tenantSlug, title, and club are required' },
+        { error: 'tenant parameter, title, and club are required' },
         { status: 400 }
       )
     }

@@ -55,10 +55,10 @@ const getMockPlayers = (): Player[] => [
   }
 ]
 
-const fetchPlayers = async (tenantId: string): Promise<Player[]> => {
+const fetchPlayers = async (tenantSlug: string): Promise<Player[]> => {
   try {
-    // Use players-sql API which properly transforms position data
-    const response = await fetch(`/api/players-sql?tenantId=${tenantId}`)
+    // Use standard players API with tenant slug
+    const response = await fetch(`/api/players?tenant=${tenantSlug}`)
     const result = await response.json()
 
     if (!result.success || !result.data || result.data.length === 0) {
@@ -71,10 +71,10 @@ const fetchPlayers = async (tenantId: string): Promise<Player[]> => {
   }
 }
 
-export function usePlayersQuery(tenantId: string) {
+export function usePlayersQuery(tenantSlug: string) {
   return useQuery({
-    queryKey: ['players', tenantId],
-    queryFn: () => fetchPlayers(tenantId),
+    queryKey: ['players', tenantSlug],
+    queryFn: () => fetchPlayers(tenantSlug),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,

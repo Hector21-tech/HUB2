@@ -57,10 +57,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 POST /api/players - Starting...')
+
+    // Get tenant from query parameter
+    const tenantSlug = request.nextUrl.searchParams.get('tenant')
     const body = await request.json()
 
     const {
-      tenantSlug,
       firstName,
       lastName,
       dateOfBirth,
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (!tenantSlug || !firstName || !lastName) {
       console.log('❌ Validation failed: Missing required fields')
       return NextResponse.json(
-        { success: false, error: 'Tenant slug, first name, and last name are required' },
+        { success: false, error: 'Tenant parameter, first name, and last name are required' },
         { status: 400 }
       )
     }
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ Validation passed, checking tenant access...')
 
     // Validate user has access to this tenant via Supabase RLS
-    const validation = await validateSupabaseTenantAccess(body.tenantSlug || null)
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
     if (!validation.success) {
       console.log('❌ Tenant access denied:', validation.reason, validation.message)
       return NextResponse.json(

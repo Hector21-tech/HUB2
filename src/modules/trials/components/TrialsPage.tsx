@@ -14,10 +14,10 @@ import { Trial, TrialFilters } from '../types/trial'
 import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
 export function TrialsPage() {
-  const { tenantId } = useTenantSlug()
+  const { tenantSlug } = useTenantSlug()
 
-  // Show loading if tenantId is not yet available
-  if (!tenantId) {
+  // Show loading if tenantSlug is not yet available
+  if (!tenantSlug) {
     return (
       <div className="p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen">
         <div className="max-w-7xl mx-auto">
@@ -41,8 +41,8 @@ export function TrialsPage() {
   const [evaluateTrial, setEvaluateTrial] = useState<Trial | null>(null)
 
   // Fetch trials with filters
-  const { data: trials = [], isLoading, error } = useTrialsQuery(tenantId, filters)
-  const deleteTrial = useDeleteTrial(tenantId)
+  const { data: trials = [], isLoading, error } = useTrialsQuery(tenantSlug, filters)
+  const deleteTrial = useDeleteTrial(tenantSlug)
 
   // Calculate stats and group trials
   const { stats, groupedTrials } = useMemo(() => {
@@ -379,7 +379,6 @@ export function TrialsPage() {
             setShowAddModal(false)
             setSelectedTrial(null)
           }}
-          tenantId={tenantId}
         />
       )}
 

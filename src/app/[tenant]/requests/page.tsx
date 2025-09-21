@@ -36,7 +36,7 @@ interface Request {
 export default function RequestsPage() {
   const params = useParams()
   const tenant = params.tenant as string
-  const { tenantId } = useTenantSlug()
+  const { tenantSlug } = useTenantSlug()
 
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
@@ -174,7 +174,7 @@ export default function RequestsPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/requests?tenantId=${tenantId}`)
+      const response = await fetch(`/api/requests?tenant=${tenantSlug}`)
       const result = await response.json()
 
       if (result.success) {
@@ -193,15 +193,12 @@ export default function RequestsPage() {
     e.preventDefault()
 
     try {
-      const response = await fetch('/api/requests', {
+      const response = await fetch(`/api/requests?tenant=${tenantSlug}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tenantId: tenantId,
-          ...formData
-        })
+        body: JSON.stringify(formData)
       })
 
       const result = await response.json()

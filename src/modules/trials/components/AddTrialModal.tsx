@@ -8,16 +8,17 @@ import { useCreateTrial, useUpdateTrial } from '../hooks/useTrialMutations'
 import { Trial, CreateTrialInput, UpdateTrialInput } from '../types/trial'
 import { searchClubs, getAllClubNames } from '@/lib/football-clubs'
 import { toDateTimeLocalString, fromDateTimeLocalString } from '@/lib/formatters'
+import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
 interface AddTrialModalProps {
   isOpen: boolean
   onClose: () => void
-  tenantId: string
   trial?: Trial | null // For editing existing trials
   preSelectedPlayerId?: string // For pre-selecting a player when scheduling from player detail
 }
 
-export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPlayerId }: AddTrialModalProps) {
+export function AddTrialModal({ isOpen, onClose, trial, preSelectedPlayerId }: AddTrialModalProps) {
+  const { tenantSlug } = useTenantSlug()
   const [formData, setFormData] = useState({
     playerId: '',
     requestId: '',
@@ -30,11 +31,11 @@ export function AddTrialModal({ isOpen, onClose, tenantId, trial, preSelectedPla
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Fetch players for dropdown
-  const { data: players = [], isLoading: playersLoading } = usePlayersQuery(tenantId)
+  const { data: players = [], isLoading: playersLoading } = usePlayersQuery(tenantSlug || '')
 
   // Mutations
-  const createTrial = useCreateTrial(tenantId)
-  const updateTrial = useUpdateTrial(tenantId)
+  const createTrial = useCreateTrial(tenantSlug || '')
+  const updateTrial = useUpdateTrial(tenantSlug || '')
 
   // Populate form when editing a trial or pre-selecting a player
   useEffect(() => {
