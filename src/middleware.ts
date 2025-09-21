@@ -1,5 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { protectDebugEndpoints } from '@/lib/security/debug-protection'
+import { enhanceRequestCorrelation } from '@/lib/security/request-correlation'
+import {
+  applyRateLimit,
+  createRateLimitResponse,
+  getRateLimitType,
+  cleanupRateLimitStore
+} from '@/lib/security/rate-limiting'
+import { enhanceResponseSecurity } from '@/lib/security/security-headers'
 
 // Simple in-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; timestamp: number }>()
@@ -56,26 +65,38 @@ function cleanupRateLimitMap() {
 
 export async function middleware(request: NextRequest) {
   try {
+    // 🛡️ ENTERPRISE SECURITY: Block debug endpoints in production
+    const debugResponse = protectDebugEndpoints(request)
+    if (debugResponse) {
+      return debugResponse
+    }
+
     let response = NextResponse.next({
       request: {
         headers: request.headers,
       },
     })
 
-    // Clean up old entries periodically
+    // 🛡️ ENTERPRISE SECURITY: Add request correlation for troubleshooting
+    const { requestId, enhancedResponse } = enhanceRequestCorrelation(request, response)
+    response = enhancedResponse
+
+    // Clean up old entries periodically (both old and new systems)
     if (Math.random() < 0.01) { // 1% chance
       cleanupRateLimitMap()
+      cleanupRateLimitStore()
     }
 
-    // Apply rate limiting to PDF generation endpoint
-    if (request.nextUrl.pathname === '/api/generate-player-pdf') {
-      const key = getRateLimitKey(request)
+    // 🛡️ ENTERPRISE SECURITY: Advanced rate limiting per tenant+user
+    const requestPath = request.nextUrl.pathname
+    if (requestPath.startsWith('/api/')) {
+      const rateLimitType = getRateLimitType(requestPath)
 
-      if (isRateLimited(key)) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded. Please try again later.' },
-          { status: 429 }
-        )
+      // For now, apply without tenant/user context (will be enhanced when auth is available)
+      const rateLimitResult = applyRateLimit(request, rateLimitType)
+
+      if (rateLimitResult && !rateLimitResult.allowed) {
+        return createRateLimitResponse(rateLimitResult)
       }
     }
 
@@ -129,8 +150,8 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
   const isPublicRoute = publicRoutes.includes(pathname)
 
-  // API routes that don't require authentication
-  const publicApiRoutes = ['/api/hello', '/api/test-db', '/api/health', '/api/setup-rls-auth', '/api/setup-test-auth', '/api/setup-user-data', '/api/setup-elite-sports', '/api/dashboard/stats', '/api/players', '/api/requests', '/api/trials']
+  // API routes that don't require authentication (production-safe only)
+  const publicApiRoutes = ['/api/health', '/api/dashboard/stats', '/api/players', '/api/requests', '/api/trials']
   const isPublicApiRoute = publicApiRoutes.some(route => pathname.startsWith(route))
 
   // Allow all API routes if user exists OR if it's a public API route
@@ -190,6 +211,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
+
+    // 🛡️ ENTERPRISE SECURITY: Add comprehensive security headers
+    response = enhanceResponseSecurity(response, {
+      environment: process.env.NODE_ENV === 'production' ? 'production' : 'development'
+    })
 
     return response
   } catch (error) {

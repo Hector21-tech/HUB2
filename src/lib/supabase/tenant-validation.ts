@@ -1,16 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
+import { normalizeTenantSlug, createSafeLogData } from '@/lib/security/input-hygiene'
 
 export interface TenantValidationResult {
   tenantId: string
   tenantSlug: string
+  userId: string
   userRole: 'OWNER' | 'ADMIN' | 'MANAGER' | 'SCOUT' | 'VIEWER'
   success: true
 }
 
 export interface TenantValidationError {
   success: false
-  reason: 'tenant_missing' | 'tenant_not_found' | 'not_member' | 'insufficient_role' | 'db_error'
+  reason: 'tenant_missing' | 'tenant_not_found' | 'not_member' | 'insufficient_role' | 'db_error' | 'unauthenticated'
   message: string
+  httpStatus: 400 | 401 | 403 | 404 | 500
 }
 
 /**
@@ -23,12 +26,15 @@ export async function validateSupabaseTenantAccess(
   tenantSlug: string | null
 ): Promise<TenantValidationResult | TenantValidationError> {
 
-  // Check if tenant slug is provided
-  if (!tenantSlug || tenantSlug.trim() === '') {
+  // 🛡️ ENTERPRISE SECURITY: Normalize and validate tenant slug
+  const normalizedSlug = normalizeTenantSlug(tenantSlug)
+
+  if (!normalizedSlug) {
     return {
       success: false,
       reason: 'tenant_missing',
-      message: 'Tenant slug parameter is required'
+      message: 'Valid tenant slug parameter is required',
+      httpStatus: 400
     }
   }
 
@@ -41,26 +47,28 @@ export async function validateSupabaseTenantAccess(
     if (userError || !user) {
       return {
         success: false,
-        reason: 'not_member',
-        message: 'User not authenticated'
+        reason: 'unauthenticated',
+        message: 'User not authenticated',
+        httpStatus: 401
       }
     }
 
-    console.log('🔍 Supabase Tenant Validation: Starting for user:', user.id, 'tenant:', tenantSlug)
+    console.log('🔍 Supabase Tenant Validation: Starting for user:', user.id, 'tenant:', normalizedSlug)
 
-    // Step 1: Look up tenant by slug
+    // Step 1: Look up tenant by normalized slug
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .select('id, slug, name')
-      .eq('slug', tenantSlug)
+      .eq('slug', normalizedSlug)
       .single()
 
     if (tenantError || !tenant) {
-      console.log('❌ Tenant not found:', tenantSlug, tenantError?.message)
+      console.log('❌ Tenant not found:', normalizedSlug, createSafeLogData(tenantError))
       return {
         success: false,
         reason: 'tenant_not_found',
-        message: `Tenant '${tenantSlug}' not found`
+        message: `Tenant not found`,
+        httpStatus: 404
       }
     }
 
@@ -79,7 +87,8 @@ export async function validateSupabaseTenantAccess(
       return {
         success: false,
         reason: 'not_member',
-        message: `User is not a member of tenant '${tenantSlug}'`
+        message: `User is not a member of tenant '${tenantSlug}'`,
+        httpStatus: 403
       }
     }
 
@@ -90,7 +99,8 @@ export async function validateSupabaseTenantAccess(
       return {
         success: false,
         reason: 'insufficient_role',
-        message: `User role '${membership.role}' insufficient. Required: ADMIN or OWNER`
+        message: `User role '${membership.role}' insufficient. Required: ADMIN or OWNER`,
+        httpStatus: 403
       }
     }
 
@@ -100,6 +110,7 @@ export async function validateSupabaseTenantAccess(
       success: true,
       tenantId: tenant.id,
       tenantSlug: tenant.slug,
+      userId: user.id,
       userRole: membership.role as 'OWNER' | 'ADMIN' | 'MANAGER' | 'SCOUT' | 'VIEWER'
     }
 
@@ -108,7 +119,8 @@ export async function validateSupabaseTenantAccess(
     return {
       success: false,
       reason: 'db_error',
-      message: error instanceof Error ? error.message : 'Database connection error'
+      message: error instanceof Error ? error.message : 'Database connection error',
+      httpStatus: 500
     }
   }
 }

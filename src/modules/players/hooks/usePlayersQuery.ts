@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Player } from '../types/player'
+import { apiFetch } from '@/lib/api-config'
 
 interface PlayersResponse {
   success: boolean
@@ -57,8 +58,8 @@ const getMockPlayers = (): Player[] => [
 
 const fetchPlayers = async (tenantSlug: string): Promise<Player[]> => {
   try {
-    // Use standard players API with tenant slug
-    const response = await fetch(`/api/players?tenant=${tenantSlug}`)
+    // Use centralized API configuration for environment-specific URLs
+    const response = await apiFetch(`/api/players?tenant=${tenantSlug}`)
     const result = await response.json()
 
     if (!result.success || !result.data || result.data.length === 0) {

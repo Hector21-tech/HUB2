@@ -110,6 +110,12 @@ export function AddTrialModal({ isOpen, onClose, trial, preSelectedPlayerId }: A
 
     if (!validateForm()) return
 
+    // Guard: Ensure tenant is available before submitting
+    if (!tenantSlug) {
+      setErrors({ submit: 'Tenant information is missing. Please refresh the page.' })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {

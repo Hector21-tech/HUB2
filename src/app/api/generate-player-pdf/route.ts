@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateSupabaseTenantAccess } from '@/lib/supabase/tenant-validation'
+import { createErrorResponse, createServerErrorResponse } from '@/lib/http-utils'
+import { Logger, createLogContext } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,12 +26,56 @@ interface PDFRequest {
   }
 }
 
+// 🛡️ SSRF Protection: Strict domain whitelist for external resources
 const ALLOWED_HOSTS = new Set([
   'hub2-seven.vercel.app',
   'hub2-fqi83azof-hector-bataks-projects.vercel.app',
   'localhost:3000',
-  '127.0.0.1:3000'
+  '127.0.0.1:3000',
+  'localhost:3004',  // Current dev port
+  '127.0.0.1:3004'
 ])
+
+// Additional security: Block all private/internal IP ranges and dangerous protocols
+const BLOCKED_IP_PATTERNS = [
+  /^10\./,          // Private Class A
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,  // Private Class B
+  /^192\.168\./,    // Private Class C
+  /^127\./,         // Loopback
+  /^169\.254\./,    // Link-local
+  /^0\./,           // Reserved
+  /^224\./,         // Multicast
+  /^::1$/,          // IPv6 loopback
+  /^fe80:/,         // IPv6 link-local
+  /^::ffff:192\.168\./, // IPv4-mapped IPv6 private
+]
+
+function isUrlSafe(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url)
+
+    // Only allow HTTP/HTTPS
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return false
+    }
+
+    // Check if hostname is in whitelist
+    if (!ALLOWED_HOSTS.has(parsedUrl.hostname)) {
+      return false
+    }
+
+    // Block private IP ranges
+    for (const pattern of BLOCKED_IP_PATTERNS) {
+      if (pattern.test(parsedUrl.hostname)) {
+        return false
+      }
+    }
+
+    return true
+  } catch {
+    return false
+  }
+}
 
 function sanitizeFileName(name: string) {
   const base = (name || 'document.pdf').replace(/[^a-zA-Z0-9_.-]/g, '_')
@@ -70,8 +117,60 @@ async function resolveAvatarUrl(avatarPath: string, tenantId: string): Promise<s
 }
 
 export async function POST(request: NextRequest) {
+  const timer = Logger.timer()
+  const baseContext = createLogContext(request)
+  let tenantSlug: string | null = null
+
   try {
+    // 🛡️ CRITICAL: Tenant validation required for PDF generation
+    tenantSlug = request.nextUrl.searchParams.get('tenant')
+
+    if (!tenantSlug) {
+      const duration = timer.end()
+      Logger.warn('PDF generation: Missing tenant parameter', {
+        ...baseContext,
+        status: 400,
+        duration
+      })
+      return NextResponse.json(
+        { success: false, error: 'Tenant parameter is required for PDF generation' },
+        { status: 400 }
+      )
+    }
+
+    // Validate user has access to this tenant
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
+      const duration = timer.end()
+      Logger.warn('PDF generation: Tenant access denied', {
+        ...baseContext,
+        tenant: tenantSlug,
+        status: validation.httpStatus,
+        duration,
+        details: { reason: validation.reason }
+      })
+      return createErrorResponse(validation)
+    }
+
+    const validatedTenantId = validation.tenantId
+
     const { html, url, fileName = 'document.pdf', playerData, aiImprovedNotes, tenantData }: PDFRequest = await request.json()
+
+    // 🛡️ SSRF Protection: Validate any external URLs
+    if (url && !isUrlSafe(url)) {
+      const duration = timer.end()
+      Logger.warn('PDF generation: Blocked unsafe URL', {
+        ...baseContext,
+        tenant: tenantSlug,
+        status: 403,
+        duration,
+        details: { blockedUrl: url }
+      })
+      return NextResponse.json(
+        { success: false, error: 'URL not allowed for security reasons' },
+        { status: 403 }
+      )
+    }
 
     // Support both new format (html/url) and legacy format (playerData)
     let htmlContent = html
@@ -79,6 +178,26 @@ export async function POST(request: NextRequest) {
     let finalFileName = fileName
 
     if (playerData) {
+      // 🛡️ CRITICAL: Cross-tenant protection - verify player belongs to validated tenant
+      if (playerData.tenantId && playerData.tenantId !== validatedTenantId) {
+        const duration = timer.end()
+        Logger.warn('PDF generation: Cross-tenant access attempt blocked', {
+          ...baseContext,
+          tenant: tenantSlug,
+          status: 403,
+          duration,
+          details: {
+            playerTenantId: playerData.tenantId,
+            validatedTenantId,
+            playerId: playerData.id
+          }
+        })
+        return NextResponse.json(
+          { success: false, error: 'Player does not belong to the specified tenant' },
+          { status: 403 }
+        )
+      }
+
       // Legacy support - generate HTML from playerData
       // First resolve avatar URL if player has avatarPath
       let resolvedAvatarUrl = playerData.avatarUrl // Keep legacy avatarUrl as fallback

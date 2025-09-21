@@ -28,7 +28,10 @@
       "WebFetch(domain:hub2-seven.vercel.app)",
       "mcp__ide__getDiagnostics",
       "Bash(timeout:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "WebFetch(domain:hub2-2fr4aueq1-hector-bataks-projects.vercel.app)",
+      "WebFetch(domain:localhost)",
+      "WebFetch(domain:hub2-au2wqhkhn-hector-bataks-projects.vercel.app)"
     ],
     "deny": [],
     "ask": []

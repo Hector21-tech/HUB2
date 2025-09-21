@@ -11,6 +11,7 @@ import { usePlayersQuery } from '../hooks/usePlayersQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
 import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
+import { apiFetch } from '@/lib/api-config'
 
 export function PlayersPage() {
   const { tenantSlug, tenantId } = useTenantSlug()
@@ -262,12 +263,9 @@ export function PlayersPage() {
         throw new Error('No tenant context available')
       }
 
-      // Use simple absolute path instead of window.location.origin to avoid routing conflicts
-      const response = await fetch('/api/players', {
+      // Use centralized API configuration for environment-specific URLs
+      const response = await apiFetch(`/api/players?tenant=${tenantSlug}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(playerData),
       })
 
@@ -282,8 +280,8 @@ export function PlayersPage() {
 
       if (result.success) {
         // Add new player to local state
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
+        // Invalidate queries to refresh data (use tenantSlug, not tenantId)
+        queryClient.invalidateQueries({ queryKey: ['players', tenantSlug] })
 
         // Invalidate avatar cache to ensure new avatars show immediately
         triggerAvatarCacheInvalidation()
@@ -315,12 +313,9 @@ export function PlayersPage() {
       console.log('✏️ Updating player:', editingPlayer?.id)
       console.log('📋 Updated data:', playerData)
 
-      // Use consistent API endpoint and simple absolute path
-      const response = await fetch('/api/players', {
+      // Use centralized API configuration for environment-specific URLs
+      const response = await apiFetch(`/api/players?tenant=${tenantSlug}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           ...playerData,
           id: editingPlayer?.id
@@ -358,21 +353,41 @@ export function PlayersPage() {
 
       console.log('🗑️ Deleting player:', player.id)
 
-      // Use consistent API endpoint and simple absolute path
-      const response = await fetch(`/api/players?id=${player.id}&tenantId=${tenantId}`, {
-        method: 'DELETE'
+      // Close detail drawer immediately for better UX
+      setSelectedPlayer(null)
+
+      // Optimistic update: immediately remove from cache
+      const queryKey = ['players', tenantSlug]
+      const previousData = queryClient.getQueryData(queryKey)
+
+      queryClient.setQueryData(queryKey, (oldData: Player[] | undefined) => {
+        if (!oldData) return oldData
+        return oldData.filter(p => p.id !== player.id)
       })
 
-      const result = await response.json()
+      try {
+        // Use centralized API configuration for environment-specific URLs
+        const response = await apiFetch(`/api/players?id=${player.id}&tenantId=${tenantId}`, {
+          method: 'DELETE'
+        })
 
-      if (result.success) {
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ['players', tenantId] })
-        console.log('✅ Player deleted successfully')
-        setSelectedPlayer(null) // Close detail drawer
-      } else {
-        console.error('❌ Error deleting player:', result.error)
-        throw new Error(result.error)
+        const result = await response.json()
+
+        if (result.success) {
+          console.log('✅ Player deleted successfully')
+          // Invalidate queries to ensure fresh data on next fetch
+          queryClient.invalidateQueries({ queryKey })
+        } else {
+          console.error('❌ Error deleting player:', result.error)
+          // Rollback optimistic update
+          queryClient.setQueryData(queryKey, previousData)
+          throw new Error(result.error)
+        }
+      } catch (networkError) {
+        console.error('❌ Network error deleting player:', networkError)
+        // Rollback optimistic update
+        queryClient.setQueryData(queryKey, previousData)
+        throw networkError
       }
     } catch (error) {
       console.error('❌ Error deleting player:', error)

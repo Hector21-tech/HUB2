@@ -14,10 +14,10 @@ import { EventDetailModal } from './EventDetailModal'
 import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
 
 export function CalendarPage() {
-  const { tenantId } = useTenantSlug()
+  const { tenantSlug } = useTenantSlug()
 
-  // Show loading if tenantId is not yet available
-  if (!tenantId) {
+  // Show loading if tenantSlug is not yet available
+  if (!tenantSlug) {
     return (
       <div className="p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen">
         <div className="max-w-7xl mx-auto">
@@ -58,7 +58,7 @@ export function CalendarPage() {
 
   const { start: rangeStart, end: rangeEnd } = getDateRange()
   const { data: events = [], isLoading, error } = useCalendarEventsInRange(
-    tenantId,
+    tenantSlug,
     rangeStart,
     rangeEnd
   )
@@ -299,7 +299,7 @@ export function CalendarPage() {
       {/* Modals */}
       {showCreateModal && (
         <CreateEventModal
-          tenantId={tenantId}
+          tenantId={tenantSlug}
           initialDate={selectedDate}
           onClose={() => {
             setShowCreateModal(false)

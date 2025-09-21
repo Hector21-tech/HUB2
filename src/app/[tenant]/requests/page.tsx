@@ -192,6 +192,12 @@ export default function RequestsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Guard: Ensure tenant is available before submitting
+    if (!tenantSlug) {
+      alert('Tenant information is missing. Please refresh the page.')
+      return
+    }
+
     try {
       const response = await fetch(`/api/requests?tenant=${tenantSlug}`, {
         method: 'POST',

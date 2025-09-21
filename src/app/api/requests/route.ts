@@ -2,15 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { getCountryByClub, getLeagueByClub } from '@/lib/club-country-mapping'
 import { validateSupabaseTenantAccess } from '@/lib/supabase/tenant-validation'
+import { Logger, createLogContext } from '@/lib/logger'
 
 const prisma = new PrismaClient()
 
 // GET - List all requests for a tenant
 export async function GET(request: NextRequest) {
+  const timer = Logger.timer()
+  const baseContext = createLogContext(request)
+  let tenantSlug: string | null = null
+  let userId: string | undefined
+
   try {
-    const tenantSlug = request.nextUrl.searchParams.get('tenant')
+    tenantSlug = request.nextUrl.searchParams.get('tenant')
+
+    Logger.info('Requests API request started', {
+      ...baseContext,
+      status: 200,
+      details: { tenantSlug }
+    })
 
     if (!tenantSlug) {
+      const duration = timer.end()
+      Logger.warn('Missing tenant parameter', {
+        ...baseContext,
+        status: 400,
+        duration
+      })
       return NextResponse.json(
         { error: 'tenant parameter is required' },
         { status: 400 }
@@ -19,7 +37,18 @@ export async function GET(request: NextRequest) {
 
     // Validate user has access to this tenant via Supabase RLS
     const validation = await validateSupabaseTenantAccess(tenantSlug)
+    userId = 'anonymous' // TODO: Extract from validation when available
+
     if (!validation.success) {
+      const duration = timer.end()
+      Logger.warn('Tenant access denied', {
+        ...baseContext,
+        tenant: tenantSlug,
+        userId,
+        status: 401,
+        duration,
+        details: { reason: validation.reason }
+      })
       return NextResponse.json(
         {
           error: validation.message,
@@ -53,12 +82,33 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
+    const duration = timer.end()
+    Logger.success('Requests fetched successfully', {
+      ...baseContext,
+      tenant: tenantSlug,
+      userId,
+      status: 200,
+      duration,
+      details: { requestCount: requests.length }
+    })
+
     return NextResponse.json({
       success: true,
       data: requests
     })
   } catch (error) {
-    console.error('Failed to fetch requests:', error)
+    const duration = timer.end()
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+    Logger.error('Failed to fetch requests', {
+      ...baseContext,
+      tenant: tenantSlug || 'unknown',
+      userId: userId || 'anonymous',
+      status: 500,
+      duration,
+      error: errorMessage
+    })
+
     return NextResponse.json(
       { error: 'Failed to fetch requests' },
       { status: 500 }

@@ -203,6 +203,12 @@ export function AddPlayerModal({ isOpen, onClose, onSave, tenantId, editingPlaye
 
     if (!validateForm()) return
 
+    // Guard: Ensure tenant is available before submitting
+    if (!tenantId) {
+      setSubmitError('Tenant information is missing. Please refresh the page.')
+      return
+    }
+
     setIsSubmitting(true)
     try {
       const playerData = {

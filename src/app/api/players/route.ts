@@ -4,30 +4,56 @@ import { validateSupabaseTenantAccess, createTenantSupabaseClient } from '@/lib/
 import { cache, CacheKeys, CacheTTL, CacheInvalidation } from '@/lib/cache'
 import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-headers'
 import { monitoredPrisma, createTenantOperations } from '@/lib/db-monitor/monitored-prisma'
+import { Logger, createLogContext } from '@/lib/logger'
+import { createErrorResponse, createStandardResponse, createServerErrorResponse } from '@/lib/http-utils'
 
 // 🛡️ SECURITY UPGRADE: Using monitored Prisma client with automatic tenant isolation
 const prisma = monitoredPrisma
 
 // GET - Fetch players for a tenant
 export async function GET(request: NextRequest) {
+  const timer = Logger.timer()
+  const baseContext = createLogContext(request)
+  let tenantSlug: string | null = null
+  let userId: string | undefined
+
   try {
-    const tenantSlug = request.nextUrl.searchParams.get('tenant')
+    tenantSlug = request.nextUrl.searchParams.get('tenant')
+
+    Logger.info('Players API request started', {
+      ...baseContext,
+      status: 200,
+      details: { tenantSlug }
+    })
 
     if (!tenantSlug) {
-      return createSecureErrorResponse('Tenant parameter is required', 400)
+      const duration = timer.end()
+      Logger.warn('Missing tenant parameter', {
+        ...baseContext,
+        status: 400,
+        duration
+      })
+      return NextResponse.json(
+        { success: false, error: 'Tenant parameter is required' },
+        { status: 400 }
+      )
     }
 
     // Validate user has access to this tenant via Supabase RLS
     const validation = await validateSupabaseTenantAccess(tenantSlug)
+    userId = 'anonymous' // TODO: Extract from validation when available
+
     if (!validation.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: validation.message,
-          meta: { reason: validation.reason }
-        },
-        { status: 401 }
-      )
+      const duration = timer.end()
+      Logger.warn('Tenant access denied', {
+        ...baseContext,
+        tenant: tenantSlug,
+        userId,
+        status: validation.httpStatus,
+        duration,
+        details: { reason: validation.reason }
+      })
+      return createErrorResponse(validation)
     }
 
     const tenantId = validation.tenantId
@@ -39,17 +65,32 @@ export async function GET(request: NextRequest) {
     // Transform players to include positions array and avatar URL
     const transformedPlayers = players.map(transformDatabasePlayer)
 
-    return NextResponse.json({
-      success: true,
-      data: transformedPlayers
+    const duration = timer.end()
+    Logger.success('Players fetched successfully', {
+      ...baseContext,
+      tenant: tenantSlug,
+      userId,
+      status: 200,
+      duration,
+      details: { playerCount: transformedPlayers.length }
     })
 
+    return createStandardResponse(transformedPlayers)
+
   } catch (error) {
-    console.error('Error fetching players:', error)
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
+    const duration = timer.end()
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+    Logger.error('Error fetching players', {
+      ...baseContext,
+      tenant: tenantSlug || 'unknown',
+      userId: userId || 'anonymous',
+      status: 500,
+      duration,
+      error: errorMessage
+    })
+
+    return createServerErrorResponse('Failed to fetch players')
   }
 }
 

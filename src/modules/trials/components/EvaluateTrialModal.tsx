@@ -56,6 +56,12 @@ export function EvaluateTrialModal({ trial, isOpen, onClose }: EvaluateTrialModa
 
     if (!validateForm()) return
 
+    // Guard: Ensure trial and tenant are available before submitting
+    if (!trial?.tenantId) {
+      setErrors({ submit: 'Trial or tenant information is missing. Please refresh the page.' })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
