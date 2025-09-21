@@ -5,7 +5,7 @@ import { useDashboardStats } from '../hooks/useDashboardStats'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface RecentActivityFeedProps {
-  tenantId: string
+  tenantSlug: string
 }
 
 interface Activity {
@@ -21,8 +21,8 @@ interface Activity {
   color: string
 }
 
-export function RecentActivityFeed({ tenantId }: RecentActivityFeedProps) {
-  const { data: stats, isLoading } = useDashboardStats(tenantId)
+export function RecentActivityFeed({ tenantSlug }: RecentActivityFeedProps) {
+  const { data: stats, isLoading } = useDashboardStats(tenantSlug)
 
   // Combine and sort all recent activities
   const activities: Activity[] = []

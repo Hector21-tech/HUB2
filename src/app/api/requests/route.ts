@@ -1,31 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { getCountryByClub, getLeagueByClub } from '@/lib/club-country-mapping'
-import { validateTenantAccess } from '@/lib/supabase/server'
+import { validateSupabaseTenantAccess } from '@/lib/supabase/tenant-validation'
 
 const prisma = new PrismaClient()
 
 // GET - List all requests for a tenant
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = request.nextUrl.searchParams.get('tenantId')
+    const tenantSlug = request.nextUrl.searchParams.get('tenant')
 
-    if (!tenantId) {
+    if (!tenantSlug) {
       return NextResponse.json(
-        { error: 'tenantId is required' },
+        { error: 'tenant parameter is required' },
         { status: 400 }
       )
     }
 
-    // Validate user has access to this tenant
-    try {
-      await validateTenantAccess(tenantId)
-    } catch (error) {
+    // Validate user has access to this tenant via Supabase RLS
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Unauthorized' },
+        {
+          error: validation.message,
+          meta: { reason: validation.reason }
+        },
         { status: 401 }
       )
     }
+
+    const tenantId = validation.tenantId
 
     const requests = await prisma.request.findMany({
       where: { tenantId },

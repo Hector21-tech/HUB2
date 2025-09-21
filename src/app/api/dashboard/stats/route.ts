@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { validateTenantAccess } from '@/lib/supabase/server'
+import { validateSupabaseTenantAccess, createTenantSupabaseClient } from '@/lib/supabase/tenant-validation'
 import { cache, CacheKeys, CacheTTL, withCache } from '@/lib/cache'
 import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-headers'
 
@@ -9,16 +9,87 @@ const prisma = new PrismaClient()
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
+// Mock data helper function
+function getMockDashboardStats() {
+  return {
+    overview: {
+      totalPlayers: 24,
+      totalRequests: 8,
+      totalTrials: 15,
+      successRate: 78
+    },
+    players: {
+      total: 24,
+      thisMonth: 6,
+      growth: 33,
+      byPosition: {
+        'CF': 4,
+        'LW': 3,
+        'RW': 3,
+        'CAM': 2,
+        'CM': 4,
+        'CDM': 2,
+        'LB': 2,
+        'RB': 2,
+        'CB': 2
+      },
+      recent: []
+    },
+    requests: {
+      total: 8,
+      active: 5,
+      byStatus: {
+        'OPEN': 3,
+        'IN_PROGRESS': 2,
+        'COMPLETED': 2,
+        'CANCELLED': 1
+      },
+      byCountry: {
+        'Sweden': 3,
+        'Norway': 2,
+        'Denmark': 2,
+        'Finland': 1
+      },
+      recent: []
+    },
+    trials: {
+      total: 15,
+      upcoming: 4,
+      completed: 9,
+      pendingEvaluations: 2,
+      next7Days: 3,
+      successRate: 78,
+      recent: []
+    },
+    transferWindows: {
+      active: 2,
+      upcoming: 1,
+      expiring: 1
+    },
+    alerts: [
+      {
+        type: 'info',
+        message: '2 trials awaiting evaluation'
+      },
+      {
+        type: 'warning',
+        message: '1 transfer window closing in next 7 days'
+      }
+    ],
+    lastUpdated: new Date().toISOString()
+  }
+}
+
 // GET - Dashboard analytics and stats
 export async function GET(request: NextRequest) {
   console.log('🔍 Dashboard Stats API: Incoming request')
   try {
-    const tenantId = request.nextUrl.searchParams.get('tenantId')
-    console.log('🔍 Dashboard Stats API: tenantId:', tenantId)
+    const tenantSlug = request.nextUrl.searchParams.get('tenant')
+    console.log('🔍 Dashboard Stats API: tenant slug:', tenantSlug)
 
-    if (!tenantId) {
-      console.log('❌ Dashboard Stats API: Missing tenantId')
-      return createSecureErrorResponse('tenantId is required', 400)
+    if (!tenantSlug) {
+      console.log('❌ Dashboard Stats API: Missing tenant parameter')
+      return createSecureErrorResponse('tenant parameter is required', 400)
     }
 
     // 🎭 Feature Flag: Dashboard Mock Data
@@ -34,14 +105,25 @@ export async function GET(request: NextRequest) {
 
       if (isPlayersLive) {
         try {
-          console.log('🔄 Fetching live players count for tenant:', tenantId)
-          const playersResult = await prisma.player.count({
-            where: { tenantId }
-          })
+          // Validate tenant access for live data
+          const validation = await validateSupabaseTenantAccess(tenantSlug)
+          if (validation.success) {
+            console.log('🔄 Fetching live players count for tenant:', validation.tenantId)
+            const supabase = createTenantSupabaseClient()
+            const { count, error } = await supabase
+              .from('players')
+              .select('*', { count: 'exact', head: true })
+              .eq('tenantId', validation.tenantId)
 
-          playersCount = playersResult
-          dataSource = 'database'
-          console.log('✅ Live players count:', playersCount)
+            if (error) throw error
+
+            playersCount = count || 0
+            dataSource = 'database'
+            console.log('✅ Live players count:', playersCount)
+          } else {
+            console.warn('⚠️ Tenant validation failed for live data:', validation.reason)
+            dataSource = 'mock-fallback'
+          }
         } catch (error) {
           console.warn('⚠️ Players count fallback to mock:', error instanceof Error ? error.message : 'Unknown error')
           dataSource = 'mock-fallback'
@@ -49,71 +131,15 @@ export async function GET(request: NextRequest) {
       }
 
       const mockStats = {
+        ...getMockDashboardStats(),
         overview: {
-          totalPlayers: playersCount,
-          totalRequests: 8,
-          totalTrials: 15,
-          successRate: 78
+          ...getMockDashboardStats().overview,
+          totalPlayers: playersCount
         },
         players: {
-          total: playersCount,
-          thisMonth: 6,
-          growth: 33,
-          byPosition: {
-            'CF': 4,
-            'LW': 3,
-            'RW': 3,
-            'CAM': 2,
-            'CM': 4,
-            'CDM': 2,
-            'LB': 2,
-            'RB': 2,
-            'CB': 2
-          },
-          recent: []
+          ...getMockDashboardStats().players,
+          total: playersCount
         },
-        requests: {
-          total: 8,
-          active: 5,
-          byStatus: {
-            'OPEN': 3,
-            'IN_PROGRESS': 2,
-            'COMPLETED': 2,
-            'CANCELLED': 1
-          },
-          byCountry: {
-            'Sweden': 3,
-            'Norway': 2,
-            'Denmark': 2,
-            'Finland': 1
-          },
-          recent: []
-        },
-        trials: {
-          total: 15,
-          upcoming: 4,
-          completed: 9,
-          pendingEvaluations: 2,
-          next7Days: 3,
-          successRate: 78,
-          recent: []
-        },
-        transferWindows: {
-          active: 2,
-          upcoming: 1,
-          expiring: 1
-        },
-        alerts: [
-          {
-            type: 'info',
-            message: '2 trials awaiting evaluation'
-          },
-          {
-            type: 'warning',
-            message: '1 transfer window closing in next 7 days'
-          }
-        ],
-        lastUpdated: new Date().toISOString(),
         meta: {
           source: dataSource,
           playersLive: isPlayersLive,
@@ -136,18 +162,27 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    // Normal flow: Validate user has access to this tenant
+    // Normal flow: Validate user has access to this tenant via Supabase RLS
     console.log('🔍 Dashboard Stats API: Validating tenant access...')
-    try {
-      await validateTenantAccess(tenantId)
-      console.log('✅ Dashboard Stats API: Tenant access validated')
-    } catch (error) {
-      console.log('❌ Dashboard Stats API: Tenant access denied:', error)
-      return createSecureErrorResponse(
-        error instanceof Error ? error.message : 'Unauthorized',
-        401
-      )
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+
+    if (!validation.success) {
+      console.log('❌ Dashboard Stats API: Tenant access denied:', validation.reason, validation.message)
+      // Return mock data with error reason instead of throwing 401
+      return createSecureResponse({
+        success: true,
+        data: getMockDashboardStats(),
+        mock: true,
+        meta: {
+          source: 'mock-fallback',
+          reason: validation.reason,
+          message: validation.message
+        }
+      })
     }
+
+    const tenantId = validation.tenantId
+    console.log('✅ Dashboard Stats API: Tenant access validated for:', tenantId)
 
     // Check cache first
     const cacheKey = CacheKeys.dashboardStats(tenantId)
@@ -445,78 +480,15 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Dashboard Stats API: Falling back to mock data')
 
     // Return mock data instead of error for demo purposes
-    const mockStats = {
-      overview: {
-        totalPlayers: 24,
-        totalRequests: 8,
-        totalTrials: 15,
-        successRate: 78
-      },
-      players: {
-        total: 24,
-        thisMonth: 6,
-        growth: 33,
-        byPosition: {
-          'CF': 4,
-          'LW': 3,
-          'RW': 3,
-          'CAM': 2,
-          'CM': 4,
-          'CDM': 2,
-          'LB': 2,
-          'RB': 2,
-          'CB': 2
-        },
-        recent: []
-      },
-      requests: {
-        total: 8,
-        active: 5,
-        byStatus: {
-          'OPEN': 3,
-          'IN_PROGRESS': 2,
-          'COMPLETED': 2,
-          'CANCELLED': 1
-        },
-        byCountry: {
-          'Sweden': 3,
-          'Norway': 2,
-          'Denmark': 2,
-          'Finland': 1
-        },
-        recent: []
-      },
-      trials: {
-        total: 15,
-        upcoming: 4,
-        completed: 9,
-        pendingEvaluations: 2,
-        next7Days: 3,
-        successRate: 78,
-        recent: []
-      },
-      transferWindows: {
-        active: 2,
-        upcoming: 1,
-        expiring: 1
-      },
-      alerts: [
-        {
-          type: 'info',
-          message: '2 trials awaiting evaluation'
-        },
-        {
-          type: 'warning',
-          message: '1 transfer window closing in next 7 days'
-        }
-      ],
-      lastUpdated: new Date().toISOString()
-    }
-
     return createSecureResponse({
       success: true,
-      data: mockStats,
-      mock: true
+      data: getMockDashboardStats(),
+      mock: true,
+      meta: {
+        source: 'mock-fallback',
+        reason: 'db_error',
+        message: 'Database error occurred, using fallback data'
+      }
     })
   }
 }

@@ -117,12 +117,12 @@ function getMockDashboardStats(): DashboardStats {
   }
 }
 
-async function fetchDashboardStats(tenantId: string): Promise<DashboardStats> {
+async function fetchDashboardStats(tenantSlug: string): Promise<DashboardStats> {
   if (process.env.NODE_ENV === 'development' && process.env.DEBUG_DASHBOARD === '1') {
-    console.log('🔍 Dashboard API: Fetching stats for tenant:', tenantId)
+    console.log('🔍 Dashboard API: Fetching stats for tenant:', tenantSlug)
   }
   try {
-    const url = `/api/dashboard/stats?tenantId=${tenantId}`
+    const url = `/api/dashboard/stats?tenant=${tenantSlug}`
 
     const response = await fetch(url)
 
@@ -149,24 +149,24 @@ async function fetchDashboardStats(tenantId: string): Promise<DashboardStats> {
   }
 }
 
-export function useDashboardStats(tenantId: string) {
+export function useDashboardStats(tenantSlug: string) {
   return useQuery({
-    queryKey: ['dashboard-stats', tenantId],
-    queryFn: () => fetchDashboardStats(tenantId),
+    queryKey: ['dashboard-stats', tenantSlug],
+    queryFn: () => fetchDashboardStats(tenantSlug),
     refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
     staleTime: 20000, // Consider data stale after 20 seconds
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     retry: 1, // Reduce retry attempts to fail faster and use fallback
     retryDelay: 1000, // Quick retry then fallback
-    enabled: !!tenantId,
+    enabled: !!tenantSlug,
     throwOnError: false, // Don't throw errors, let fallback handle it
     refetchOnWindowFocus: false, // Avoid unnecessary refetches
   })
 }
 
 // Helper hook for specific dashboard sections
-export function useDashboardSection(tenantId: string, section: keyof DashboardStats) {
-  const { data, ...rest } = useDashboardStats(tenantId)
+export function useDashboardSection(tenantSlug: string, section: keyof DashboardStats) {
+  const { data, ...rest } = useDashboardStats(tenantSlug)
   return {
     data: data?.[section],
     ...rest
@@ -174,8 +174,8 @@ export function useDashboardSection(tenantId: string, section: keyof DashboardSt
 }
 
 // Hook for alerts specifically
-export function useDashboardAlerts(tenantId: string) {
-  const { data, ...rest } = useDashboardStats(tenantId)
+export function useDashboardAlerts(tenantSlug: string) {
+  const { data, ...rest } = useDashboardStats(tenantSlug)
   return {
     alerts: data?.alerts || [],
     hasAlerts: (data?.alerts?.length || 0) > 0,

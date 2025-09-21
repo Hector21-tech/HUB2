@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transformDatabasePlayer } from '@/lib/player-utils'
-import { validateTenantAccess } from '@/lib/supabase/server'
+import { validateSupabaseTenantAccess, createTenantSupabaseClient } from '@/lib/supabase/tenant-validation'
 import { cache, CacheKeys, CacheTTL, CacheInvalidation } from '@/lib/cache'
 import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-headers'
 import { monitoredPrisma, createTenantOperations } from '@/lib/db-monitor/monitored-prisma'
@@ -11,21 +11,26 @@ const prisma = monitoredPrisma
 // GET - Fetch players for a tenant
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = request.nextUrl.searchParams.get('tenantId')
+    const tenantSlug = request.nextUrl.searchParams.get('tenant')
 
-    if (!tenantId) {
-      return createSecureErrorResponse('Tenant ID is required', 400)
+    if (!tenantSlug) {
+      return createSecureErrorResponse('Tenant parameter is required', 400)
     }
 
-    // Validate user has access to this tenant
-    try {
-      await validateTenantAccess(tenantId)
-    } catch (error) {
+    // Validate user has access to this tenant via Supabase RLS
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: error instanceof Error ? error.message : 'Unauthorized' },
+        {
+          success: false,
+          error: validation.message,
+          meta: { reason: validation.reason }
+        },
         { status: 401 }
       )
     }
+
+    const tenantId = validation.tenantId
 
     // 🛡️ MONITORED QUERY: Using safe tenant-scoped operation
     const tenantOps = createTenantOperations(tenantId)
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     const {
-      tenantId,
+      tenantSlug,
       firstName,
       lastName,
       dateOfBirth,
@@ -70,32 +75,38 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validation
-    if (!tenantId || !firstName || !lastName) {
+    if (!tenantSlug || !firstName || !lastName) {
       console.log('❌ Validation failed: Missing required fields')
       return NextResponse.json(
-        { success: false, error: 'Tenant ID, first name, and last name are required' },
+        { success: false, error: 'Tenant slug, first name, and last name are required' },
         { status: 400 }
       )
     }
 
     console.log('✅ Validation passed, checking tenant access...')
 
-    // Validate user has access to this tenant
-    try {
-      await validateTenantAccess(tenantId)
-    } catch (error) {
-      console.log('❌ Tenant access denied:', error)
+    // Validate user has access to this tenant via Supabase RLS
+    const validation = await validateSupabaseTenantAccess(body.tenantSlug || null)
+    if (!validation.success) {
+      console.log('❌ Tenant access denied:', validation.reason, validation.message)
       return NextResponse.json(
-        { success: false, error: error instanceof Error ? error.message : 'Unauthorized' },
+        {
+          success: false,
+          error: validation.message,
+          meta: { reason: validation.reason }
+        },
         { status: 401 }
       )
     }
+
+    const tenantId = validation.tenantId
 
     console.log('✅ Tenant access validated, creating player...')
 
     // Log received data for debugging
     console.log('📦 Raw request data:', {
-      tenantId,
+      tenantSlug,
+      tenantId: validation.tenantId,
       firstName,
       lastName,
       dateOfBirth,
@@ -111,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // Create player data object with validation
     const playerData = {
-      tenantId,
+      tenantId: validation.tenantId,
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,

@@ -11,8 +11,8 @@ interface DashboardContentProps {
 }
 
 export function DashboardContent({ tenant }: DashboardContentProps) {
-  const { tenantId } = useTenantSlug()
-  const { data: stats, isLoading, error } = useDashboardStats(tenantId || '')
+  const { tenantSlug } = useTenantSlug()
+  const { data: stats, isLoading, error } = useDashboardStats(tenantSlug || tenant || '')
 
   if (error) {
     return (
