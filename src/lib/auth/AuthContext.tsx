@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('userId', userId)
 
-      let timeoutId: NodeJS.Timeout
+      let timeoutId: NodeJS.Timeout | undefined
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error('Query timeout - will auto-setup')), 10000)
       })
@@ -208,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let data, error
       try {
         const result = await Promise.race([queryPromise, timeoutPromise])
-        clearTimeout(timeoutId) // Clear timeout when query succeeds
+        if (timeoutId) clearTimeout(timeoutId) // Clear timeout when query succeeds
         data = result.data
         error = result.error
       } catch (timeoutError) {
