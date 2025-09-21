@@ -41,57 +41,9 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // 3) Supabase auth handling for tenant routes
-  try {
-    // Skip auth check if environment variables are missing or for public routes
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.warn('Supabase environment variables missing, skipping auth check')
-      return res
-    }
-
-    // Allow all public routes without authentication
-    const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/']
-    const isPublicRoute = publicRoutes.includes(pathname)
-
-    if (isPublicRoute) {
-      console.log('Public route accessed:', pathname)
-      return res
-    }
-
-    // Create Supabase client for authentication
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(name: string) {
-            return req.cookies.get(name)?.value
-          },
-          set(name: string, value: string, options: any) {
-            // Update request cookies for downstream middleware
-            req.cookies.set({ name, value })
-            // Update response cookies for client
-            res.cookies.set(name, value, options)
-          },
-          remove(name: string, options: any) {
-            req.cookies.set({ name, value: '' })
-            res.cookies.set(name, '', options)
-          },
-        },
-      }
-    )
-
-    // For API routes, we'll handle auth in individual route handlers for better control
-    if (pathname.startsWith('/api/')) {
-      return res
-    }
-
-    return res
-  } catch (error) {
-    console.error('Middleware error:', error)
-    // Return a simple response on error, don't block the request
-    return res
-  }
+  // 3) For now, we skip auth handling in middleware and let individual routes handle it
+  // This ensures public routes like /login are always accessible
+  return res
 }
 
 // Kör middleware på allt utom statiska assets som Next hanterar separat.

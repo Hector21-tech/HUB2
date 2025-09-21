@@ -40,7 +40,8 @@
       "WebFetch(domain:hub2-jxocnzl49-hector-bataks-projects.vercel.app)",
       "Bash(git checkout:*)",
       "WebFetch(domain:hub2-k18cch8uo-hector-bataks-projects.vercel.app)",
-      "WebFetch(domain:hub2-5qj6eao1k-hector-bataks-projects.vercel.app)"
+      "WebFetch(domain:hub2-5qj6eao1k-hector-bataks-projects.vercel.app)",
+      "WebFetch(domain:hub2-3w8kt88e2-hector-bataks-projects.vercel.app)"
     ],
     "deny": [],
     "ask": []
