@@ -259,7 +259,7 @@ export function PlayersPage() {
   const handleSavePlayer = async (playerData: any) => {
     try {
       // Validate tenant context before making API call
-      if (!tenantId) {
+      if (!tenantSlug) {
         throw new Error('No tenant context available')
       }
 
@@ -347,7 +347,7 @@ export function PlayersPage() {
   const handleDeletePlayer = async (player: Player) => {
     try {
       // Validate tenant context before making API call
-      if (!tenantId) {
+      if (!tenantSlug) {
         throw new Error('No tenant context available')
       }
 

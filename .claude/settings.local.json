@@ -31,7 +31,10 @@
       "Bash(node:*)",
       "WebFetch(domain:hub2-2fr4aueq1-hector-bataks-projects.vercel.app)",
       "WebFetch(domain:localhost)",
-      "WebFetch(domain:hub2-au2wqhkhn-hector-bataks-projects.vercel.app)"
+      "WebFetch(domain:hub2-au2wqhkhn-hector-bataks-projects.vercel.app)",
+      "Bash(git tag:*)",
+      "WebFetch(domain:hub2-oz8qh0uus-hector-bataks-projects.vercel.app)",
+      "Read(//c/Users/bga23/Desktop/screeeshoot till claude/**)"
     ],
     "deny": [],
     "ask": []
