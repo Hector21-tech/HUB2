@@ -28,9 +28,9 @@ export default function RootDashboard() {
   const handleSetupUserData = async () => {
     setSetupStatus('loading')
     try {
-      const response = await fetch('/api/setup-user-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch('/api/setup-user-data', {
+        method: 'POST'
       })
 
       const result = await response.json()
@@ -54,9 +54,9 @@ export default function RootDashboard() {
 
     setCreatingOrg(true)
     try {
-      const response = await fetch('/api/organizations', {
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch('/api/organizations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: orgName.trim(),
           slug: orgSlug.trim(),
@@ -79,6 +79,22 @@ export default function RootDashboard() {
     }
   }
 
+  // Redirect to login if no user and not loading
+  if (!loading && !user) {
+    router.push('/login')
+    return null
+  }
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show loading if user exists but we don't have it yet
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
