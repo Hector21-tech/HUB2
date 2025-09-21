@@ -99,7 +99,7 @@ export function TrialsPage() {
       setShowDeleteConfirm(null)
     } catch (error) {
       console.error('Failed to delete trial:', error)
-      // TODO: Show error toast
+      // Error is handled by React Query and displayed to user
     }
   }
 

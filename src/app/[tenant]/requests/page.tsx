@@ -174,7 +174,8 @@ export default function RequestsPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/requests?tenant=${tenantSlug}`)
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch(`/api/requests?tenant=${tenantSlug}`)
       const result = await response.json()
 
       if (result.success) {
@@ -199,11 +200,9 @@ export default function RequestsPage() {
     }
 
     try {
-      const response = await fetch(`/api/requests?tenant=${tenantSlug}`, {
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch(`/api/requests?tenant=${tenantSlug}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(formData)
       })
 
@@ -227,11 +226,9 @@ export default function RequestsPage() {
     try {
       setCreatingTestData(true)
 
-      const response = await fetch('/api/test-window-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch('/api/test-window-data', {
+        method: 'POST'
       })
 
       const result = await response.json()
@@ -278,11 +275,13 @@ export default function RequestsPage() {
 
     try {
       const updatePromises = Array.from(selectedRequests).map(requestId =>
-        fetch(`/api/requests/${requestId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        })
+        (async () => {
+          const { apiFetch } = await import('@/lib/api-config')
+          return apiFetch(`/api/requests/${requestId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: newStatus })
+          })
+        })()
       )
 
       await Promise.all(updatePromises)
@@ -310,7 +309,10 @@ export default function RequestsPage() {
 
     try {
       const deletePromises = Array.from(selectedRequests).map(requestId =>
-        fetch(`/api/requests/${requestId}`, { method: 'DELETE' })
+        (async () => {
+          const { apiFetch } = await import('@/lib/api-config')
+          return apiFetch(`/api/requests/${requestId}`, { method: 'DELETE' })
+        })()
       )
 
       await Promise.all(deletePromises)
@@ -671,9 +673,9 @@ export default function RequestsPage() {
 
                     console.log('Sending API update:', updateData)
 
-                    const response = await fetch(`/api/requests/${requestId}`, {
+                    const { apiFetch } = await import('@/lib/api-config')
+                    const response = await apiFetch(`/api/requests/${requestId}`, {
                       method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify(updateData)
                     })
 

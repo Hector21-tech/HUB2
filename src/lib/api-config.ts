@@ -1,10 +1,45 @@
-/**
- * 🌐 Enterprise API Configuration
- *
- * Centralized API base URL management for environment-specific routing
- * - Development: localhost:3005
- * - Production/Preview: current origin (same-origin)
- */
+// src/lib/api-config.ts
+
+function readCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : undefined;
+}
+
+async function refreshCsrf() {
+  // trigga middleware att sätta csrf_token om saknas/ogiltig
+  await fetch('/', { method: 'GET', credentials: 'include' });
+}
+
+export async function apiFetch(input: RequestInfo, init: RequestInit = {}) {
+  const headers = new Headers(init.headers || {});
+  if (!headers.has('content-type') && init.body) {
+    headers.set('content-type', 'application/json');
+  }
+
+  // Läs CSRF från cookie (double-submit)
+  const csrf = readCookie('csrf_token');
+  if (csrf) headers.set('x-csrf-token', csrf);
+
+  const doFetch = () =>
+    fetch(input, {
+      ...init,
+      headers,
+      credentials: 'include', // VIKTIGT: skicka auth-cookies
+    });
+
+  let res = await doFetch();
+
+  // Auto-retry en gång vid 403 (möjligen pga saknad/fel csrf)
+  if (res.status === 403) {
+    await refreshCsrf();
+    const csrf2 = readCookie('csrf_token');
+    if (csrf2) headers.set('x-csrf-token', csrf2);
+    res = await doFetch();
+  }
+
+  return res;
+}
 
 /**
  * Get the appropriate base URL for API calls
@@ -40,27 +75,6 @@ export function createApiUrl(endpoint: string): string {
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
 
   return `${baseUrl}${normalizedEndpoint}`
-}
-
-/**
- * Enhanced fetch wrapper with automatic URL resolution
- * @param endpoint - API endpoint path
- * @param options - Fetch options
- * @returns Fetch promise
- */
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const url = createApiUrl(endpoint)
-
-  // Default headers for API calls
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers
-  }
-
-  return fetch(url, {
-    ...options,
-    headers: defaultHeaders
-  })
 }
 
 /**

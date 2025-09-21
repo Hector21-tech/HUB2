@@ -53,6 +53,20 @@ export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     skipSuccessfulRequests: false
   },
 
+  // Calendar operations - moderate
+  'calendar': {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 60, // 60 calendar operations per minute
+    skipSuccessfulRequests: false
+  },
+
+  // Media proxy - high volume allowed
+  'media': {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 120, // 120 media requests per minute
+    skipSuccessfulRequests: true // Don't count successful media loads
+  },
+
   // Admin/security endpoints - very strict
   'admin': {
     windowMs: 60 * 1000, // 1 minute
@@ -280,6 +294,14 @@ export function getRateLimitType(pathname: string): keyof typeof RATE_LIMIT_CONF
 
   if (pathname.includes('/api/media/upload') || pathname.includes('/upload')) {
     return 'upload'
+  }
+
+  if (pathname.includes('/api/media/avatar-proxy') || pathname.includes('/api/media/')) {
+    return 'media'
+  }
+
+  if (pathname.includes('/api/calendar/')) {
+    return 'calendar'
   }
 
   if (pathname.includes('/api/security/') || pathname.includes('/api/db-monitor')) {

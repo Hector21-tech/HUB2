@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { validateSupabaseTenantAccess } from '@/lib/supabase/tenant-validation'
+import { Logger, createLogContext, generateRequestId } from '@/lib/logger'
+import { applyRateLimit, createRateLimitResponse } from '@/lib/security/rate-limiting'
 
 const prisma = new PrismaClient()
 
@@ -8,9 +11,16 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const requestId = generateRequestId()
+  const timer = Logger.timer()
+
   try {
     const { id } = params
+    const tenantSlug = request.nextUrl.searchParams.get('tenant')
 
+    const context = createLogContext(request, tenantSlug || undefined, undefined, requestId)
+
+    // 🛡️ SECURITY: First get event to check tenant ownership
     const event = await prisma.calendarEvent.findUnique({
       where: { id },
       select: {
@@ -30,11 +40,41 @@ export async function GET(
     })
 
     if (!event) {
+      Logger.info('Calendar event not found', {
+        ...context,
+        status: 404,
+        duration: timer.end(),
+        details: { eventId: id }
+      })
       return NextResponse.json(
-        { error: 'Calendar event not found' },
+        { success: false, error: 'Calendar event not found' },
         { status: 404 }
       )
     }
+
+    // 🛡️ SECURITY: Validate user has access to this tenant
+    const validation = await validateSupabaseTenantAccess(event.tenantId)
+    if (!validation.success) {
+      Logger.security('Calendar event access denied', {
+        ...context,
+        status: 403,
+        duration: timer.end(),
+        details: { eventId: id, tenantId: event.tenantId }
+      })
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: 403 }
+      )
+    }
+
+    Logger.success('Calendar event fetched successfully', {
+      ...context,
+      tenant: event.tenantId,
+      userId: validation.userId,
+      status: 200,
+      duration: timer.end(),
+      details: { eventId: id }
+    })
 
     return NextResponse.json({
       success: true,
@@ -42,9 +82,16 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Failed to fetch calendar event:', error)
+    const context = createLogContext(request, undefined, undefined, requestId)
+    Logger.error('Calendar event fetch error', {
+      ...context,
+      status: 500,
+      duration: timer.end(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+
     return NextResponse.json(
-      { error: 'Failed to fetch calendar event' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

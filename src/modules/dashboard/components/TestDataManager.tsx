@@ -24,7 +24,8 @@ export function TestDataManager() {
     if (!tenantId) return
 
     try {
-      const response = await fetch(`/api/clear-test-data?tenantId=${tenantId}`)
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch(`/api/clear-test-data?tenantId=${tenantId}`)
       const result = await response.json()
       if (result.success) {
         setStats(result.data)
@@ -39,9 +40,9 @@ export function TestDataManager() {
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/test-window-data', {
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch('/api/test-window-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId })
       })
       const result = await response.json()
@@ -69,9 +70,9 @@ export function TestDataManager() {
     setShowConfirm(false)
 
     try {
-      const response = await fetch('/api/clear-test-data', {
+      const { apiFetch } = await import('@/lib/api-config')
+      const response = await apiFetch('/api/clear-test-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId })
       })
       const result = await response.json()

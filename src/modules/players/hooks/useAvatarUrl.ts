@@ -101,36 +101,54 @@ export async function getCachedAvatarUrl(avatarPath: string, tenantId: string): 
   const cacheKey = `${tenantId}:${avatarPath}`
   const cached = urlCache.get(cacheKey)
 
-  // Return cached URL if still valid (with 5 min buffer)
+  // Return cached proxy URL if still valid (with 5 min buffer)
   if (cached && cached.expiresAt > Date.now() + 5 * 60 * 1000) {
     return cached.url
   }
 
   try {
-    // 🚀 ENTERPRISE FIX: Use centralized API configuration for environment-specific URLs
-    const response = await apiFetch(`/api/media/avatar-url?path=${encodeURIComponent(avatarPath)}&tenantId=${tenantId}`)
+    // 🚀 AVATAR PROXY: Use new proxy endpoint for CORS-free image streaming
+    // Generate cache-busting hash for avatar changes
+    const versionHash = Buffer.from(`${avatarPath}:${Date.now()}`).toString('base64').substring(0, 8)
+    const proxyUrl = `/api/media/avatar-proxy?path=${encodeURIComponent(avatarPath)}&tenantId=${tenantId}&v=${versionHash}`
 
-    if (!response.ok) {
-      throw new Error(`Failed to get avatar URL: ${response.status}`)
-    }
+    // Test if the avatar exists by making a HEAD request to the proxy
+    const headResponse = await apiFetch(proxyUrl, { method: 'HEAD' })
 
-    const result = await response.json()
-
-    // If URL is null (file not found), cache the null result
-    if (result.url === null) {
+    if (headResponse.status === 404) {
       console.log(`Avatar file not found for path: ${avatarPath}`)
       return null
     }
 
-    // Cache the URL (expires in 60 minutes, we cache for 55 to be safe)
+    if (!headResponse.ok && headResponse.status !== 304) {
+      throw new Error(`Avatar proxy error: ${headResponse.status}`)
+    }
+
+    // Cache the proxy URL (cache for 55 minutes for client-side efficiency)
     urlCache.set(cacheKey, {
-      url: result.url,
+      url: proxyUrl,
       expiresAt: Date.now() + 55 * 60 * 1000
     })
 
-    return result.url
+    return proxyUrl
   } catch (error) {
     console.error('Error fetching cached avatar URL:', error)
+
+    // 🔄 FALLBACK: Try legacy signed URL endpoint as backup
+    try {
+      const response = await apiFetch(`/api/media/avatar-url?path=${encodeURIComponent(avatarPath)}&tenantId=${tenantId}`)
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.url) {
+          console.warn('Avatar proxy failed, using legacy signed URL fallback')
+          return result.url
+        }
+      }
+    } catch (fallbackError) {
+      console.error('Legacy avatar URL fallback also failed:', fallbackError)
+    }
+
     return null
   }
 }

@@ -1,24 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { validateSupabaseTenantAccess } from '@/lib/supabase/tenant-validation'
+import { Logger, createLogContext, generateRequestId } from '@/lib/logger'
+import { applyRateLimit, createRateLimitResponse } from '@/lib/security/rate-limiting'
 
 const prisma = new PrismaClient()
 
 // GET - List calendar events for a tenant
 export async function GET(request: NextRequest) {
-  try {
-    const tenantId = request.nextUrl.searchParams.get('tenantId')
-    const start = request.nextUrl.searchParams.get('start') // ISO date string
-    const end = request.nextUrl.searchParams.get('end') // ISO date string
-    const type = request.nextUrl.searchParams.get('type') // Optional event type filter
+  const requestId = generateRequestId()
+  const timer = Logger.timer()
 
-    if (!tenantId) {
+  try {
+    const { searchParams } = request.nextUrl
+    const tenantSlug = searchParams.get('tenant') || searchParams.get('tenantId')
+    const start = searchParams.get('start') // ISO date string
+    const end = searchParams.get('end') // ISO date string
+    const type = searchParams.get('type') // Optional event type filter
+
+    const context = createLogContext(request, tenantSlug || undefined, undefined, requestId)
+
+    Logger.info('Calendar events API request started', {
+      ...context,
+      status: 200,
+      details: { tenantSlug, hasDateRange: !!(start && end), type }
+    })
+
+    if (!tenantSlug) {
+      Logger.warn('Missing tenant parameter', {
+        ...context,
+        status: 400,
+        duration: timer.end()
+      })
       return NextResponse.json(
-        { error: 'tenantId is required' },
+        { success: false, error: 'Tenant parameter is required' },
         { status: 400 }
       )
     }
 
-    // Build where clause
+    // 🛡️ SECURITY: Validate user has access to this tenant
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
+      Logger.security('Calendar API: Tenant access denied', {
+        ...context,
+        status: validation.httpStatus,
+        duration: timer.end(),
+        details: { reason: validation.reason }
+      })
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: validation.httpStatus }
+      )
+    }
+
+    const { tenantId, userId } = validation
+
+    // 🛡️ SECURITY: Apply rate limiting
+    const rateLimitResult = applyRateLimit(request, 'api', { tenantId, userId })
+    if (rateLimitResult && !rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult)
+    }
+
+    // Build secure where clause with validated tenantId
     const where: any = { tenantId }
 
     // Date range filtering
@@ -71,15 +114,31 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    Logger.success('Calendar events fetched successfully', {
+      ...context,
+      tenant: tenantId,
+      userId,
+      status: 200,
+      duration: timer.end(),
+      details: { eventCount: events.length, hasDateRange: !!(start && end) }
+    })
+
     return NextResponse.json({
       success: true,
       data: events
     })
 
   } catch (error) {
-    console.error('Failed to fetch calendar events:', error)
+    const context = createLogContext(request, undefined, undefined, requestId)
+    Logger.error('Calendar events API error', {
+      ...context,
+      status: 500,
+      duration: timer.end(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+
     return NextResponse.json(
-      { error: 'Failed to fetch calendar events' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }
@@ -87,10 +146,58 @@ export async function GET(request: NextRequest) {
 
 // POST - Create a new calendar event
 export async function POST(request: NextRequest) {
+  const requestId = generateRequestId()
+  const timer = Logger.timer()
+
   try {
+    const { searchParams } = request.nextUrl
+    const tenantSlug = searchParams.get('tenant')
+
+    const context = createLogContext(request, tenantSlug || undefined, undefined, requestId)
+
+    Logger.info('Create calendar event request started', {
+      ...context,
+      status: 200,
+      details: { tenantSlug }
+    })
+
+    if (!tenantSlug) {
+      Logger.warn('Missing tenant parameter', {
+        ...context,
+        status: 400,
+        duration: timer.end()
+      })
+      return NextResponse.json(
+        { success: false, error: 'Tenant parameter is required' },
+        { status: 400 }
+      )
+    }
+
+    // 🛡️ SECURITY: Validate user has access to this tenant
+    const validation = await validateSupabaseTenantAccess(tenantSlug)
+    if (!validation.success) {
+      Logger.security('Calendar create: Tenant access denied', {
+        ...context,
+        status: validation.httpStatus,
+        duration: timer.end(),
+        details: { reason: validation.reason }
+      })
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: validation.httpStatus }
+      )
+    }
+
+    const { tenantId, userId } = validation
+
+    // 🛡️ SECURITY: Apply rate limiting
+    const rateLimitResult = applyRateLimit(request, 'api', { tenantId, userId })
+    if (rateLimitResult && !rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult)
+    }
+
     const body = await request.json()
     const {
-      tenantId,
       title,
       description,
       startTime,
@@ -102,9 +209,17 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Basic validation
-    if (!tenantId || !title || !startTime || !endTime) {
+    if (!title || !startTime || !endTime) {
+      Logger.warn('Invalid calendar event data', {
+        ...context,
+        tenant: tenantId,
+        userId,
+        status: 400,
+        duration: timer.end(),
+        details: { hasTitle: !!title, hasStartTime: !!startTime, hasEndTime: !!endTime }
+      })
       return NextResponse.json(
-        { error: 'tenantId, title, startTime, and endTime are required' },
+        { success: false, error: 'title, startTime, and endTime are required' },
         { status: 400 }
       )
     }
@@ -113,9 +228,32 @@ export async function POST(request: NextRequest) {
     const start = new Date(startTime)
     const end = new Date(endTime)
 
-    if (start >= end) {
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      Logger.warn('Invalid date format in calendar event', {
+        ...context,
+        tenant: tenantId,
+        userId,
+        status: 400,
+        duration: timer.end(),
+        details: { startTime, endTime }
+      })
       return NextResponse.json(
-        { error: 'End time must be after start time' },
+        { success: false, error: 'Invalid date format' },
+        { status: 400 }
+      )
+    }
+
+    if (start >= end) {
+      Logger.warn('Invalid date range in calendar event', {
+        ...context,
+        tenant: tenantId,
+        userId,
+        status: 400,
+        duration: timer.end(),
+        details: { startTime, endTime }
+      })
+      return NextResponse.json(
+        { success: false, error: 'End time must be after start time' },
         { status: 400 }
       )
     }
@@ -179,19 +317,36 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    Logger.success('Calendar event created successfully', {
+      ...context,
+      tenant: tenantId,
+      userId,
+      status: 201,
+      duration: timer.end(),
+      details: {
+        eventId: newEvent.id,
+        hasConflicts: conflictingEvents.length > 0,
+        conflictCount: conflictingEvents.length
+      }
+    })
+
     return NextResponse.json({
       success: true,
       data: newEvent,
       conflicts: conflictingEvents.length > 0 ? conflictingEvents : undefined
-    })
+    }, { status: 201 })
 
   } catch (error) {
-    console.error('Failed to create calendar event:', error)
+    const context = createLogContext(request, undefined, undefined, requestId)
+    Logger.error('Create calendar event error', {
+      ...context,
+      status: 500,
+      duration: timer.end(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+
     return NextResponse.json(
-      {
-        error: 'Failed to create calendar event',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

@@ -75,8 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
-        // Development mode: Set tenant immediately
-        if (session?.user && process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_ENABLED === 'true') {
+        // Development mode: Set tenant immediately (ONLY in development)
+        if (session?.user &&
+            process.env.NODE_ENV === 'development' &&
+            process.env.VERCEL_ENV !== 'production' &&
+            process.env.DEV_AUTH_ENABLED === 'true') {
           console.log('🚧 AuthContext: Setting development tenant immediately')
           setCurrentTenant('test-tenant-demo')
           const mockTenants: TenantMembership[] = [{
@@ -133,9 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Ensure user exists in our database
   const ensureUserInDatabase = async (user: User) => {
     try {
-      await fetch('/api/users/sync', {
+      const { apiFetch } = await import('@/lib/api-config')
+      await apiFetch('/api/users/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: user.id,
           email: user.email,
@@ -151,8 +154,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user's tenant memberships
   const fetchUserTenants = async (userId: string) => {
-    // Development mode: Use test tenant directly
-    if (process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_ENABLED === 'true') {
+    // Development mode: Use test tenant directly (ONLY in development)
+    if (process.env.NODE_ENV === 'development' &&
+        process.env.VERCEL_ENV !== 'production' &&
+        process.env.DEV_AUTH_ENABLED === 'true') {
       console.log('🚧 AuthContext: Development mode - using test-tenant-demo')
       const mockTenants: TenantMembership[] = [{
         tenantId: 'test-tenant-demo',
@@ -217,9 +222,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsFetchingTenants(false)
         setTimeout(async () => {
           try {
-            const response = await fetch('/api/setup-user-data', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
+            const { apiFetch } = await import('@/lib/api-config')
+            const response = await apiFetch('/api/setup-user-data', {
+              method: 'POST'
             })
             const result = await response.json()
             if (result.success) {
@@ -257,9 +262,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Try to call setup API to create tenant memberships
           try {
             console.log('🔧 AuthContext: Attempting automatic tenant setup...')
-            const response = await fetch('/api/setup-user-data', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
+            const { apiFetch } = await import('@/lib/api-config')
+            const response = await apiFetch('/api/setup-user-data', {
+              method: 'POST'
             })
             const result = await response.json()
 

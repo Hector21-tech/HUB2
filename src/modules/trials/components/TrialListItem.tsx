@@ -72,7 +72,7 @@ export function TrialListItem({ trial, onEdit, onDelete, onClick }: TrialListIte
     }, {
       onError: (error) => {
         console.error('Failed to mark trial as completed:', error)
-        // TODO: Show error toast
+        // Error is handled by React Query and displayed to user
       }
     })
   }

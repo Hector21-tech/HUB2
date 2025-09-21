@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     // Validate user has access to this tenant via Supabase RLS
     const validation = await validateSupabaseTenantAccess(tenantSlug)
-    userId = 'anonymous' // TODO: Extract from validation when available
+    userId = validation.success ? validation.userId : 'anonymous'
 
     if (!validation.success) {
       const duration = timer.end()
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
         league: autoLeague,
         position: position || null,
         // Set owner to authenticated user - using validation result
-        ownerId: 'temp-user-id', // TODO: Get from Supabase validation
+        ownerId: validation.success ? validation.userId : 'anonymous',
         priority: 'MEDIUM',
         status: 'OPEN'
       },

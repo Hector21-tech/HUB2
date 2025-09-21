@@ -127,11 +127,9 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete, 
       // If AI improvement is requested and player has notes
       if (useAI && player.notes) {
         try {
-          const response = await fetch('/api/generate-player-description', {
+          const { apiFetch } = await import('@/lib/api-config')
+          const response = await apiFetch('/api/generate-player-description', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
               playerData: {
                 firstName: player.firstName,

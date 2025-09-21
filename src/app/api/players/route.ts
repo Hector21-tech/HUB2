@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transformDatabasePlayer } from '@/lib/player-utils'
-import { validateSupabaseTenantAccess, createTenantSupabaseClient } from '@/lib/supabase/tenant-validation'
-import { cache, CacheKeys, CacheTTL, CacheInvalidation } from '@/lib/cache'
-import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-headers'
+import { resolveTenantId } from '@/server/tenant'
 import { monitoredPrisma, createTenantOperations } from '@/lib/db-monitor/monitored-prisma'
 import { Logger, createLogContext } from '@/lib/logger'
 import { createErrorResponse, createStandardResponse, createServerErrorResponse } from '@/lib/http-utils'
@@ -18,7 +16,10 @@ export async function GET(request: NextRequest) {
   let userId: string | undefined
 
   try {
-    tenantSlug = request.nextUrl.searchParams.get('tenant')
+    // Use new tenant resolution system
+    const tenantResolution = await resolveTenantId(request)
+    userId = tenantResolution.userId || 'anonymous'
+    tenantSlug = tenantResolution.tenantSlug
 
     Logger.info('Players API request started', {
       ...baseContext,
@@ -26,37 +27,23 @@ export async function GET(request: NextRequest) {
       details: { tenantSlug }
     })
 
-    if (!tenantSlug) {
+    if (!tenantResolution.success) {
       const duration = timer.end()
-      Logger.warn('Missing tenant parameter', {
+      Logger.warn('Tenant resolution failed', {
         ...baseContext,
-        status: 400,
-        duration
+        tenant: tenantSlug || 'unknown',
+        userId,
+        status: 401,
+        duration,
+        details: { error: tenantResolution.error }
       })
       return NextResponse.json(
-        { success: false, error: 'Tenant parameter is required' },
-        { status: 400 }
+        { success: false, error: tenantResolution.error || 'Tenant access denied' },
+        { status: 401 }
       )
     }
 
-    // Validate user has access to this tenant via Supabase RLS
-    const validation = await validateSupabaseTenantAccess(tenantSlug)
-    userId = 'anonymous' // TODO: Extract from validation when available
-
-    if (!validation.success) {
-      const duration = timer.end()
-      Logger.warn('Tenant access denied', {
-        ...baseContext,
-        tenant: tenantSlug,
-        userId,
-        status: validation.httpStatus,
-        duration,
-        details: { reason: validation.reason }
-      })
-      return createErrorResponse(validation)
-    }
-
-    const tenantId = validation.tenantId
+    const tenantId = tenantResolution.tenantId!
 
     // 🛡️ MONITORED QUERY: Using safe tenant-scoped operation
     const tenantOps = createTenantOperations(tenantId)
@@ -68,7 +55,7 @@ export async function GET(request: NextRequest) {
     const duration = timer.end()
     Logger.success('Players fetched successfully', {
       ...baseContext,
-      tenant: tenantSlug,
+      tenant: tenantSlug || 'unknown',
       userId,
       status: 200,
       duration,
@@ -128,28 +115,27 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Validation passed, checking tenant access...')
 
-    // Validate user has access to this tenant via Supabase RLS
-    const validation = await validateSupabaseTenantAccess(tenantSlug)
-    if (!validation.success) {
-      console.log('❌ Tenant access denied:', validation.reason, validation.message)
+    // Use new tenant resolution system
+    const tenantResolution = await resolveTenantId(request)
+    if (!tenantResolution.success) {
+      console.log('❌ Tenant access denied:', tenantResolution.error)
       return NextResponse.json(
         {
           success: false,
-          error: validation.message,
-          meta: { reason: validation.reason }
+          error: tenantResolution.error || 'Tenant access denied'
         },
         { status: 401 }
       )
     }
 
-    const tenantId = validation.tenantId
+    const tenantId = tenantResolution.tenantId!
 
     console.log('✅ Tenant access validated, creating player...')
 
     // Log received data for debugging
     console.log('📦 Raw request data:', {
       tenantSlug,
-      tenantId: validation.tenantId,
+      tenantId: tenantResolution.tenantId,
       firstName,
       lastName,
       dateOfBirth,
@@ -165,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     // Create player data object with validation
     const playerData = {
-      tenantId: validation.tenantId,
+      tenantId: tenantResolution.tenantId,
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,

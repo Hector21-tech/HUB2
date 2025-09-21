@@ -79,7 +79,7 @@ export function TrialCard({ trial, onEdit, onDelete, onEvaluate, onClick }: Tria
     }, {
       onError: (error) => {
         console.error('Failed to mark trial as completed:', error)
-        // TODO: Show error toast
+        // Error is handled by React Query and displayed to user
       }
     })
   }

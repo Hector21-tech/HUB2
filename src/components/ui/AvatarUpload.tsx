@@ -115,8 +115,8 @@ export function AvatarUpload({
       // Compress image
       const compressedFile = await compressImage(file)
 
-      // Get upload URL
-      const uploadResponse = await fetch('/api/media/upload-url', {
+      // Get upload URL with tenant parameter (consistent with other APIs)
+      const uploadResponse = await fetch(`/api/media/upload-url?tenant=${encodeURIComponent(tenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
