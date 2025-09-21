@@ -255,9 +255,13 @@ export class TenantScopedOperations {
   constructor(private tenantId: string) {}
 
   // Player operations
-  async getPlayers(filters?: any) {
+  async getPlayers(options?: { where?: any; orderBy?: any; take?: number; skip?: number }) {
+    const { where, orderBy, take, skip } = options || {}
     return monitoredPrisma.player.findMany({
-      where: { ...filters, tenantId: this.tenantId }
+      where: { ...where, tenantId: this.tenantId },
+      orderBy,
+      take,
+      skip
     })
   }
 

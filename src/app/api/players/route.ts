@@ -230,7 +230,7 @@ export async function PUT(request: NextRequest) {
     const tenantOps = createTenantOperations(tenantId)
 
     // First check if player exists (this will be tenant-scoped automatically)
-    const existingPlayers = await tenantOps.getPlayers({ id })
+    const existingPlayers = await tenantOps.getPlayers({ where: { id } })
     if (!existingPlayers || existingPlayers.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Player not found or access denied' },
@@ -288,7 +288,7 @@ export async function DELETE(request: NextRequest) {
     const tenantOps = createTenantOperations(tenantId)
 
     // First check if player exists (tenant-scoped automatically)
-    const existingPlayers = await tenantOps.getPlayers({ id })
+    const existingPlayers = await tenantOps.getPlayers({ where: { id } })
     if (!existingPlayers || existingPlayers.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Player not found or access denied' },

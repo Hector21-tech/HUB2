@@ -6,6 +6,9 @@ import { createSecureResponse, createSecureErrorResponse } from '@/lib/security-
 
 const prisma = new PrismaClient()
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // GET - Dashboard analytics and stats
 export async function GET(request: NextRequest) {
   console.log('🔍 Dashboard Stats API: Incoming request')
