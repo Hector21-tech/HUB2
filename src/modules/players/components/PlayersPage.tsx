@@ -306,7 +306,7 @@ export function PlayersPage() {
   const handleUpdatePlayer = async (playerData: any) => {
     try {
       // Validate tenant context before making API call
-      if (!tenantId) {
+      if (!tenantSlug) {
         throw new Error('No tenant context available')
       }
 

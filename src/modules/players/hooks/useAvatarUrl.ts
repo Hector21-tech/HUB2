@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api-config'
 
 interface UseAvatarUrlProps {
   avatarPath?: string
@@ -95,6 +96,7 @@ export function getBestAvatarUrl(player: { avatarPath?: string; avatarUrl?: stri
 // Cache for signed URLs to avoid repeated requests
 const urlCache = new Map<string, { url: string; expiresAt: number }>()
 
+
 export async function getCachedAvatarUrl(avatarPath: string, tenantId: string): Promise<string | null> {
   const cacheKey = `${tenantId}:${avatarPath}`
   const cached = urlCache.get(cacheKey)
@@ -105,7 +107,8 @@ export async function getCachedAvatarUrl(avatarPath: string, tenantId: string): 
   }
 
   try {
-    const response = await fetch(`/api/media/avatar-url?path=${encodeURIComponent(avatarPath)}&tenantId=${tenantId}`)
+    // 🚀 ENTERPRISE FIX: Use centralized API configuration for environment-specific URLs
+    const response = await apiFetch(`/api/media/avatar-url?path=${encodeURIComponent(avatarPath)}&tenantId=${tenantId}`)
 
     if (!response.ok) {
       throw new Error(`Failed to get avatar URL: ${response.status}`)
@@ -132,10 +135,16 @@ export async function getCachedAvatarUrl(avatarPath: string, tenantId: string): 
   }
 }
 
-// Cache invalidation functions
+// 🚀 ENTERPRISE CACHE: Enhanced cache invalidation functions
 export function invalidateAvatarCache(avatarPath: string, tenantId: string) {
   const cacheKey = `${tenantId}:${avatarPath}`
-  urlCache.delete(cacheKey)
+  const deleted = urlCache.delete(cacheKey)
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🗑️ Avatar cache invalidation: ${cacheKey} ${deleted ? 'deleted' : 'not found'}`)
+  }
+
+  return deleted
 }
 
 export function invalidateAllAvatarCache() {

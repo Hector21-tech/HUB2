@@ -31,14 +31,25 @@ export function useTenantSlug() {
     membership => membership.tenant.slug === tenantSlug
   )
 
-  // Debug logging (only when needed for debugging)
-  if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TENANT_SLUG === '1') {
+  // 🚀 MOBILE DEBUG: Enhanced logging for tenant resolution issues
+  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_TENANT_SLUG === '1') {
     console.log('🔍 useTenantSlug Debug:', {
       tenantSlug,
       userTenants: userTenants.map(t => ({ slug: t.tenant.slug, id: t.tenantId })),
       found: !!tenantData,
-      tenantId: tenantData?.tenantId
+      tenantId: tenantData?.tenantId,
+      // 📱 Mobile-specific debug info
+      isMobile: typeof window !== 'undefined' ? /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) : false,
+      userAgent: typeof window !== 'undefined' ? navigator.userAgent.substring(0, 100) : 'SSR',
+      windowSize: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'SSR'
     })
+  }
+
+  // 🛡️ MOBILE FALLBACK: If no tenant found but we have userTenants, try first available
+  if (!tenantData && userTenants.length > 0 && tenantSlug) {
+    console.warn('⚠️ Mobile Fallback: No exact tenant match, available tenants:',
+      userTenants.map(t => ({ slug: t.tenant.slug, id: t.tenantId }))
+    )
   }
 
   // Auto-set current tenant if it matches the URL and is different
