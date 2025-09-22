@@ -55,16 +55,21 @@ export function transformDatabasePlayer(dbPlayer: PlayerData): EnhancedPlayer {
 
 /**
  * Transform enhanced player data back to database format
+ * Note: Excludes auto-generated fields (id, timestamps) for create operations
  */
 export function transformToDatabase(player: Partial<EnhancedPlayer>): Partial<PlayerData> {
-  const { positions, avatarUrl, tags = [], ...rest } = player
+  const { positions, avatarUrl, tags = [], id, createdAt, updatedAt, tenantId, ...rest } = player
 
-  return {
+  // Create clean payload without auto-generated fields
+  const cleanData = {
     ...rest,
     position: positions && positions.length > 0 ? positions.join(', ') : null,
     avatarUrl: avatarUrl || null, // Store avatar URL in proper field
-    tags: tags // Store tags without avatar URLs
+    tags: tags || [] // Ensure tags is always an array
   }
+
+  // Only include non-auto-generated fields
+  return cleanData
 }
 
 /**

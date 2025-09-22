@@ -75,7 +75,7 @@ enum TenantRole {
 
 // Player management
 model Player {
-  id             String    @id @default(cuid())
+  id             String    @id @default(uuid())
   tenantId       String
   firstName      String
   lastName       String

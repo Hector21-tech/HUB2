@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 
 type Ok =
   | { ok: true; user: any; tenantId: string; tenantSlug?: string }
-  | { ok: false; status: 401 | 403 | 500; message: string };
+  | { ok: false; status: 401 | 403 | 404 | 500; message: string };
 
 export async function requireTenant(ctx: { request: Request }): Promise<Ok> {
   const cookieStore = cookies();
@@ -30,31 +30,116 @@ export async function requireTenant(ctx: { request: Request }): Promise<Ok> {
     data: { user },
     error: authErr,
   } = await supabase.auth.getUser();
+
+  console.log('🔍 requireTenant: Auth check', {
+    hasUser: !!user,
+    userId: user?.id,
+    authError: authErr?.message
+  });
+
   if (authErr || !user) {
+    console.log('❌ requireTenant: Auth failed', authErr);
     return { ok: false, status: 401, message: "Not authenticated" };
   }
 
   const url = new URL(ctx.request.url);
   const tenantSlug = url.searchParams.get("tenant") ?? undefined;
 
+  console.log('🔍 requireTenant: Request info', {
+    url: url.href,
+    tenantSlug,
+    userId: user.id
+  });
+
+  // Step 1: Hämta memberships för user (camelCase schema)
   const { data: memberships, error: mErr } = await supabase
     .from("tenant_memberships")
-    .select("tenant_id, tenants!inner(slug)")
-    .eq("user_id", user.id);
+    .select("tenantId, userId")
+    .eq("userId", user.id);
 
-  if (mErr) return { ok: false, status: 500, message: "Membership lookup failed" };
-  if (!memberships?.length) return { ok: false, status: 403, message: "No tenant memberships" };
+  console.log('🔍 requireTenant: Membership query result', {
+    memberships,
+    error: mErr?.message,
+    errorCode: mErr?.code,
+    errorDetails: mErr?.details
+  });
+
+  if (mErr) {
+    console.log('❌ requireTenant: Membership lookup failed', mErr);
+    return { ok: false, status: 500, message: `Membership lookup failed: ${mErr.message}` };
+  }
+
+  if (!memberships?.length) {
+    console.log('❌ requireTenant: No memberships found for user', user.id);
+    return { ok: false, status: 403, message: "No tenant memberships" };
+  }
 
   let tenantId: string | undefined;
 
+  // Extract tenantIds från memberships
+  const memberTenantIds = memberships.map((m: any) => m.tenantId);
+  console.log('🔍 requireTenant: Found memberships', {
+    membershipCount: memberships.length,
+    memberTenantIds,
+    requestedSlug: tenantSlug
+  });
+
   if (tenantSlug) {
-    tenantId = memberships.find((m: any) => m.tenants?.slug === tenantSlug)?.tenant_id;
+    // Step 2: Slå upp tenant by slug och validera membership
+    const { data: tenantData, error: tenantErr } = await supabase
+      .from("tenants")
+      .select("id, slug, name")
+      .eq("slug", tenantSlug)
+      .single();
+
+    console.log('🔍 requireTenant: Tenant slug lookup', {
+      requestedSlug: tenantSlug,
+      foundTenant: tenantData,
+      error: tenantErr?.message
+    });
+
+    if (tenantErr || !tenantData) {
+      return { ok: false, status: 404, message: `Tenant slug '${tenantSlug}' not found` };
+    }
+
+    // Validera att user är medlem i denna tenant
+    if (!memberTenantIds.includes(tenantData.id)) {
+      console.log('❌ requireTenant: User not member of requested tenant', {
+        userId: user.id,
+        requestedTenantId: tenantData.id,
+        userTenantIds: memberTenantIds
+      });
+      return { ok: false, status: 403, message: `Access denied to tenant '${tenantSlug}'` };
+    }
+
+    tenantId = tenantData.id;
+    console.log('✅ requireTenant: Slug-based lookup success', {
+      slug: tenantSlug,
+      tenantId,
+      tenantName: tenantData.name
+    });
   } else {
-    // fallback: första membership (eller läs från user_profile.current_tenant_id om du har det)
-    tenantId = memberships[0].tenant_id;
+    // Fallback: första membership (inget tenant specificerat)
+    tenantId = memberTenantIds[0];
+    console.log('🔍 requireTenant: Using first membership as fallback', {
+      selectedTenantId: tenantId,
+      availableTenantIds: memberTenantIds
+    });
   }
 
-  if (!tenantId) return { ok: false, status: 401, message: "Access denied to tenant" };
+  if (!tenantId) {
+    console.log('❌ requireTenant: Could not resolve tenant ID', {
+      tenantSlug,
+      memberships: memberships.length
+    });
+    return { ok: false, status: 401, message: "Access denied to tenant" };
+  }
+
+  console.log('✅ requireTenant: Success', {
+    tenantId,
+    tenantSlug,
+    userId: user.id
+  });
 
   return { ok: true, user, tenantId, tenantSlug };
 }

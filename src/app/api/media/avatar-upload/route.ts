@@ -10,7 +10,22 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const file = form.get("file") as File | null;
   const playerId = form.get("playerId") as string | null;
-  if (!file || !playerId) return NextResponse.json({ success: false, error: "Missing file/playerId" }, { status: 400 });
+
+  if (!file || !playerId) {
+    return NextResponse.json({ success: false, error: "Missing file/playerId" }, { status: 400 });
+  }
+
+  // Validera MIME-type och storlek
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  if (!allowedTypes.includes(file.type)) {
+    return NextResponse.json({ success: false, error: "Invalid file type. Only JPEG, PNG, WebP allowed." }, { status: 400 });
+  }
+
+  if (file.size > maxSize) {
+    return NextResponse.json({ success: false, error: "File too large. Max 5MB allowed." }, { status: 400 });
+  }
 
   const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 

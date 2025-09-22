@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { requireTenant } from "@/lib/server/authz";
+import { transformToDatabase, transformDatabasePlayer } from "@/lib/player-utils";
 
 function sbServer() {
   const cookieStore = cookies();
@@ -33,11 +34,14 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("players")
     .select("*")
-    .eq("tenant_id", authz.tenantId)
+    .eq("tenantId", authz.tenantId)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true, data });
+
+  // Transform database data to frontend format
+  const transformedData = data?.map(transformDatabasePlayer) || [];
+  return NextResponse.json({ success: true, data: transformedData });
 }
 
 export async function POST(req: Request) {
@@ -45,11 +49,17 @@ export async function POST(req: Request) {
   if (!authz.ok) return NextResponse.json({ success: false, error: authz.message }, { status: authz.status });
 
   const body = await req.json();
-  const payload = { ...body, tenant_id: authz.tenantId }; // <— viktigt
+
+  // Transform frontend data to database format (auto-sanitized, no id/timestamps)
+  const cleanData = transformToDatabase(body);
+  const payload = { ...cleanData, tenantId: authz.tenantId }; // Server-side injection
 
   const supabase = sbServer();
   const { data, error } = await supabase.from("players").insert(payload).select().single();
 
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true, data });
+
+  // Transform back to frontend format
+  const transformedResult = data ? transformDatabasePlayer(data) : null;
+  return NextResponse.json({ success: true, data: transformedResult });
 }
