@@ -91,7 +91,7 @@ export function generateRateLimitKey(
   tenantId?: string,
   userId?: string
 ): string {
-  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-forwarded-for') || 'unknown'
   const userAgent = request.headers.get('user-agent')?.substring(0, 50) || 'unknown'
 
   // Include tenant and user for multi-tenant isolation
