@@ -8,7 +8,7 @@ type Ok =
   | { ok: false; status: 401 | 403 | 404 | 500; message: string };
 
 export async function requireTenant(ctx: { request: Request }): Promise<Ok> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

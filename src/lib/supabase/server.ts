@@ -2,8 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getDevUser, isDevAuthAvailable } from '@/src/lib/auth/dev-auth'
 
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,7 +38,7 @@ export function createClient() {
 
 // Helper function to get authenticated user
 export async function getUser() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
@@ -67,7 +67,7 @@ export async function validateTenantAccess(tenantId: string) {
     }
 
     // Check if user has membership in this tenant
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: membership, error } = await supabase
       .from('tenant_memberships')
       .select('role')

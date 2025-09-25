@@ -48,7 +48,7 @@ export async function validateSupabaseTenantAccess(
   }
 
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Get current user from Supabase session
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -138,6 +138,6 @@ export async function validateSupabaseTenantAccess(
  * Creates a Supabase client with tenant context for data operations
  * Call this after successful tenant validation
  */
-export function createTenantSupabaseClient() {
-  return createClient()
+export async function createTenantSupabaseClient() {
+  return await createClient()
 }

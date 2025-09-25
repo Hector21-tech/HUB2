@@ -49,7 +49,7 @@ const TENANT_TABLES = [
  * Check if a table has proper RLS policies enabled
  */
 async function auditTableRLS(tableName: string): Promise<RLSAuditResult> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const issues: string[] = []
   let severity: 'low' | 'medium' | 'high' | 'critical' = 'low'
 
@@ -226,7 +226,7 @@ export async function testCrossTenantPrevention(
     error?: string
   }>
 }> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const attemptedAccess: Array<{ table: string; success: boolean; error?: string }> = []
 
   // Test each tenant table

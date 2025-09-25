@@ -6,7 +6,6 @@ import { PlayersHeader } from './PlayersHeader'
 import { PlayerGrid, PlayerGridSkeleton } from './PlayerGrid'
 import { PlayerDetailDrawer } from './PlayerDetailDrawer'
 import { AddPlayerModal } from './AddPlayerModal'
-import { AddTrialModal } from '../../trials/components/AddTrialModal'
 import { usePlayersQuery } from '../hooks/usePlayersQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
@@ -491,15 +490,7 @@ export function PlayersPage() {
         editingPlayer={editingPlayer}
       />
 
-      {/* Schedule Trial Modal */}
-      <AddTrialModal
-        isOpen={isScheduleTrialModalOpen}
-        onClose={() => {
-          setIsScheduleTrialModalOpen(false)
-          setTrialPlayer(null)
-        }}
-        preSelectedPlayerId={trialPlayer?.id}
-      />
+      {/* Schedule Trial Modal - Feature disabled in this template */}
     </div>
   )
 }

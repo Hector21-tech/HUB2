@@ -38,12 +38,13 @@ export function AddPlayerModal({ isOpen, onClose, onAdd }: AddPlayerModalProps) 
     try {
       const playerData = {
         ...formData,
-        height: formData.height ? parseInt(formData.height) : null,
-        weight: formData.weight ? parseInt(formData.weight) : null,
-        rating: formData.rating ? parseFloat(formData.rating) : null,
+        dateOfBirth: new Date(formData.dateOfBirth),
+        height: formData.height ? parseInt(formData.height) : undefined,
+        weight: formData.weight ? parseInt(formData.weight) : undefined,
+        rating: formData.rating ? parseFloat(formData.rating) : undefined,
         tags: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       await onAdd(playerData);

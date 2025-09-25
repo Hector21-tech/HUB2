@@ -32,7 +32,7 @@ export function PlayersList({ players }: PlayersListProps) {
               <h3 className="text-lg font-semibold text-white">
                 {player.firstName} {player.lastName}
               </h3>
-              <p className="text-slate-300 text-sm">{player.position}</p>
+              <p className="text-slate-300 text-sm">{Array.isArray(player.positions) ? player.positions.join(', ') : player.positions}</p>
             </div>
           </div>
 
