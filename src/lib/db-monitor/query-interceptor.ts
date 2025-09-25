@@ -151,7 +151,7 @@ function addQueryLog(log: QueryLog): void {
 /**
  * Main Prisma middleware for query interception
  */
-export const queryInterceptorMiddleware: Prisma.Middleware = async (params, next) => {
+export const queryInterceptorMiddleware: any = async (params: any, next: any) => {
   const startTime = Date.now()
   const queryId = generateQueryId()
 
