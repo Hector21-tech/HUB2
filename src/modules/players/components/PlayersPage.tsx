@@ -474,8 +474,7 @@ export function PlayersPage() {
       <AddPlayerModal
         isOpen={isAddPlayerModalOpen}
         onClose={handleAddPlayerClose}
-        onSave={handleSavePlayer}
-        tenantId={tenantId || 'unknown'}
+        onAdd={handleSavePlayer}
       />
 
       {/* Edit Player Modal */}
@@ -485,9 +484,7 @@ export function PlayersPage() {
           setIsEditPlayerModalOpen(false)
           setEditingPlayer(null)
         }}
-        onSave={handleUpdatePlayer}
-        tenantId={tenantId || 'unknown'}
-        editingPlayer={editingPlayer}
+        onAdd={handleUpdatePlayer}
       />
 
       {/* Schedule Trial Modal - Feature disabled in this template */}
