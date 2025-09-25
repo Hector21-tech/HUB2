@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { PlayersList } from '@/src/modules/players/components/PlayersList'
 import { AddPlayerModal } from '@/src/modules/players/components/AddPlayerModal'
-import type { Player } from '@/src/modules/players/types'
+import type { Player } from '@/src/modules/players/types/player'
 
 export default function PlayersPage() {
   const params = useParams()
