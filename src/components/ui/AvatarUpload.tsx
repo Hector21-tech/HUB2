@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { Upload, X, Loader2, Camera, User } from 'lucide-react'
-import { apiFetch } from '@/lib/api-config'
+import { apiFetch } from '@/src/lib/api-config'
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string | null
