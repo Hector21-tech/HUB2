@@ -19,8 +19,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${subdomain}.${rootDomain}`,
-    description: `Subdomain page for ${subdomain}.${rootDomain}`
+    title: `${subdomainData.name} | Scout Hub`,
+    description: `${subdomainData.description} - Enterprise-grade scouting platform`
   };
 }
 
@@ -37,25 +37,40 @@ export default async function SubdomainPage({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white p-4">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="absolute top-4 right-4">
         <Link
           href={`${protocol}://${rootDomain}`}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
         >
           {rootDomain}
         </Link>
       </div>
 
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-9xl mb-6">{subdomainData.emoji}</div>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-            Welcome to {subdomain}.{rootDomain}
+        <div className="text-center max-w-2xl mx-auto">
+          <div className="text-6xl mb-8">{subdomainData.logoUrl || '⚽'}</div>
+          <h1 className="text-5xl font-bold tracking-tight text-white mb-4">
+            {subdomainData.name}
           </h1>
-          <p className="mt-3 text-lg text-gray-600">
-            This is your custom subdomain page
+          <p className="text-xl text-slate-300 mb-8">
+            {subdomainData.description}
           </p>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8">
+            <h2 className="text-2xl font-semibold text-white mb-4">
+              Scout Hub Dashboard 🎯
+            </h2>
+            <p className="text-slate-300 mb-6">
+              Access your scouting platform with comprehensive player management,
+              trial scheduling, and analytics.
+            </p>
+            <Link
+              href={`/login`}
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+            >
+              Access Dashboard →
+            </Link>
+          </div>
         </div>
       </div>
     </div>
