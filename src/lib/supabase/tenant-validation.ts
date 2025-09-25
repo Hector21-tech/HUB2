@@ -1,5 +1,14 @@
 import { createClient } from '@/src/lib/supabase/server'
-import { normalizeTenantSlug, createSafeLogData } from '@/src/lib/security/input-hygiene'
+
+// Simple fallback functions
+function normalizeTenantSlug(slug: string | null): string | null {
+  if (!slug || typeof slug !== 'string') return null
+  return slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '')
+}
+
+function createSafeLogData(data: any): string {
+  return data ? JSON.stringify(data).substring(0, 200) : 'null'
+}
 
 export interface TenantValidationResult {
   tenantId: string

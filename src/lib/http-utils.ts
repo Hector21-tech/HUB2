@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { TenantValidationError } from './supabase/tenant-validation'
-import { addSecureCacheHeaders } from './security/cache-protection'
+
+// Simple fallback for cache headers
+function addSecureCacheHeaders(response: NextResponse, options?: any): NextResponse {
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  return response
+}
 
 /**
  * Creates standardized HTTP responses with correct status codes
