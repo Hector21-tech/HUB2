@@ -26,8 +26,8 @@ class MonitoredPrismaClient extends PrismaClient {
       ...options
     })
 
-    // Add query interceptor middleware
-    this.$use(queryInterceptorMiddleware)
+    // TODO: Update query interceptor for newer Prisma version
+    // this.$use(queryInterceptorMiddleware)
 
     // Log monitoring initialization
     console.log('🛡️ Monitored Prisma Client initialized with security monitoring')
