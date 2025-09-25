@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Player } from '../types/player'
-import { apiFetch } from '@/lib/api-config'
+import { apiFetch } from '@/src/lib/api-config'
 
 interface PlayersResponse {
   success: boolean

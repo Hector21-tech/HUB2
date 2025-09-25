@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Building2, Search, ChevronDown, MapPin } from 'lucide-react'
-import { getClubsByCountry, searchClubs, type ClubCountryMapping } from '@/lib/club-country-mapping'
+import { getClubsByCountry, searchClubs, type ClubCountryMapping } from '@/src/lib/club-country-mapping'
 
 interface SmartClubSelectorProps {
   value: string

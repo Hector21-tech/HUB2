@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { X, Edit, Star, TrendingUp, Calendar, MapPin, Mail, Phone, Globe, Trash2, FileText, Loader2, Share } from 'lucide-react'
 import { Player } from '../types/player'
-import { formatPositionsDisplay } from '@/lib/positions'
-import { generateAndSharePDFWithGesture, isMobileDevice, isShareSupported } from '@/lib/sharePdf'
+import { formatPositionsDisplay } from '@/src/lib/positions'
+import { generateAndSharePDFWithGesture, isMobileDevice, isShareSupported } from '@/src/lib/sharePdf'
 import { useAvatarUrl } from '../hooks/useAvatarUrl'
-import { getPlayerInitials } from '@/lib/formatters'
+import { getPlayerInitials } from '@/src/lib/formatters'
 
 interface PlayerDetailDrawerProps {
   player: Player | null
@@ -127,7 +127,7 @@ export function PlayerDetailDrawer({ player, isOpen, onClose, onEdit, onDelete, 
       // If AI improvement is requested and player has notes
       if (useAI && player.notes) {
         try {
-          const { apiFetch } = await import('@/lib/api-config')
+          const { apiFetch } = await import('@/src/lib/api-config')
           const response = await apiFetch('/api/generate-player-description', {
             method: 'POST',
             body: JSON.stringify({

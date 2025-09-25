@@ -6,7 +6,7 @@
  */
 
 import { PrismaClient } from '@prisma/client'
-import { Logger } from '@/lib/logger'
+import { Logger } from '@/src/lib/logger'
 
 export interface RLSPolicyCheck {
   table: string

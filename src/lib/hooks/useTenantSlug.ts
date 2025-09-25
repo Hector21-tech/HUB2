@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useAuth } from '@/lib/auth/AuthContext'
+import { useAuth } from '@/src/lib/auth/AuthContext'
 
 /**
  * Hook to get current tenant information from URL slug

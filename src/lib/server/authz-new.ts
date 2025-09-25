@@ -1,7 +1,7 @@
 // src/lib/server/authz-new.ts
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { resolveTenantId, validateTenantMembership } from "@/lib/tenant-resolver";
+import { resolveTenantId, validateTenantMembership } from "@/src/lib/tenant-resolver";
 
 type Ok =
   | { ok: true; user: any; tenantId: string; tenantSlug?: string }

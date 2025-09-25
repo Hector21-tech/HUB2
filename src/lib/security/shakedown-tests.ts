@@ -5,7 +5,7 @@
  * Tests all implemented security measures
  */
 
-import { Logger } from '@/lib/logger'
+import { Logger } from '@/src/lib/logger'
 
 export interface SecurityTestResult {
   testName: string

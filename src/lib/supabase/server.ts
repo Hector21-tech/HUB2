@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getDevUser, isDevAuthAvailable } from '@/lib/auth/dev-auth'
+import { getDevUser, isDevAuthAvailable } from '@/src/lib/auth/dev-auth'
 
 export function createClient() {
   const cookieStore = cookies()

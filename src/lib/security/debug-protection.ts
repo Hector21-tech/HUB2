@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Logger, createLogContext } from '@/lib/logger'
+import { Logger, createLogContext } from '@/src/lib/logger'
 
 /**
  * 🛡️ Enterprise Debug Protection

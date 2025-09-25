@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Clock, AlertTriangle, CheckCircle, XCircle, Calendar } from 'lucide-react'
-import { TransferWindowCalculator, type WindowStatus, type WindowBadgeData } from '@/lib/transfer-window/window-utils'
-import { cn } from '@/lib/utils'
+import { TransferWindowCalculator, type WindowStatus, type WindowBadgeData } from '@/src/lib/transfer-window/window-utils'
+import { cn } from '@/src/lib/utils'
 
 interface WindowBadgeProps {
   windowOpenAt?: Date | string | null

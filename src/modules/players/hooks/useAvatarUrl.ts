@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { apiFetch } from '@/lib/api-config'
+import { apiFetch } from '@/src/lib/api-config'
 
 interface UseAvatarUrlProps {
   avatarPath?: string

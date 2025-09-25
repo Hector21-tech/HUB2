@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateRequestId } from '@/lib/logger'
+import { generateRequestId } from '@/src/lib/logger'
 
 /**
  * 🛡️ Enterprise Request Correlation

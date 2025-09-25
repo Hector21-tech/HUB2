@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { Player } from '../types/player'
 import { AlertTriangle, Calendar, Users } from 'lucide-react'
-import { isContractExpiring, formatDate } from '@/lib/formatters'
+import { isContractExpiring, formatDate } from '@/src/lib/formatters'
 
 interface ContractExpiryWidgetProps {
   players: Player[]

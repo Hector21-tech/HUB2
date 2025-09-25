@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/src/lib/supabase/client'
 
 interface AuthContextType {
   user: User | null
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Ensure user exists in our database
   const ensureUserInDatabase = async (user: User) => {
     try {
-      const { apiFetch } = await import('@/lib/api-config')
+      const { apiFetch } = await import('@/src/lib/api-config')
       await apiFetch('/api/users/sync', {
         method: 'POST',
         body: JSON.stringify({
@@ -205,7 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsFetchingTenants(false)
         setTimeout(async () => {
           try {
-            const { apiFetch } = await import('@/lib/api-config')
+            const { apiFetch } = await import('@/src/lib/api-config')
             const response = await apiFetch('/api/setup-user-data', {
               method: 'POST'
             })
@@ -245,7 +245,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Try to call setup API to create tenant memberships
           try {
             console.log('🔧 AuthContext: Attempting automatic tenant setup...')
-            const { apiFetch } = await import('@/lib/api-config')
+            const { apiFetch } = await import('@/src/lib/api-config')
             const response = await apiFetch('/api/setup-user-data', {
               method: 'POST'
             })

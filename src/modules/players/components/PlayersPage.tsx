@@ -10,8 +10,8 @@ import { AddTrialModal } from '../../trials/components/AddTrialModal'
 import { usePlayersQuery } from '../hooks/usePlayersQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { triggerAvatarCacheInvalidation } from '../hooks/useAvatarUrl'
-import { useTenantSlug } from '@/lib/hooks/useTenantSlug'
-import { apiFetch } from '@/lib/api-config'
+import { useTenantSlug } from '@/src/lib/hooks/useTenantSlug'
+import { apiFetch } from '@/src/lib/api-config'
 
 export function PlayersPage() {
   const { tenantSlug, tenantId } = useTenantSlug()

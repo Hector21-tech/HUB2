@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Building2, Target, Calendar, Clock, AlertTriangle, MoreVertical, MapPin, ChevronDown, ChevronRight } from 'lucide-react'
 import { WindowBadge } from './WindowBadge'
-import { getCountryByClub } from '@/lib/club-country-mapping'
+import { getCountryByClub } from '@/src/lib/club-country-mapping'
 
 interface Request {
   id: string

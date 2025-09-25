@@ -5,8 +5,8 @@
  * Prevents cross-tenant data access and enumeration attacks
  */
 
-import { createClient } from '@/lib/supabase/server'
-import { Logger } from '@/lib/logger'
+import { createClient } from '@/src/lib/supabase/server'
+import { Logger } from '@/src/lib/logger'
 
 export interface RLSAuditResult {
   table: string

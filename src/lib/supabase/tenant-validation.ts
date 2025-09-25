@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
-import { normalizeTenantSlug, createSafeLogData } from '@/lib/security/input-hygiene'
+import { createClient } from '@/src/lib/supabase/server'
+import { normalizeTenantSlug, createSafeLogData } from '@/src/lib/security/input-hygiene'
 
 export interface TenantValidationResult {
   tenantId: string

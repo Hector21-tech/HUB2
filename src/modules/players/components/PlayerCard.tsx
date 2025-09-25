@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Player } from '../types/player'
-import { formatPositionsDisplay } from '@/lib/positions'
-import { formatCurrency, calculateAge, isContractExpiring, getPlayerInitials } from '@/lib/formatters'
+import { formatPositionsDisplay } from '@/src/lib/positions'
+import { formatCurrency, calculateAge, isContractExpiring, getPlayerInitials } from '@/src/lib/formatters'
 import { useAvatarUrl } from '../hooks/useAvatarUrl'
 
 interface PlayerCardProps {
