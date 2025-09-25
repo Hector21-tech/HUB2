@@ -10,8 +10,10 @@ import { rootDomain, protocol } from '@/lib/utils';
 
 type Tenant = {
   subdomain: string;
-  emoji: string;
-  createdAt: number;
+  name: string;
+  description: string;
+  logoUrl?: string;
+  createdAt: string;
 };
 
 type DeleteState = {
@@ -62,7 +64,7 @@ function TenantGrid({
         <Card key={tenant.subdomain}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">{tenant.subdomain}</CardTitle>
+              <CardTitle className="text-xl">{tenant.name}</CardTitle>
               <form action={action}>
                 <input
                   type="hidden"
@@ -87,10 +89,13 @@ function TenantGrid({
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-4xl">{tenant.emoji}</div>
+              <div className="text-4xl">{tenant.logoUrl || '🏢'}</div>
               <div className="text-sm text-gray-500">
                 Created: {new Date(tenant.createdAt).toLocaleDateString()}
               </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">{tenant.description}</p>
             </div>
             <div className="mt-4">
               <a
